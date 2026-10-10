@@ -45,6 +45,7 @@ export const createProductService = async ({
   payload,
   files,
 }: ICreateProductRequest): Promise<IProduct> => {
+  const {} = payload
   // Determine seller ID: payload.seller if provided and valid, otherwise userId
   let sellerId = userId;
   if (payload.seller) {
@@ -72,7 +73,6 @@ export const createProductService = async ({
     if (sellerExists.verificationStatus !== SellerVerificationStatus.VERIFIED) {
       logger.warn(API_MESSAGES.SELLER_CANNOT_CREATE_PRODUCT, {
         userId: sellerExists._id,
-        action: "createProduct",
       });
       throw new AppError(
         HTTP_STATUS.UNAUTHORIZED,
@@ -85,14 +85,6 @@ export const createProductService = async ({
   }
 
   // Validate category existence
-  if (!Types.ObjectId.isValid(String(payload.category))) {
-    throw new AppError(
-      HTTP_STATUS.BAD_REQUEST,
-      ERROR_CODE.BAD_REQUEST,
-      "Invalid category ID",
-    );
-  }
-
   const category = await Category.findById(payload.category);
   if (!category) {
     logger.warn(API_MESSAGES.CATEGORY_NOT_FOUND, {

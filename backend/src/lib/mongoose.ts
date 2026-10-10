@@ -7,7 +7,7 @@
 /**
  * Node.js Module
  */
-import dns from "dns";
+import dns from "node:dns";
 
 /**
  * Third-Party Module
@@ -47,7 +47,7 @@ export const connectToMongoDB = async (): Promise<void> => {
   }
 
   // Set DNS servers for local development
-  if (config.NODE_ENV === "development") dns.setServers(["1.1.1.1", "8.8.8.8"]);
+  if (config.NODE_ENV === "development") dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
   try {
     await mongoose.connect(config.MONGO_URI, clientOptions);

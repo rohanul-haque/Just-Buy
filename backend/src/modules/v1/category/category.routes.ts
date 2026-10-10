@@ -5,12 +5,12 @@
  */
 
 /**
- * Third-Party Module
+ * Third-Party Modules
  */
 import { Router } from "express";
 
 /**
- * Middlewares
+ * Application Modules - Middlewares
  */
 import authenticate from "@/middlewares/authenticate";
 import authorize from "@/middlewares/authorize";
@@ -18,128 +18,94 @@ import validation from "@/middlewares/validation";
 import fileUpload from "@/utils/fileUpload";
 
 /**
- * Roles & Types
+ * Application Modules - Types
  */
 import { UserRole } from "@/modules/v1/auth/auth.intarface";
 
 /**
- * Validations
+ * Application Modules - Validations
  */
 import {
   categoryIdSchema,
-  categorySlugSchema,
   createCategorySchema,
-  getCategoriesQuerySchema,
   updateCategorySchema,
 } from "@/modules/v1/category/category.validation";
 
 /**
- * Controllers
+ * Application Modules - Controllers
  */
 import {
   createCategoryController,
   deleteCategoryController,
   getAllCategoriesController,
   getCategoryByIdController,
-  getCategoryBySlugController,
-  toggleCategoryStatusController,
   updateCategoryController,
 } from "@/modules/v1/category/category.controller";
 
 /**
- * Router instance
+ * Router Instance
  */
 const router = Router();
 
 /**
  * Create Category
- * @access - Private (Admin)
- * @method - POST
- * @route - /api/v1/category
+ * @access Private (Admin)
+ * @method POST
+ * @route /api/v1/category
  */
 router.post(
   "/",
   authenticate,
   authorize([UserRole.ADMIN]),
   fileUpload.single("image"),
-  validation(createCategorySchema),
+  validation(createCategorySchema, "body"),
   createCategoryController,
 );
 
 /**
  * Get All Categories
- * @access - Public
- * @method - GET
- * @route - /api/v1/category
+ * @access Public
+ * @method GET
+ * @route /api/v1/category/list
  */
-router.get(
-  "/",
-  validation(getCategoriesQuerySchema, "query"),
-  getAllCategoriesController,
-);
-
-/**
- * Get Category by Slug
- * @access - Public
- * @method - GET
- * @route - /api/v1/category/slug/:slug
- */
-router.get(
-  "/slug/:slug",
-  validation(categorySlugSchema, "params"),
-  getCategoryBySlugController,
-);
+router.get("/list", getAllCategoriesController);
 
 /**
  * Get Category by ID
- * @access - Public
- * @method - GET
- * @route - /api/v1/category/:id
+ * @access Public
+ * @method GET
+ * @route /api/v1/category/:categoryId
  */
 router.get(
-  "/:id",
+  "/:categoryId",
   validation(categoryIdSchema, "params"),
   getCategoryByIdController,
 );
 
 /**
  * Update Category
- * @access - Private (Admin)
- * @method - PATCH
- * @route - /api/v1/category/:id
+ * @access Private (Admin)
+ * @method PATCH
+ * @route /api/v1/category/:id
  */
 router.patch(
-  "/:id",
+  "/:categoryId",
   authenticate,
   authorize([UserRole.ADMIN]),
   fileUpload.single("image"),
   validation(categoryIdSchema, "params"),
-  validation(updateCategorySchema),
+  validation(updateCategorySchema, "body"),
   updateCategoryController,
 );
 
 /**
- * Toggle Category Status
- * @access - Private (Admin)
- * @method - PATCH / PUT
- * @route - /api/v1/category/:id/toggle-status
- */
-router.patch(
-  "/:id/toggle-status",
-  authenticate,
-  authorize([UserRole.ADMIN]),
-  validation(categoryIdSchema, "params"),
-  toggleCategoryStatusController,
-);
-
-/**
  * Delete Category
- * @access - Private (Admin)
- * @method - DELETE
- * @route - /api/v1/category/:id
+ * @access Private (Admin)
+ * @method DELETE
+ * @route /api/v1/category/:id
  */
 router.delete(
-  "/:id",
+  "/:categoryId",
   authenticate,
   authorize([UserRole.ADMIN]),
   validation(categoryIdSchema, "params"),
@@ -147,6 +113,6 @@ router.delete(
 );
 
 /**
- * Export router
+ * Export Router
  */
 export default router;

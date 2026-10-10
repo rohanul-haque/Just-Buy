@@ -5,30 +5,15 @@
  */
 
 import { Types } from "mongoose";
-
-/**
- * Category Image
- */
-export interface ICategoryImage {
-  publicId: string;
-  url: string;
-  width: number | null;
-  height: number | null;
-}
+import { IAvatar } from "../seller/seller.interface";
 
 /**
  * Category Interface
  */
 export interface ICategory {
-  _id?: Types.ObjectId;
-  name: string;
-  slug: string;
-  description: string;
-  image: ICategoryImage;
-  isActive: boolean;
   createdBy: Types.ObjectId;
-  createdAt: string;
-  updatedAt: string;
+  name: string;
+  image: IAvatar;
 }
 
 /**
@@ -55,16 +40,13 @@ export interface ICreateCategoryRequest {
  */
 export interface IUpdateCategoryPayload {
   name?: string;
-  slug?: string;
-  description?: string;
-  isActive?: boolean;
 }
 
 /**
  * Update Category Request
  */
 export interface IUpdateCategoryRequest {
-  categoryId: string;
+  categoryId: Types.ObjectId;
   payload: IUpdateCategoryPayload;
   file?: Express.Multer.File;
 }
@@ -87,8 +69,11 @@ export interface IGetCategoriesQuery {
 export interface IGetCategoriesResult {
   categories: ICategory[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  skip: number;
+}
+
+/**
+ * Category ID
+ */
+export interface ICategoryId {
+  categoryId: Types.ObjectId;
 }

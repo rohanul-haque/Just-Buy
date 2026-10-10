@@ -35,7 +35,7 @@ router.use("/health", healthRoute);
 router.use("/auth", AuthRoutes);
 router.use("/seller", sellerRoutes);
 router.use("/buyer", buyerRoutes);
-router.use("/categories", categoryRoutes);
+router.use("/category", categoryRoutes);
 router.use("/product", productRoutes);
 
 export default router;

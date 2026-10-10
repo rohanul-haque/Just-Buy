@@ -97,6 +97,7 @@ export const ERROR_CODE = {
   // Category
   CATEGORY_NOT_FOUND: "CATEGORY_NOT_FOUND",
   CATEGORY_ALREADY_EXISTS: "CATEGORY_ALREADY_EXISTS",
+  CATEGORY_IMAGE_REQUIRED: "CATEGORY_IMAGE_REQUIRED",
 
   // Cart
   CART_NOT_FOUND: "CART_NOT_FOUND",
@@ -214,7 +215,8 @@ export const API_MESSAGES = {
   SELLER_VERIFICATION_PENDING: "Seller verification is pending",
   SELLER_VERIFIED: "Seller account has been verified",
   SELLER_REJECTED: "Seller account has been rejected",
-  SELLER_CANNOT_CREATE_PRODUCT: "You cannot create product because your account is not approved", 
+  SELLER_CANNOT_CREATE_PRODUCT:
+    "You cannot create product because your account is not approved",
 
   // Password
   PASSWORD_CHANGED: "Password changed successfully",
@@ -241,6 +243,7 @@ export const API_MESSAGES = {
   PRODUCT_FETCHED: "Product fetched successfully",
 
   // Category
+  CATEGORY_IMAGE_REQUIRED: "Category image is required",
   CATEGORY_CREATED: "Category created successfully",
   CATEGORY_UPDATED: "Category updated successfully",
   CATEGORY_DELETED: "Category deleted successfully",

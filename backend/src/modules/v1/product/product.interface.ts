@@ -67,10 +67,8 @@ export interface IPopulatedProduct extends Omit<
 export interface ICreateProductPayload {
   seller?: Types.ObjectId | string;
   sellerId?: string;
-  seller_id?: string;
   category: Types.ObjectId | string;
   categoryId?: string;
-  category_id?: string;
   name: string;
   description?: string;
   price: number;
@@ -78,7 +76,6 @@ export interface ICreateProductPayload {
   stock_quantity?: number;
   images?: IProductImage[];
   isFeatured?: boolean;
-  is_featured?: boolean;
 }
 
 /**

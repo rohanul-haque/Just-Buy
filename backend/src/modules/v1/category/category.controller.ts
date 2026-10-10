@@ -25,10 +25,9 @@ import {
   deleteCategoryService,
   getAllCategoriesService,
   getCategoryByIdService,
-  getCategoryBySlugService,
-  toggleCategoryStatusService,
   updateCategoryService,
 } from "@/modules/v1/category/category.service";
+import { Types } from "mongoose";
 
 /**
  * Create Category Controller
@@ -38,7 +37,7 @@ import {
  */
 export const createCategoryController = asyncHandler(
   async (req: Request, res: Response) => {
-    const data = await createCategoryService({
+    await createCategoryService({
       userId: req.userId!,
       payload: req.body,
       file: req.file,
@@ -50,7 +49,6 @@ export const createCategoryController = asyncHandler(
       statusCode: HTTP_STATUS.CREATED,
       success: true,
       message: API_MESSAGES.CATEGORY_CREATED,
-      data,
     });
   },
 );
@@ -63,18 +61,15 @@ export const createCategoryController = asyncHandler(
  */
 export const getAllCategoriesController = asyncHandler(
   async (req: Request, res: Response) => {
-    const result = await getAllCategoriesService(req.query);
+    const result = await getAllCategoriesService();
 
     logger.info(API_MESSAGES.CATEGORIES_FETCHED);
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: true,
-      message: API_MESSAGES.CATEGORIES_FETCHED,
       data: result.categories,
       total: result.total,
-      skip: result.skip,
-      limit: result.limit,
     });
   },
 );
@@ -87,36 +82,18 @@ export const getAllCategoriesController = asyncHandler(
  */
 export const getCategoryByIdController = asyncHandler(
   async (req: Request, res: Response) => {
-    const data = await getCategoryByIdService(req.params.id as string);
+    const { categoryId } = req.params;
 
-    logger.info(API_MESSAGES.CATEGORY_FETCHED);
-
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.CATEGORY_FETCHED,
-      data,
+    const result = await getCategoryByIdService({
+      categoryId: categoryId as unknown as Types.ObjectId,
     });
-  },
-);
-
-/**
- * Get Category By Slug Controller
- * @access - Public
- * @method - GET
- * @route - /api/v1/category/slug/:slug
- */
-export const getCategoryBySlugController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const data = await getCategoryBySlugService(req.params.slug as string);
 
     logger.info(API_MESSAGES.CATEGORY_FETCHED);
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: true,
-      message: API_MESSAGES.CATEGORY_FETCHED,
-      data,
+      data: result,
     });
   },
 );
@@ -127,60 +104,44 @@ export const getCategoryBySlugController = asyncHandler(
  * @method - PATCH
  * @route - /api/v1/category/:id
  */
+/**
+ * Update Category Controller
+ */
 export const updateCategoryController = asyncHandler(
   async (req: Request, res: Response) => {
-    const data = await updateCategoryService({
-      categoryId: req.params.id as string,
+    const { categoryId } = req.params;
+
+    await updateCategoryService({
+      categoryId: categoryId as unknown as Types.ObjectId,
       payload: req.body,
       file: req.file,
     });
 
-    logger.info(API_MESSAGES.CATEGORY_UPDATED);
+    logger.info(API_MESSAGES.CATEGORY_UPDATED, { categoryId });
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: true,
       message: API_MESSAGES.CATEGORY_UPDATED,
-      data,
-    });
-  },
-);
-
-/**
- * Toggle Category Status Controller
- * @access - Private (Admin)
- * @method - PATCH / PUT
- * @route - /api/v1/category/:id/toggle-status
- */
-export const toggleCategoryStatusController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const data = await toggleCategoryStatusService(req.params.id as string);
-
-    logger.info(API_MESSAGES.CATEGORY_STATUS_UPDATED);
-
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.CATEGORY_STATUS_UPDATED,
-      data,
     });
   },
 );
 
 /**
  * Delete Category Controller
- * @access - Private (Admin)
- * @method - DELETE
- * @route - /api/v1/category/:id
  */
 export const deleteCategoryController = asyncHandler(
   async (req: Request, res: Response) => {
-    await deleteCategoryService(req.params.id as string);
+    const { categoryId } = req.params;
 
-    logger.info(API_MESSAGES.CATEGORY_DELETED);
+    await deleteCategoryService({
+      categoryId: categoryId as unknown as Types.ObjectId,
+    });
+
+    logger.info(API_MESSAGES.CATEGORY_DELETED, { categoryId });
 
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: HTTP_STATUS.NO_CONTENT,
       success: true,
       message: API_MESSAGES.CATEGORY_DELETED,
     });
