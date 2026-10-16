@@ -4,27 +4,29 @@
  * @license Apache-2.0
  */
 
-
-// User Roles
-
+/**
+ * User Roles Enum
+ */
 export enum UserRole {
   BUYER = "buyer",
   SELLER = "seller",
   ADMIN = "admin",
 }
 
-// User Interface
-
+/**
+ * User Interface
+ */
 export interface IUser {
   fullName: string;
   email: string;
   password: string;
   role: UserRole;
-  is_active: boolean;
+  isActive: boolean;
 }
 
-// Register Request Interface
-
+/**
+ * Register Request Interface
+ */
 export interface IRegisterRequest {
   fullName: string;
   email: string;
@@ -32,19 +34,24 @@ export interface IRegisterRequest {
   role: UserRole.BUYER | UserRole.SELLER | UserRole.ADMIN;
 }
 
-
-// Login Request Interface
+/**
+ * Login Request Interface
+ */
 export interface ILoginRequest {
   email: string;
   password: string;
 }
 
-// Refresh Token Request Interface
+/**
+ * Refresh Token Request Interface
+ */
 export interface IRefreshTokenRequest {
   refreshToken: string;
 }
 
-// Auth Response Interface
+/**
+ * Auth Response Interface
+ */
 export interface AuthResponse {
   user: {
     fullName: string;
@@ -55,7 +62,18 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
-// Forgot Password Request Interface
+/**
+ * Forgot Password Request Interface
+ */
 export interface IForgotPasswordRequest {
   email: string;
+}
+
+/**
+ * Reset Password Request Interface
+ */
+export interface IResetPasswordRequest {
+  email: string;
+  otp: string | number;
+  newPassword: string;
 }

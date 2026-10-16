@@ -7,7 +7,7 @@
 /**
  * Node.js Module
  */
-import dns from "dns";
+import dns from "node:dns";
 
 /**
  * Third-Party Module
@@ -29,8 +29,8 @@ import type { ConnectOptions } from "mongoose";
  * MongoDB Client Configuration
  */
 const clientOptions: ConnectOptions = {
-  dbName: "medi-flow-db",
-  appName: "Medi-Flow-API",
+  dbName: "jus-buy-db",
+  appName: "Jus-Buy-API",
   serverApi: {
     version: "1",
     strict: true,
@@ -47,7 +47,7 @@ export const connectToMongoDB = async (): Promise<void> => {
   }
 
   // Set DNS servers for local development
-  if (config.NODE_ENV === "development") dns.setServers(["1.1.1.1", "8.8.8.8"]);
+  if (config.NODE_ENV === "development") dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
   try {
     await mongoose.connect(config.MONGO_URI, clientOptions);

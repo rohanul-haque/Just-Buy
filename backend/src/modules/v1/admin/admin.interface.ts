@@ -1,22 +1,20 @@
 /**
  * @copyright 2026
  * @author Fardin Islam Selim - MERN Stack Developer
- * @description Admin Interface
+ * @license Apache-2.0
  */
 
 /**
- * Third-Party Modules
+ * Types
  */
+import type { IAvatar } from "@/modules/v1/seller/seller.interface";
 import type { Types } from "mongoose";
 
 /**
  * Admin Profile
  */
-export interface IAdminProfile {
-  _id?: Types.ObjectId;
-
-  user_id: Types.ObjectId;
-
-  created_at?: Date;
-  updated_at?: Date;
+export interface IAdmin {
+  user: Types.ObjectId;
+  avatar: IAvatar;
+  phoneNumber: string;
 }

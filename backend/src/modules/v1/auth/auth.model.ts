@@ -7,16 +7,16 @@
 /**
  * Third-Party Modules
  */
+import bcrypt from "bcrypt";
 import { Schema, model, models } from "mongoose";
 
 /**
- * Application Modules
+ * Type
  */
-import type { IUser } from "@/modules/v1/auth/auth.intarface";
-import { UserRole } from "@/modules/v1/auth/auth.intarface";
+import { type IUser, UserRole } from "@/modules/v1/auth/auth.intarface";
 
 /**
- * User Schema
+ * User Schema Definition
  */
 const userSchema = new Schema<IUser>(
   {
@@ -24,7 +24,7 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, "Name is required"],
       trim: true,
-      maxlength: 100,
+      maxlength: [50, "Name can not be more than 50 characters"],
     },
 
     email: {
@@ -33,14 +33,14 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      maxlength: 150,
+      maxlength: [254, "Email can not be more than 254 characters"],
     },
 
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: 6,
-      maxlength: 255,
+      minlength: [8, "Password must be at least 8 characters long"],
+      maxlength: [128, "Password cannot be more than 128 characters"],
     },
 
     role: {
@@ -50,7 +50,7 @@ const userSchema = new Schema<IUser>(
       required: true,
     },
 
-    is_active: {
+    isActive: {
       type: Boolean,
       default: true,
     },
@@ -62,6 +62,21 @@ const userSchema = new Schema<IUser>(
 );
 
 /**
- * Model
+ * Hash the password before persisting the user document.
  */
-export const User = models.User || model<IUser>("User", userSchema);
+userSchema.pre("save", async function () {
+  if (!this.isModified("password") || !this.password) {
+    return;
+  }
+
+  const salt = await bcrypt.genSalt(10);
+
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+/**
+ * User Model Definition
+ */
+const User = models.User || model<IUser>("User", userSchema);
+
+export default User;

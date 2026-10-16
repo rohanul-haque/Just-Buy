@@ -5,21 +5,24 @@
  */
 
 /**
- * Node-js Module
+ * Node.js Module
  */
 import path from "path";
 
 /**
- * Third-Party Module
+ * Third-Party Modules
  */
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import ejs from "ejs";
 
-
 /**
  * Application Modules
  */
+import config from "@/config";
+import { transporter } from "@/lib/nodemailer";
+import { redisClient } from "@/lib/redis";
+import { logger } from "@/lib/winston";
 import AppError from "@/utils/appError";
 import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
 import {
@@ -27,38 +30,55 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "@/utils/jwt";
-import { redisClient } from "@/lib/redis";
-import { transporter } from "@/lib/nodemailer";
-import config from "@/config";
 
 /**
  * Models
  */
-import { User } from "@/modules/v1/auth/auth.model";
-import { BuyerProfile } from "@/modules/v1/buyer/buyer.model";
-import { SellerProfile } from "@/modules/v1/seller/seller.mode";
+import Admin from "@/modules/v1/admin/admin.model";
+import User from "@/modules/v1/auth/auth.model";
+import Buyer from "@/modules/v1/buyer/buyer.model";
+import Seller from "@/modules/v1/seller/seller.model";
 
 /**
  * Types
  */
-import type {
-  AuthResponse,
-  IForgotPasswordRequest,
-  ILoginRequest,
-  IRegisterRequest,
+import {
+  IResetPasswordRequest,
+  UserRole,
+  type AuthResponse,
+  type IForgotPasswordRequest,
+  type ILoginRequest,
+  type IRegisterRequest,
 } from "@/modules/v1/auth/auth.intarface";
-import type { Request } from "express";
-
-
+import type { Request, Response } from "express";
 
 /**
- * Register Service
+ * User Register Service
  * @param { IRegisterRequest } payload
  * @returns { Promise<AuthResponse> }
  */
-const register = async (payload: IRegisterRequest): Promise<AuthResponse> => {
+export const registerService = async (
+  payload: IRegisterRequest,
+): Promise<AuthResponse> => {
   // Destructure the all payload
   const { fullName, email, password, role } = payload;
+
+  // Check if user is trying to sign as an admin with non-whitelisted email
+  if (
+    role === UserRole.ADMIN &&
+    !config.WHITELISTED_ADMIN_MAILS.includes(email)
+  ) {
+    logger.warn(
+      "You cannot sign as an admin. your email not admin whitelisted",
+      { email },
+    );
+
+    throw new AppError(
+      HTTP_STATUS.FORBIDDEN,
+      ERROR_CODE.AUTHENTICATION_ERROR,
+      API_MESSAGES.ADMIN_CANNOT_REGISTER,
+    );
+  }
 
   // Check existing user
   const existingUser = await User.findOne({
@@ -73,26 +93,30 @@ const register = async (payload: IRegisterRequest): Promise<AuthResponse> => {
     );
   }
 
-  // Hash Password
-  const hashedPassword = await bcrypt.hash(password, 12);
-
   // Create User
   const user = await User.create({
     fullName,
     email,
-    password: hashedPassword,
+    password,
     role,
-    is_active: true,
+    isActive: true,
   });
 
   // Create Profile based on role
-  if (role === "buyer") {
-    await BuyerProfile.create({
+  if (role === UserRole.BUYER) {
+    await Buyer.create({
+      user: user?._id
+    });
+  }
+
+  if (role === UserRole.SELLER) {
+    await Seller.create({
       user: user?._id,
     });
   }
-  if (role === "seller") {
-    await SellerProfile.create({
+
+  if (role === UserRole.ADMIN) {
+    await Admin.create({
       user: user?._id,
     });
   }
@@ -114,11 +138,13 @@ const register = async (payload: IRegisterRequest): Promise<AuthResponse> => {
 };
 
 /**
- * Login Service
+ * User Login Service
  * @param { ILoginRequest } payload
  * @returns { Promise<AuthResponse> }
  */
-const login = async (payload: ILoginRequest): Promise<AuthResponse> => {
+export const loginService = async (
+  payload: ILoginRequest,
+): Promise<AuthResponse> => {
   // Destructure the all payload
   const { email, password } = payload;
 
@@ -166,14 +192,20 @@ const login = async (payload: ILoginRequest): Promise<AuthResponse> => {
 };
 
 /**
- * Refresh Token Service
- * @param { string } payload
- * @returns { Promise<AuthResponse> }
+ * Service for refresh token.
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {Promise<void>}
  */
-const refreshToken = async (req: Request): Promise<AuthResponse> => {
+export const refreshTokenService = async ({
+  req,
+  res,
+}: {
+  req: Request;
+  res: Response;
+}): Promise<void> => {
+  // Get refresh token from cookies
   const refreshToken = req.cookies.refreshToken;
-
- 
 
   if (!refreshToken) {
     throw new AppError(
@@ -183,18 +215,10 @@ const refreshToken = async (req: Request): Promise<AuthResponse> => {
     );
   }
 
+  // Verify refresh token
   const decoded = verifyRefreshToken(refreshToken);
 
-   console.log("this is from service", decoded);
-
-  if (!decoded) {
-    throw new AppError(
-      HTTP_STATUS.UNAUTHORIZED,
-      ERROR_CODE.AUTH_REFRESH_TOKEN_INVALID,
-      API_MESSAGES.REFRESH_TOKEN_INVALID,
-    );
-  }
-
+  // Check user exist or not
   const user = await User.findById(decoded.userId);
 
   if (!user) {
@@ -205,18 +229,16 @@ const refreshToken = async (req: Request): Promise<AuthResponse> => {
     );
   }
 
-  const accessToken = generateAccessToken(user._id);
-  const newRefreshToken = generateRefreshToken(user._id);
+  // Generate new access token
+  const accessToken = generateAccessToken(user?._id);
 
-  return {
-    user: {
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-    },
-    accessToken,
-    refreshToken: newRefreshToken,
-  };
+  // Set access token in cookies
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: config.NODE_ENV !== "development",
+    sameSite: config.NODE_ENV === "development" ? "lax" : "strict",
+    maxAge: 60 * 60 * 1000, // 1 hour
+  });
 };
 
 /**
@@ -224,8 +246,10 @@ const refreshToken = async (req: Request): Promise<AuthResponse> => {
  * @param { string } payload
  * @returns { Promise<AuthResponse> }
  */
-const forgotPassword = async (payload:IForgotPasswordRequest): Promise<void> => {
-  const { email } = payload;
+export const forgotPasswordService = async (
+  payload: IForgotPasswordRequest,
+): Promise<void> => {
+  const email = payload.email.trim().toLowerCase();
 
   const user = await User.findOne({
     email,
@@ -239,7 +263,7 @@ const forgotPassword = async (payload:IForgotPasswordRequest): Promise<void> => 
     );
   }
 
-  if (user.is_active === false) {
+  if (user.isActive === false) {
     throw new AppError(
       HTTP_STATUS.UNAUTHORIZED,
       ERROR_CODE.AUTH_ACCOUNT_DISABLED,
@@ -265,14 +289,11 @@ const forgotPassword = async (payload:IForgotPasswordRequest): Promise<void> => 
     "src/templates/forgot-password.ejs",
   );
 
-  const html = await ejs.renderFile(
-    templatePath,
-    {
-      name: user.fullName,
-      otp,
-      expiresIn: expirationSeconds / 60,
-    },
-  );
+  const html = await ejs.renderFile(templatePath, {
+    name: user.fullName,
+    otp,
+    expiresIn: expirationSeconds / 60,
+  });
 
   await transporter.sendMail({
     from: config.EMAIL_SENDER,
@@ -280,13 +301,69 @@ const forgotPassword = async (payload:IForgotPasswordRequest): Promise<void> => 
     subject: "Reset Your Just-Buy Password",
     html,
   });
-
-
 };
 
-export const authService = {
-  register,
-  login,
-  refreshToken,
-  forgotPassword,
+export const resetPasswordService = async (
+  payload: IResetPasswordRequest,
+): Promise<void> => {
+  // Destructure the all payload
+  const { otp, newPassword } = payload;
+  const email = payload.email.trim().toLowerCase();
+
+  const user = await User.findOne({
+    email,
+  });
+
+  // Check user exist or not
+  if (!user) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      ERROR_CODE.AUTH_ACCOUNT_NOT_FOUND,
+      API_MESSAGES.ACCOUNT_NOT_FOUND,
+    );
+  }
+
+  // Check user is active or not
+  if (user.isActive === false) {
+    throw new AppError(
+      HTTP_STATUS.UNAUTHORIZED,
+      ERROR_CODE.AUTH_ACCOUNT_DISABLED,
+      API_MESSAGES.ACCOUNT_DISABLED,
+    );
+  }
+
+  // Check OTP
+  const key = `forgot-password-otp:${user.email}`;
+
+  // Get OTP from Redis
+  const redisOtp = await redisClient.get(key);
+
+  // Check OTP expired or not
+  if (!redisOtp) {
+    throw new AppError(
+      HTTP_STATUS.BAD_REQUEST,
+      ERROR_CODE.AUTH_OTP_EXPIRED,
+      API_MESSAGES.OTP_EXPIRED,
+    );
+  }
+
+  // Check OTP match or not
+  if (String(redisOtp).trim() !== String(otp).trim()) {
+    throw new AppError(
+      HTTP_STATUS.BAD_REQUEST,
+      ERROR_CODE.AUTH_OTP_NOT_MATCH,
+      API_MESSAGES.OTP_NOT_MATCH,
+    );
+  }
+
+  // Delete OTP from Redis
+  await redisClient.del(key);
+
+  // Update the user's password
+  user.password = String(newPassword);
+
+  // Save the user
+  await user.save();
+
+  logger.info("Password reset successfully", { email });
 };

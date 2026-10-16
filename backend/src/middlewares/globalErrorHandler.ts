@@ -7,29 +7,18 @@
 /**
  * Third-Party Module
  */
-import {
-  JsonWebTokenError,
-  TokenExpiredError,
-} from "jsonwebtoken";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { ZodError } from "zod";
 
 /**
  * Application Modules
  */
-import { logger } from "@/lib/winston";
-import {
-  API_MESSAGES,
-  ERROR_CODE,
-  HTTP_STATUS,
-} from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
 
 /**
  * Type
  */
-import type {
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+import type { NextFunction, Request, Response } from "express";
 
 /**
  * Global Error Handler Middleware
@@ -45,14 +34,8 @@ const globalErrorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  logger.error(error);
-
   /**
    * JWT Expired Token Error
-   *
-   * IMPORTANT:
-   * TokenExpiredError extends JsonWebTokenError,
-   * so this check must come before JsonWebTokenError.
    */
   if (error instanceof TokenExpiredError) {
     res.status(HTTP_STATUS.UNAUTHORIZED).json({
@@ -78,6 +61,25 @@ const globalErrorHandler = (
   }
 
   /**
+   * Zod Validation Error
+   */
+  if (error instanceof ZodError) {
+    const errors = error.issues.map((issue) => ({
+      field: issue.path.length > 0 ? issue.path.join(".") : "unknown",
+      message: issue.message,
+    }));
+
+    res.status(HTTP_STATUS.BAD_REQUEST).json({
+      success: false,
+      code: ERROR_CODE.VALIDATION_ERROR,
+      message: API_MESSAGES.VALIDATION_ERROR,
+      errors,
+    });
+
+    return;
+  }
+
+  /**
    * Custom Error
    */
   const err = error as {
@@ -92,27 +94,20 @@ const globalErrorHandler = (
    * Set Status Code
    */
   const statusCode =
-    err.statusCode ??
-    err.status ??
-    HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    err.statusCode ?? err.status ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
   /**
    * Set Error Message
    */
-  const message =
-    err.message ??
-    API_MESSAGES.INTERNAL_SERVER_ERROR;
+  const message = err.message ?? API_MESSAGES.INTERNAL_SERVER_ERROR;
 
   /**
    * Send Error Response
    */
   res.status(statusCode).json({
     success: false,
-    code:
-      err.code ??
-      ERROR_CODE.INTERNAL_SERVER_ERROR,
+    code: err.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR,
     message,
-
     ...(process.env.NODE_ENV !== "production" && {
       stack: err.stack,
     }),
@@ -120,4 +115,3 @@ const globalErrorHandler = (
 };
 
 export default globalErrorHandler;
-
