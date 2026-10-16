@@ -19,7 +19,10 @@ import validation from "@/middlewares/validation";
 /**
  * API Controllers
  */
-import { addToCartController } from "@/modules/v1/cart/cart.controller";
+import {
+  addToCartController,
+  getCartController,
+} from "@/modules/v1/cart/cart.controller";
 
 /**
  * Type
@@ -36,6 +39,14 @@ import { addToCartSchema } from "./cart.validation";
  * Router Instance
  */
 const router = Router();
+
+/**
+ * Get Buyer's Cart
+ * @access - Private
+ * @method - GET
+ * @route - /api/v1/cart
+ */
+router.get("/", authenticate, authorize([UserRole.BUYER]), getCartController);
 
 /**
  * Add Product to Cart

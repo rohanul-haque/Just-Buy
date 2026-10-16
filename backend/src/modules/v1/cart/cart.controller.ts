@@ -12,7 +12,10 @@ import { Types } from "mongoose";
 /**
  * Application Modules
  */
-import { addToCartService } from "@/modules/v1/cart/cart.service";
+import {
+  addToCartService,
+  getCartService,
+} from "@/modules/v1/cart/cart.service";
 import asyncHandler from "@/utils/asyncHandler";
 import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
@@ -49,20 +52,19 @@ export const addToCartController = asyncHandler(
 /**
  * Get Cart Controller
  */
-// export const getCartController = asyncHandler(
-//   async (req: Request, res: Response) => {
-//     const buyerId = new Types.ObjectId(req.userId!);
+export const getCartController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const buyerId = req.userId!;
 
-//     const result = await getCartService(buyerId);
+    const result = await getCartService(buyerId);
 
-//     sendResponse(res, {
-//       statusCode: HTTP_STATUS.OK,
-//       success: true,
-//       message: "Cart retrieved successfully",
-//       data: result,
-//     });
-//   },
-// );
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      data: result,
+    });
+  },
+);
 
 /**
  * Update Cart Quantity Controller

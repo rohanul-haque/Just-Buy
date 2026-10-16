@@ -15,7 +15,12 @@ import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
 /**
  * Types
  */
-import type { IAddToCartRequest } from "@/modules/v1/cart/cart.interface";
+import { logger } from "@/lib/winston";
+import type {
+  BuyerId,
+  IAddToCartRequest,
+  ICartResponse,
+} from "@/modules/v1/cart/cart.interface";
 
 /**
  * Add Product to Cart
@@ -24,7 +29,7 @@ export const addToCartService = async ({
   buyerId,
   productId,
   quantity,
-}: IAddToCartRequest) => {
+}: IAddToCartRequest): Promise<void> => {
   // Check if the product exists
   const productExists = await Product.exists({ _id: productId });
 
@@ -64,64 +69,33 @@ export const addToCartService = async ({
       { $push: { items: { product: productId, quantity } } },
     );
   }
-
-  // Return the updated cart
-  return Cart.findOne({ buyer: buyerId }).populate(
-    "items.product",
-    "name price images",
-  );
 };
 
 /**
  * Get Buyer's Cart
+ * @param {BuyerId} buyerId - Buyer ID
+ * @returns {Promise<ICartResponse>}
  */
-// export const getCartService = async (buyerId: Types.ObjectId) => {
-//   const cart = await Cart.findOne({ buyer: buyerId }).populate(
-//     "items.product",
-//     "name price image",
-//   );
+export const getCartService = async (
+  buyerId: BuyerId,
+): Promise<ICartResponse> => {
+  const cart = await Cart.findOne({ buyer: buyerId })
+    .populate("items.product", "name price images")
+    .lean<ICartResponse>()
+    .exec();
 
-//   if (!cart) {
-//     return {
-//       items: [],
-//       subtotal: 0,
-//       deliveryFee: 0,
-//       discount: 0,
-//       total: 0,
-//     };
-//   }
+  if (!cart) {
+    logger.info("Cart not found", { buyerId });
 
-//   // Calculate subtotal using current product prices
-//   const items = cart.items as unknown as Array<{
-//     product: {
-//       _id: Types.ObjectId;
-//       name: string;
-//       price: number;
-//       image: string;
-//     };
-//     quantity: number;
-//   }>;
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      ERROR_CODE.CART_NOT_FOUND,
+      API_MESSAGES.CART_NOT_FOUND,
+    );
+  }
 
-//   const subtotal = items.reduce(
-//     (sum, item) => sum + item.product.price * item.quantity,
-//     0,
-//   );
-
-//   // Delivery fee and discount should follow business rules
-//   const deliveryFee = items.length > 0 ? 100 : 0;
-//   const discount = 0;
-//   const total = subtotal + deliveryFee - discount;
-
-//   return {
-//     _id: cart._id,
-//     buyer: cart.buyer,
-//     items,
-//     subtotal,
-//     deliveryFee,
-//     discount,
-//     total,
-//   };
-// };
+  return cart;
+};
 
 /**
  * Update Cart Item Quantity
