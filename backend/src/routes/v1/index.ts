@@ -14,11 +14,12 @@ import express from "express";
  */
 import AuthRoutes from "@/modules/v1/auth/auth.routes";
 import buyerRoutes from "@/modules/v1/buyer/buyer.routes";
+import cartRoute from "@/modules/v1/cart/cart.routes";
 import categoryRoutes from "@/modules/v1/category/category.routes";
+import orderRoute from "@/modules/v1/order/order.routes";
 import productRoutes from "@/modules/v1/product/product.routes";
 import sellerRoutes from "@/modules/v1/seller/seller.routes";
 import wishlistRoutes from "@/modules/v1/wishlist/wishlist.routes";
-import cartRoute from "@/modules/v1/cart/cart.routes"
 
 /**
  * API Controller
@@ -41,5 +42,6 @@ router.use("/category", categoryRoutes);
 router.use("/product", productRoutes);
 router.use("/wishlist", wishlistRoutes);
 router.use("/cart", cartRoute);
+router.use("/order", orderRoute);
 
 export default router;

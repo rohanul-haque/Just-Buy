@@ -1,0 +1,44 @@
+/**
+ * @copyright 2026
+ * @author Rohanul Haque Rohan - MERN Stack Developer
+ * @license Apache-2.0
+ */
+
+/**
+ * Third-Party Modules
+ */
+import { Types } from "mongoose";
+
+/**
+ * Application Modules
+ */
+import asyncHandler from "@/utils/asyncHandler";
+import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import sendResponse from "@/utils/sendResponse";
+
+/**
+ * Application Service
+ */
+import { createOrderService } from "@/modules/v1/order/order.service";
+
+/**
+ * Type
+ */
+import type { Request, Response } from "express";
+
+/**
+ * Create Order Controller
+ */
+export const createOrderController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const buyerId = new Types.ObjectId(req.userId!);
+
+    await createOrderService(buyerId, req.body);
+
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.CREATED,
+      success: true,
+      message: API_MESSAGES.ORDER_CREATED,
+    });
+  },
+);
