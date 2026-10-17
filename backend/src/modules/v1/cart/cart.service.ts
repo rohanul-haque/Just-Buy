@@ -36,6 +36,8 @@ export const addToCartService = async ({
   const productExists = await Product.exists({ _id: productId });
 
   if (!productExists) {
+    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, { productId });
+
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
@@ -87,12 +89,12 @@ export const getCartService = async (
     .exec();
 
   if (!cart) {
-    logger.info("Cart not found", { buyerId });
+    logger.info(API_MESSAGES.CART_ITEM_NOT_FOUND, { buyerId });
 
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
-      ERROR_CODE.CART_NOT_FOUND,
-      API_MESSAGES.CART_NOT_FOUND,
+      ERROR_CODE.CART_ITEM_NOT_FOUND,
+      API_MESSAGES.CART_ITEM_NOT_FOUND,
     );
   }
 
@@ -124,6 +126,8 @@ export const updateCartQuantityService = async ({
   );
 
   if (!cart) {
+    logger.warn(API_MESSAGES.CART_ITEM_NOT_FOUND, { buyerId, productId });
+
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
       ERROR_CODE.CART_ITEM_NOT_FOUND,
@@ -155,6 +159,8 @@ export const removeFromCartService = async ({
   );
 
   if (!cart) {
+    logger.warn(API_MESSAGES.CART_ITEM_NOT_FOUND, { buyerId, productId });
+
     throw new AppError(
       HTTP_STATUS.NOT_FOUND,
       ERROR_CODE.CART_ITEM_NOT_FOUND,

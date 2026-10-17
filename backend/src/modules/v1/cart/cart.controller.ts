@@ -25,6 +25,7 @@ import sendResponse from "@/utils/sendResponse";
 /**
  * Type
  */
+import { logger } from "@/lib/winston";
 import type { Request, Response } from "express";
 
 /**
@@ -36,17 +37,18 @@ export const addToCartController = asyncHandler(
     const buyerId = req.userId!;
     const { quantity } = req.body;
 
-    const result = await addToCartService({
+    await addToCartService({
       buyerId,
       productId: productId as unknown as Types.ObjectId,
       quantity,
     });
 
+    logger.info(API_MESSAGES.CART_ITEM_ADDED, { productId });
+
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
       success: true,
       message: API_MESSAGES.CART_ITEM_ADDED,
-      data: result,
     });
   },
 );
@@ -59,6 +61,8 @@ export const getCartController = asyncHandler(
     const buyerId = req.userId!;
 
     const result = await getCartService(buyerId);
+
+    logger.info("Cart fetched successfully", result);
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
@@ -77,11 +81,13 @@ export const updateCartQuantityController = asyncHandler(
     const buyerId = req.userId!;
     const { quantity } = req.body;
 
-    const result = await updateCartQuantityService({
+    await updateCartQuantityService({
       buyerId,
       productId: productId as unknown as Types.ObjectId,
       quantity,
     });
+
+    logger.info(API_MESSAGES.CART_ITEM_UPDATED, { productId });
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
@@ -103,6 +109,8 @@ export const removeFromCartController = asyncHandler(
       buyerId,
       productId: productId as unknown as Types.ObjectId,
     });
+
+    logger.info(API_MESSAGES.CART_ITEM_REMOVED, productId);
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.OK,
