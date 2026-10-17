@@ -15,6 +15,7 @@ import { Types } from "mongoose";
 import {
   addToCartService,
   getCartService,
+  updateCartQuantityService,
 } from "@/modules/v1/cart/cart.service";
 import asyncHandler from "@/utils/asyncHandler";
 import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
@@ -69,26 +70,25 @@ export const getCartController = asyncHandler(
 /**
  * Update Cart Quantity Controller
  */
-// export const updateCartQuantityController = asyncHandler(
-//   async (req: Request, res: Response) => {
-//     const { productId } = req.params;
-//     const buyerId = new Types.ObjectId(req.userId!);
-//     const { quantity } = req.body;
+export const updateCartQuantityController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { productId } = req.params;
+    const buyerId = req.userId!;
+    const { quantity } = req.body;
 
-//     const result = await updateCartQuantityService({
-//       buyerId,
-//       productId: new Types.ObjectId(productId),
-//       quantity,
-//     });
+    const result = await updateCartQuantityService({
+      buyerId,
+      productId: productId as unknown as Types.ObjectId,
+      quantity,
+    });
 
-//     sendResponse(res, {
-//       statusCode: HTTP_STATUS.OK,
-//       success: true,
-//       message: "Cart quantity updated successfully",
-//       data: result,
-//     });
-//   },
-// );
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      message: API_MESSAGES.CART_ITEM_UPDATED,
+    });
+  },
+);
 
 /**
  * Remove Product from Cart Controller

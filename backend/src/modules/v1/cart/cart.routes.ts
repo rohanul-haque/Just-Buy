@@ -22,6 +22,7 @@ import validation from "@/middlewares/validation";
 import {
   addToCartController,
   getCartController,
+  updateCartQuantityController,
 } from "@/modules/v1/cart/cart.controller";
 
 /**
@@ -61,6 +62,21 @@ router.post(
   validation(productIdSchema, "params"),
   validation(addToCartSchema, "body"),
   addToCartController,
+);
+
+/**
+ * Update Cart Item Quantity
+ * @access - Private
+ * @method - PUT
+ * @route - /api/v1/cart/:productId/quantity
+ */
+router.patch(
+  "/:productId/quantity",
+  authenticate,
+  authorize([UserRole.BUYER]),
+  validation(productIdSchema, "params"),
+  validation(addToCartSchema, "body"),
+  updateCartQuantityController,
 );
 
 export default router;
