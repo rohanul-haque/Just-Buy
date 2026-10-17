@@ -20,6 +20,7 @@ import type {
   BuyerId,
   IAddToCartRequest,
   ICartResponse,
+  IRemoveFromCartRequest,
   IUpdateCartQuantityRequest,
 } from "@/modules/v1/cart/cart.interface";
 
@@ -134,32 +135,30 @@ export const updateCartQuantityService = async ({
 /**
  * Remove Product from Cart
  */
-// export const removeFromCartService = async ({
-//   buyerId,
-//   productId,
-// }: IAddToCartRequest) => {
-//   const cart = await Cart.findOneAndUpdate(
-//     {
-//       buyer: buyerId,
-//       "items.product": productId,
-//     },
-//     {
-//       $pull: {
-//         items: { product: productId },
-//       },
-//     },
-//     {
-//       new: true,
-//     },
-//   ).populate("items.product", "name price image");
+export const removeFromCartService = async ({
+  buyerId,
+  productId,
+}: IRemoveFromCartRequest) => {
+  const cart = await Cart.findOneAndUpdate(
+    {
+      buyer: buyerId,
+      "items.product": productId,
+    },
+    {
+      $pull: {
+        items: { product: productId },
+      },
+    },
+    {
+      new: true,
+    },
+  );
 
-//   if (!cart) {
-//     throw new AppError(
-//       HTTP_STATUS.NOT_FOUND,
-//       ERROR_CODE.PRODUCT_NOT_FOUND,
-//       "Product not found in cart",
-//     );
-//   }
-
-//   return cart;
-// };
+  if (!cart) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      ERROR_CODE.CART_ITEM_NOT_FOUND,
+      API_MESSAGES.CART_ITEM_NOT_FOUND,
+    );
+  }
+};

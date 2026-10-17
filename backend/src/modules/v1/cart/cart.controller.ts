@@ -15,6 +15,7 @@ import { Types } from "mongoose";
 import {
   addToCartService,
   getCartService,
+  removeFromCartService,
   updateCartQuantityService,
 } from "@/modules/v1/cart/cart.service";
 import asyncHandler from "@/utils/asyncHandler";
@@ -93,21 +94,20 @@ export const updateCartQuantityController = asyncHandler(
 /**
  * Remove Product from Cart Controller
  */
-// export const removeFromCartController = asyncHandler(
-//   async (req: Request, res: Response) => {
-//     const { productId } = req.params;
-//     const buyerId = new Types.ObjectId(req.userId!);
+export const removeFromCartController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { productId } = req.params;
+    const buyerId = req.userId!;
 
-//     const result = await removeFromCartService(
-//       buyerId,
-//       new Types.ObjectId(productId),
-//     );
+    await removeFromCartService({
+      buyerId,
+      productId: productId as unknown as Types.ObjectId,
+    });
 
-//     sendResponse(res, {
-//       statusCode: HTTP_STATUS.OK,
-//       success: true,
-//       message: "Product removed from cart successfully",
-//       data: result,
-//     });
-//   },
-// );
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      message: API_MESSAGES.CART_ITEM_REMOVED,
+    });
+  },
+);

@@ -22,6 +22,7 @@ import validation from "@/middlewares/validation";
 import {
   addToCartController,
   getCartController,
+  removeFromCartController,
   updateCartQuantityController,
 } from "@/modules/v1/cart/cart.controller";
 
@@ -77,6 +78,20 @@ router.patch(
   validation(productIdSchema, "params"),
   validation(addToCartSchema, "body"),
   updateCartQuantityController,
+);
+
+/**
+ * Remove Product from Cart
+ * @access - Private
+ * @method - DELETE
+ * @route - /api/v1/cart/:productId
+ */
+router.delete(
+  "/:productId",
+  authenticate,
+  authorize([UserRole.BUYER]),
+  validation(productIdSchema, "params"),
+  removeFromCartController,
 );
 
 export default router;

@@ -39,6 +39,11 @@ export interface IAddToCartRequest {
   quantity: number;
 }
 
+export interface IRemoveFromCartRequest {
+  buyerId: Types.ObjectId;
+  productId: Types.ObjectId;
+}
+
 /**
  * Update Cart Quantity Request
  */
