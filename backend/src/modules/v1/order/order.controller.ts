@@ -19,7 +19,10 @@ import sendResponse from "@/utils/sendResponse";
 /**
  * Application Service
  */
-import { createOrderService } from "@/modules/v1/order/order.service";
+import {
+  createOrderService,
+  updateOrderStatusService,
+} from "@/modules/v1/order/order.service";
 
 /**
  * Type
@@ -31,14 +34,35 @@ import type { Request, Response } from "express";
  */
 export const createOrderController = asyncHandler(
   async (req: Request, res: Response) => {
-    const buyerId = new Types.ObjectId(req.userId!);
+    const buyerId = req.userId;
 
-    await createOrderService(buyerId, req.body);
+    await createOrderService(buyerId!, req.body);
 
     sendResponse(res, {
       statusCode: HTTP_STATUS.CREATED,
       success: true,
       message: API_MESSAGES.ORDER_CREATED,
+    });
+  },
+);
+
+/**
+ * Controller for Updating Order Status
+ */
+export const updateOrderStatusController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const orderId = req.params.orderId;
+    const { status } = req.body;
+
+    await updateOrderStatusService(
+      orderId as unknown as Types.ObjectId,
+      status,
+    );
+
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      message: API_MESSAGES.ORDER_STATUS_UPDATED,
     });
   },
 );

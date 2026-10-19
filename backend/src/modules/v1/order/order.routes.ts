@@ -18,7 +18,10 @@ import authorize from "@/middlewares/authorize";
 /**
  * API Controllers
  */
-import { createOrderController } from "@/modules/v1/order/order.controller";
+import {
+  createOrderController,
+  updateOrderStatusController,
+} from "@/modules/v1/order/order.controller";
 
 /**
  * Type
@@ -28,8 +31,12 @@ import { UserRole } from "@/modules/v1/auth/auth.intarface";
 /**
  * Validations
  */
-import { createOrderSchema } from "@/modules/v1/order/order.validation";
 import validation from "@/middlewares/validation";
+import {
+  createOrderSchema,
+  orderIdSchema,
+  updateOrderStatusSchema,
+} from "@/modules/v1/order/order.validation";
 
 /**
  * Router Instance
@@ -48,6 +55,21 @@ router.post(
   authorize([UserRole.BUYER]),
   validation(createOrderSchema, "body"),
   createOrderController,
+);
+
+/**
+ * Update Order Status
+ * @access - Private
+ * @method - PATCH
+ * @route - /api/v1/order/:orderId/status
+ */
+router.patch(
+  "/:orderId/status",
+  authenticate,
+  authorize([UserRole.SELLER]),
+  validation(orderIdSchema, "params"),
+  validation(updateOrderStatusSchema, "body"),
+  updateOrderStatusController,
 );
 
 export default router;

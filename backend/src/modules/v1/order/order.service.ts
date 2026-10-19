@@ -28,6 +28,7 @@ import Product from "@/modules/v1/product/product.model";
 import type {
   CreateOrderInput,
   IOrderItem,
+  OrderStatus,
 } from "@/modules/v1/order/order.interface";
 import type { IAvatar } from "@/modules/v1/seller/seller.interface";
 
@@ -110,4 +111,34 @@ export const createOrderService = async (
 
   // Clear the cart after creating the order
   await Cart.deleteOne({ _id: cart._id, buyer: buyerId });
+};
+
+/**
+ * Service for update order status
+ * @param orderId - Order ID
+ * @param status - Order status
+ * @returns Promise<void>
+ */
+export const updateOrderStatusService = async (
+  orderId: Types.ObjectId,
+  status: OrderStatus,
+): Promise<void> => {
+  const updatedOrder = await Order.findByIdAndUpdate(
+    orderId,
+    {
+      $set: { orderStatus: status },
+    },
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
+
+  if (!updatedOrder) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      ERROR_CODE.ORDER_NOT_FOUND,
+      API_MESSAGES.ORDER_NOT_FOUND,
+    );
+  }
 };
