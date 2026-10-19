@@ -16,6 +16,7 @@ import AuthRoutes from "@/modules/v1/auth/auth.routes";
 import buyerRoutes from "@/modules/v1/buyer/buyer.routes";
 import cartRoute from "@/modules/v1/cart/cart.routes";
 import categoryRoutes from "@/modules/v1/category/category.routes";
+import earningRoutes from "@/modules/v1/earning/earning.routes";
 import orderRoute from "@/modules/v1/order/order.routes";
 import productRoutes from "@/modules/v1/product/product.routes";
 import sellerRoutes from "@/modules/v1/seller/seller.routes";
@@ -43,5 +44,6 @@ router.use("/product", productRoutes);
 router.use("/wishlist", wishlistRoutes);
 router.use("/cart", cartRoute);
 router.use("/order", orderRoute);
+router.use("/earning", earningRoutes);
 
 export default router;
