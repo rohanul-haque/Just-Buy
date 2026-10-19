@@ -278,6 +278,7 @@ export const API_MESSAGES = {
   // Order
   ORDER_CREATED: "Order placed successfully",
   ORDER_UPDATED: "Order updated successfully",
+  ORDER_STATUS_UPDATED: "Order status updated successfully",
   ORDER_CANCELLED: "Order cancelled successfully",
   ORDER_NOT_FOUND: "Order not found",
   ORDER_CANNOT_BE_CANCELLED: "This order cannot be cancelled",

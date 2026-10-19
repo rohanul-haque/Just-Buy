@@ -33,7 +33,7 @@ import {
 } from "@/modules/v1/buyer/buyer.controller";
 
 /**
- * Interfaces
+ * Type
  */
 import { UserRole } from "@/modules/v1/auth/auth.intarface";
 

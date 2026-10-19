@@ -113,20 +113,6 @@ export const updateProductSchema = z.object({
 });
 
 /**
- * Product ID Param Validation Schema
- */
-// export const productIdSchema = z.object({
-//   id: z.string().regex(objectIdRegex, "Invalid product ID"),
-// });
-
-/**
- * Product ID Param Validation Schema (Alternative parameter name)
- */
-// export const productIdParamSchema = z.object({
-//   productId: z.string().regex(objectIdRegex, "Invalid product ID"),
-// });
-
-/**
  * Get Products Query Validation Schema
  */
 export const getProductsQuerySchema = z.object({
