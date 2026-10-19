@@ -99,3 +99,37 @@ export interface CreateOrderInput extends ICreateOrderInput {}
  * Create Order Request Interface
  */
 export interface ICreateOrderRequest extends ICreateOrderInput {}
+
+/**
+ * Vendor Order Buyer Interface
+ */
+export interface IVendorOrderBuyer {
+  _id: Types.ObjectId | string;
+  name: string;
+  avatar: IAvatar | null;
+}
+
+/**
+ * Vendor Order Item Interface
+ */
+export interface IVendorOrderItem {
+  productId: Types.ObjectId | string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+/**
+ * Vendor Order Response Interface
+ */
+export interface IVendorOrderResponse {
+  _id: Types.ObjectId | string;
+  buyer: IVendorOrderBuyer;
+  items: IVendorOrderItem[];
+  orderStatus: OrderStatus;
+  total: number;
+  createdAt: Date | string;
+}
+
+export type IVendorOrder = IVendorOrderResponse;
+

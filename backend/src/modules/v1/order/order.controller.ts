@@ -21,6 +21,7 @@ import sendResponse from "@/utils/sendResponse";
  */
 import {
   createOrderService,
+  getVendorOrdersService,
   updateOrderStatusService,
 } from "@/modules/v1/order/order.service";
 
@@ -63,6 +64,23 @@ export const updateOrderStatusController = asyncHandler(
       statusCode: HTTP_STATUS.OK,
       success: true,
       message: API_MESSAGES.ORDER_STATUS_UPDATED,
+    });
+  },
+);
+
+/**
+ * Controller for Get Vendor Orders
+ */
+export const getVendorOrdersController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const sellerId = new Types.ObjectId(req.userId!);
+
+    const orders = await getVendorOrdersService(sellerId);
+
+    sendResponse(res, {
+      statusCode: HTTP_STATUS.OK,
+      success: true,
+      data: orders,
     });
   },
 );

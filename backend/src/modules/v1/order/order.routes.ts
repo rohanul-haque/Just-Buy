@@ -20,6 +20,7 @@ import authorize from "@/middlewares/authorize";
  */
 import {
   createOrderController,
+  getVendorOrdersController,
   updateOrderStatusController,
 } from "@/modules/v1/order/order.controller";
 
@@ -55,6 +56,19 @@ router.post(
   authorize([UserRole.BUYER]),
   validation(createOrderSchema, "body"),
   createOrderController,
+);
+
+/**
+ * Get Vendor Orders
+ * @access - Private
+ * @method - GET
+ * @route - /api/v1/order/vendor
+ */
+router.get(
+  "/vendor",
+  authenticate,
+  authorize([UserRole.SELLER]),
+  getVendorOrdersController,
 );
 
 /**
