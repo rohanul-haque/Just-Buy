@@ -23,6 +23,7 @@ export const HTTP_STATUS = {
   CONFLICT: 409,
   UNPROCESSABLE_ENTITY: 422,
   TOO_MANY_REQUESTS: 429,
+  PAYLOAD_TOO_LARGE: 413,
 
   // Server Errors
   INTERNAL_SERVER_ERROR: 500,
@@ -65,6 +66,11 @@ export const ERROR_CODE = {
   // Token
   AUTH_TOKEN_REFRESH_FAILED: "AUTH_TOKEN_REFRESH_FAILED",
 
+  // OTP
+  AUTH_INVALID_OTP: "AUTH_INVALID_OTP",
+  AUTH_OTP_EXPIRED: "AUTH_OTP_EXPIRED",
+  AUTH_OTP_NOT_MATCH: "AUTH_OTP_NOT_MATCH",
+
   // User
   USER_NOT_FOUND: "USER_NOT_FOUND",
   USER_ALREADY_EXISTS: "USER_ALREADY_EXISTS",
@@ -78,6 +84,7 @@ export const ERROR_CODE = {
   SELLER_PROFILE_NOT_FOUND: "SELLER_PROFILE_NOT_FOUND",
   SELLER_PROFILE_UPDATE_FAILED: "SELLER_PROFILE_UPDATE_FAILED",
   SELLER_NOT_APPROVED: "SELLER_NOT_APPROVED",
+  SELLER_UNAUTHORIZED_ACCESS: "SELLER_UNAUTHORIZED_ACCESS",
 
   // Product
   PRODUCT_NOT_FOUND: "PRODUCT_NOT_FOUND",
@@ -90,6 +97,7 @@ export const ERROR_CODE = {
   // Category
   CATEGORY_NOT_FOUND: "CATEGORY_NOT_FOUND",
   CATEGORY_ALREADY_EXISTS: "CATEGORY_ALREADY_EXISTS",
+  CATEGORY_IMAGE_REQUIRED: "CATEGORY_IMAGE_REQUIRED",
 
   // Cart
   CART_NOT_FOUND: "CART_NOT_FOUND",
@@ -99,6 +107,7 @@ export const ERROR_CODE = {
   // Wishlist
   WISHLIST_NOT_FOUND: "WISHLIST_NOT_FOUND",
   WISHLIST_ITEM_NOT_FOUND: "WISHLIST_ITEM_NOT_FOUND",
+  PRODUCT_ALREADY_WISHED: "PRODUCT_ALREADY_WISHED",
 
   // Order
   ORDER_NOT_FOUND: "ORDER_NOT_FOUND",
@@ -134,7 +143,7 @@ export const API_MESSAGES = {
   DELETED: "Resource deleted successfully",
   BAD_REQUEST: "Invalid request",
   UNAUTHORIZED: "Authentication required",
-  FORBIDDEN: "You do not have permission to perform this action",
+  FORBIDDEN: "You do not have permission to access this resource",
   NOT_FOUND: "Resource not found",
   INTERNAL_SERVER_ERROR: "Internal server error",
   VALIDATION_ERROR: "Validation failed",
@@ -163,6 +172,11 @@ export const API_MESSAGES = {
   // Token
   TOKEN_REFRESH_SUCCESS: "Authentication token refreshed successfully",
   TOKEN_REFRESH_FAILED: "Failed to refresh authentication token",
+
+  // OTP
+  INVALID_OTP: "Invalid OTP",
+  OTP_EXPIRED: "OTP has been expired",
+  OTP_NOT_MATCH: "OTP does not match",
 
   // User
   USER_CREATED: "User created successfully",
@@ -202,6 +216,8 @@ export const API_MESSAGES = {
   SELLER_VERIFICATION_PENDING: "Seller verification is pending",
   SELLER_VERIFIED: "Seller account has been verified",
   SELLER_REJECTED: "Seller account has been rejected",
+  SELLER_CANNOT_CREATE_PRODUCT:
+    "You cannot create product because your account is not approved",
 
   // Password
   PASSWORD_CHANGED: "Password changed successfully",
@@ -224,13 +240,19 @@ export const API_MESSAGES = {
   PRODUCT_NOT_FOUND: "Product not found",
   PRODUCT_ALREADY_EXISTS: "Product already exists",
   PRODUCT_OUT_OF_STOCK: "Product is out of stock",
+  PRODUCTS_FETCHED: "Products fetched successfully",
+  PRODUCT_FETCHED: "Product fetched successfully",
 
   // Category
+  CATEGORY_IMAGE_REQUIRED: "Category image is required",
   CATEGORY_CREATED: "Category created successfully",
   CATEGORY_UPDATED: "Category updated successfully",
   CATEGORY_DELETED: "Category deleted successfully",
   CATEGORY_NOT_FOUND: "Category not found",
   CATEGORY_ALREADY_EXISTS: "Category already exists",
+  CATEGORIES_FETCHED: "Categories fetched successfully",
+  CATEGORY_FETCHED: "Category fetched successfully",
+  CATEGORY_STATUS_UPDATED: "Category status updated successfully",
 
   // Cart
   CART_CREATED: "Cart created successfully",
@@ -251,10 +273,12 @@ export const API_MESSAGES = {
   WISHLIST_ITEM_ADDED: "Item added to wishlist successfully",
   WISHLIST_ITEM_REMOVED: "Item removed from wishlist successfully",
   WISHLIST_ITEM_NOT_FOUND: "Wishlist item not found",
+  PRODUCT_ALREADY_WISHED: "Product already in wishlist",
 
   // Order
   ORDER_CREATED: "Order placed successfully",
   ORDER_UPDATED: "Order updated successfully",
+  ORDER_STATUS_UPDATED: "Order status updated successfully",
   ORDER_CANCELLED: "Order cancelled successfully",
   ORDER_NOT_FOUND: "Order not found",
   ORDER_CANNOT_BE_CANCELLED: "This order cannot be cancelled",

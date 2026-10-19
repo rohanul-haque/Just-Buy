@@ -43,6 +43,7 @@ import Seller from "@/modules/v1/seller/seller.model";
  * Types
  */
 import {
+  IResetPasswordRequest,
   UserRole,
   type AuthResponse,
   type IForgotPasswordRequest,
@@ -248,7 +249,7 @@ export const refreshTokenService = async ({
 export const forgotPasswordService = async (
   payload: IForgotPasswordRequest,
 ): Promise<void> => {
-  const { email } = payload;
+  const email = payload.email.trim().toLowerCase();
 
   const user = await User.findOne({
     email,
@@ -262,7 +263,7 @@ export const forgotPasswordService = async (
     );
   }
 
-  if (user.is_active === false) {
+  if (user.isActive === false) {
     throw new AppError(
       HTTP_STATUS.UNAUTHORIZED,
       ERROR_CODE.AUTH_ACCOUNT_DISABLED,
@@ -300,4 +301,69 @@ export const forgotPasswordService = async (
     subject: "Reset Your Just-Buy Password",
     html,
   });
+};
+
+export const resetPasswordService = async (
+  payload: IResetPasswordRequest,
+): Promise<void> => {
+  // Destructure the all payload
+  const { otp, newPassword } = payload;
+  const email = payload.email.trim().toLowerCase();
+
+  const user = await User.findOne({
+    email,
+  });
+
+  // Check user exist or not
+  if (!user) {
+    throw new AppError(
+      HTTP_STATUS.NOT_FOUND,
+      ERROR_CODE.AUTH_ACCOUNT_NOT_FOUND,
+      API_MESSAGES.ACCOUNT_NOT_FOUND,
+    );
+  }
+
+  // Check user is active or not
+  if (user.isActive === false) {
+    throw new AppError(
+      HTTP_STATUS.UNAUTHORIZED,
+      ERROR_CODE.AUTH_ACCOUNT_DISABLED,
+      API_MESSAGES.ACCOUNT_DISABLED,
+    );
+  }
+
+  // Check OTP
+  const key = `forgot-password-otp:${user.email}`;
+
+  // Get OTP from Redis
+  const redisOtp = await redisClient.get(key);
+
+  // Check OTP expired or not
+  if (!redisOtp) {
+    throw new AppError(
+      HTTP_STATUS.BAD_REQUEST,
+      ERROR_CODE.AUTH_OTP_EXPIRED,
+      API_MESSAGES.OTP_EXPIRED,
+    );
+  }
+
+  // Check OTP match or not
+  if (String(redisOtp).trim() !== String(otp).trim()) {
+    throw new AppError(
+      HTTP_STATUS.BAD_REQUEST,
+      ERROR_CODE.AUTH_OTP_NOT_MATCH,
+      API_MESSAGES.OTP_NOT_MATCH,
+    );
+  }
+
+  // Delete OTP from Redis
+  await redisClient.del(key);
+
+  // Update the user's password
+  user.password = String(newPassword);
+
+  // Save the user
+  await user.save();
+
+  logger.info("Password reset successfully", { email });
 };

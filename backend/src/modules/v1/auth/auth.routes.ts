@@ -24,12 +24,18 @@ import {
   logoutController,
   refreshTokenController,
   registerController,
+  resetPasswordController,
 } from "@/modules/v1/auth/auth.controller";
 
 /**
  * Validations
  */
-import { loginSchema, registerSchema } from "@/modules/v1/auth/auth.validation";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from "@/modules/v1/auth/auth.validation";
 
 /**
  * Router Instance
@@ -74,6 +80,22 @@ router.post("/refresh-token", refreshTokenController);
  * @method - POST
  * @route - /api/v1/auth/forgot-password
  */
-router.post("/forgot-password", forgotPasswordController);
+router.post(
+  "/forgot-password",
+  validation(forgotPasswordSchema),
+  forgotPasswordController,
+);
+
+/**
+ * Reset Password Route
+ * @access - public
+ * @method - POST
+ * @route - /api/v1/auth/reset-password
+ */
+router.post(
+  "/reset-password",
+  validation(resetPasswordSchema),
+  resetPasswordController,
+);
 
 export default router;

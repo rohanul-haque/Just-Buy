@@ -56,8 +56,29 @@ export const refreshTokenSchema = z.object({
 });
 
 /**
+ * Forgot Password Validation Schema
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Email is required").trim().toLowerCase(),
+});
+
+/**
+ * Reset Password Validation Schema
+ */
+export const resetPasswordSchema = z.object({
+  email: z.string().email("Email is required").trim().toLowerCase(),
+  otp: z.coerce.string().trim().length(6, "OTP must be 6 digits"),
+  newPassword: z.coerce
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password cannot exceed 128 characters"),
+});
+
+/**
  * Types
  */
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

@@ -68,3 +68,12 @@ export interface AuthResponse {
 export interface IForgotPasswordRequest {
   email: string;
 }
+
+/**
+ * Reset Password Request Interface
+ */
+export interface IResetPasswordRequest {
+  email: string;
+  otp: string | number;
+  newPassword: string;
+}
