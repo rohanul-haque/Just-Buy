@@ -3,6 +3,7 @@
  * @author Fardin Islam Selim - MERN Stack Developer
  * @license Apache-2.0
  */
+
 /**
  * Third-Party Module
  */
@@ -14,7 +15,7 @@ import { createClient } from "redis";
 import config from "@/config";
 
 /**
- * Redis Client
+ * Redis Client Configuration
  */
 export const redisClient = createClient({
   username: config.REDIS_USER,

@@ -40,71 +40,52 @@ const app = express();
  * Security Middlewares
  */
 
-/**
- * Helmet Middleware for Cross Site Scripting (XSS) attacks and other security headers
- */
+// Helmet Middleware for Cross Site Scripting (XSS) attacks and other security headers
 app.use(
   helmet({
     contentSecurityPolicy: config.NODE_ENV === "production",
   }),
 );
 
-/**
- * CORS Middleware for Cross-Origin Resource Sharing
- */
+// CORS Middleware for Cross-Origin Resource Sharing
 app.use(cors(corsOptions));
 
-/**
- * Response Compression Middleware
- */
+// Response Compression Middleware
 app.use(
   compression({
     threshold: 1024,
   }),
 );
 
-/**
- * JSON Body Parser Middleware for handling JSON payloads
- */
+// JSON Body Parser Middleware for handling JSON payloads
 app.use(
   express.json({
-    limit: "5mb",
+    limit: "10mb",
   }),
 );
 
-/**
- * URL-encoded Body Parser Middleware for handling URL-encoded payloads
- */
+// URL-encoded Body Parser Middleware for handling URL-encoded payloads
 app.use(
   express.urlencoded({
     extended: true,
-    limit: "5mb",
+    limit: "10mb",
   }),
 );
 
-/**
- * Cookie Parser Middleware for handling cookies
- */
+// Cookie Parser Middleware for handling cookies
 app.use(cookieParser());
 
-/**
- * Rate Limiter Middleware for limiting the number of requests
- */
+// Rate Limiter Middleware for limiting the number of requests
 app.use(limiter);
 
-/**
- * API Route
- */
+// API Route
 app.use("/api/v1", v1Routes);
 
-/**
- * Route Not Found Middleware for handling 404 errors
- */
+// Route Not Found Middleware for handling 404 errors
 app.use(notFoundRoute);
 
-/**
- * Global Error Handler Middleware for handling errors
- */
+// Global Error Handler Middleware for handling errors
 app.use(globalErrorHandler);
 
+// Export Express App
 export default app;

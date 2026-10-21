@@ -11,13 +11,6 @@ import type { Response } from "express";
 
 /**
  * Type for response data
- * @param { number } statusCode - The HTTP status code
- * @param { boolean } success - The success status
- * @param { string } message - The response message
- * @param { T } data - The response data
- * @param { number } skip - The skip value
- * @param { number } limit - The limit value
- * @param { number } total - The total value
  */
 interface ResponseSchema<T> {
   statusCode: number;
@@ -47,4 +40,7 @@ const sendResponse = <T>(res: Response, response: ResponseSchema<T>): void => {
   });
 };
 
+/**
+ * Export default sendResponse
+ */
 export default sendResponse;

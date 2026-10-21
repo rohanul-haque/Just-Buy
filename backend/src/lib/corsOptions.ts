@@ -35,4 +35,7 @@ const corsOptions: CorsOptions = {
   },
 };
 
+/**
+ * Export default corsOptions
+ */
 export default corsOptions;

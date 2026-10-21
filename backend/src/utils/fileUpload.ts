@@ -26,4 +26,7 @@ const fileUpload = multer({
   },
 });
 
+/**
+ * Export default fileUpload
+ */
 export default fileUpload;

@@ -7,7 +7,7 @@
 /**
  * Node.js Module
  */
-import dns from "node:dns";
+import dns from "dns";
 
 /**
  * Third-Party Module
@@ -18,7 +18,7 @@ import mongoose from "mongoose";
  * Application Modules
  */
 import config from "@/config";
-import { logger } from "./winston";
+import { logger } from "@/lib/winston";
 
 /**
  * Type

@@ -22,4 +22,7 @@ const limiter = rateLimit({
   },
 });
 
+/**
+ * Export default limiter
+ */
 export default limiter;

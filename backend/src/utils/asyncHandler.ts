@@ -22,4 +22,7 @@ const asyncHandler = (
   };
 };
 
+/**
+ * Export default asyncHandler
+ */
 export default asyncHandler;

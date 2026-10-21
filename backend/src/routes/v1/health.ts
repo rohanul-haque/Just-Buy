@@ -8,11 +8,7 @@
  * Third-Party Module
  */
 import express from "express";
-
-/**
- * Application Module
- */
-import { HTTP_STATUS } from "@/utils/constants";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Express Router Initialization
@@ -26,7 +22,7 @@ const router = express.Router();
  * @route - /api/v1/health
  */
 router.get("/", (_, res) => {
-  res.status(HTTP_STATUS.OK).json({
+  res.status(StatusCodes.OK).json({
     success: true,
     version: "1.0.0",
     message: "API is healthy",

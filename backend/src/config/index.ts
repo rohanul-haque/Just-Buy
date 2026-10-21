@@ -25,7 +25,7 @@ const config = {
   WHITELISTED_ADMIN_MAILS: [
     "dev.rohan2024@gmail.com",
     "mdrohanulhaquerohan368@gmail.com",
-    "codeithfardin@gmail.com"
+    "codeithfardin@gmail.com",
   ],
   FRONTEND_URL: process.env.FRONTEND_URL!,
 
@@ -55,4 +55,7 @@ const config = {
   EMAIL_SENDER: process.env.EMAIL_SENDER!,
 };
 
+/**
+ * Export default config
+ */
 export default config;

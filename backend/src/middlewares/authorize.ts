@@ -5,12 +5,21 @@
  */
 
 /**
+ * Thired-Party Modules
+ */
+import { StatusCodes } from "http-status-codes";
+
+/**
  * Application Modules
  */
-import User from "@/modules/v1/auth/auth.model";
 import AppError from "@/utils/appError";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
+
+/**
+ * Application Model
+ */
+import User from "@/modules/v1/auth/auth.model";
 
 /**
  * Types
@@ -31,7 +40,7 @@ const authorize = (roles: UserRole[]) => {
       // Check if user exists
       if (!user) {
         throw new AppError(
-          HTTP_STATUS.NOT_FOUND,
+          StatusCodes.NOT_FOUND,
           ERROR_CODE.USER_NOT_FOUND,
           "User not found",
         );
@@ -40,7 +49,7 @@ const authorize = (roles: UserRole[]) => {
       // Check if user has required role
       if (!roles.includes(user.role)) {
         throw new AppError(
-          HTTP_STATUS.FORBIDDEN,
+          StatusCodes.FORBIDDEN,
           ERROR_CODE.AUTHENTICATION_ERROR,
           API_MESSAGES.FORBIDDEN,
         );
@@ -51,4 +60,7 @@ const authorize = (roles: UserRole[]) => {
   );
 };
 
+/**
+ * Export default authorize
+ */
 export default authorize;

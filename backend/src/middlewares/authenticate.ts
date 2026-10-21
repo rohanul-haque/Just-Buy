@@ -5,12 +5,17 @@
  */
 
 /**
+ * Thired-Party Module
+ */
+import { StatusCodes } from "http-status-codes";
+
+/**
  * Application Modules
  */
 import { logger } from "@/lib/winston";
 import AppError from "@/utils/appError";
 import asyncHandler from "@/utils/asyncHandler";
-import { ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { ERROR_CODE } from "@/utils/constants";
 import { verifyAccessToken } from "@/utils/jwt";
 
 /**
@@ -36,7 +41,7 @@ const authenticate = asyncHandler(
       logger.error("Access denied, no token provided");
 
       throw new AppError(
-        HTTP_STATUS.UNAUTHORIZED,
+        StatusCodes.UNAUTHORIZED,
         ERROR_CODE.AUTHENTICATION_ERROR,
         "Access denied, no token provided",
       );
@@ -53,4 +58,7 @@ const authenticate = asyncHandler(
   },
 );
 
+/**
+ * Export default authenticate
+ */
 export default authenticate;

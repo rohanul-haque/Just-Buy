@@ -12,15 +12,6 @@ import express from "express";
 /**
  * API Routes
  */
-import AuthRoutes from "@/modules/v1/auth/auth.routes";
-import buyerRoutes from "@/modules/v1/buyer/buyer.routes";
-import cartRoute from "@/modules/v1/cart/cart.routes";
-import categoryRoutes from "@/modules/v1/category/category.routes";
-import earningRoutes from "@/modules/v1/earning/earning.routes";
-import orderRoute from "@/modules/v1/order/order.routes";
-import productRoutes from "@/modules/v1/product/product.routes";
-import sellerRoutes from "@/modules/v1/seller/seller.routes";
-import wishlistRoutes from "@/modules/v1/wishlist/wishlist.routes";
 
 /**
  * API Controller
@@ -36,14 +27,14 @@ const router = express.Router();
  * Mounting routes
  */
 router.use("/health", healthRoute);
-router.use("/auth", AuthRoutes);
-router.use("/seller", sellerRoutes);
-router.use("/buyer", buyerRoutes);
-router.use("/category", categoryRoutes);
-router.use("/product", productRoutes);
-router.use("/wishlist", wishlistRoutes);
-router.use("/cart", cartRoute);
-router.use("/order", orderRoute);
-router.use("/earning", earningRoutes);
+// router.use("/auth", AuthRoutes);
+// router.use("/seller", sellerRoutes);
+// router.use("/buyer", buyerRoutes);
+// router.use("/category", categoryRoutes);
+// router.use("/product", productRoutes);
+// router.use("/wishlist", wishlistRoutes);
+// router.use("/cart", cartRoute);
+// router.use("/order", orderRoute);
+// router.use("/earning", earningRoutes);
 
 export default router;

@@ -21,4 +21,7 @@ export class AppError extends Error {
   }
 }
 
+/**
+ * Export default AppError
+ */
 export default AppError;

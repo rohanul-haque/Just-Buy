@@ -7,13 +7,14 @@
 /**
  * Third-Party Module
  */
+import { StatusCodes } from "http-status-codes";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { ZodError } from "zod";
 
 /**
  * Application Modules
  */
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
 
 /**
  * Type
@@ -34,11 +35,9 @@ const globalErrorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  /**
-   * JWT Expired Token Error
-   */
+  //  JWT Expired Token Error
   if (error instanceof TokenExpiredError) {
-    res.status(HTTP_STATUS.UNAUTHORIZED).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       success: false,
       code: ERROR_CODE.AUTH_TOKEN_EXPIRED,
       message: API_MESSAGES.TOKEN_EXPIRED,
@@ -47,11 +46,9 @@ const globalErrorHandler = (
     return;
   }
 
-  /**
-   * JWT Invalid Token Error
-   */
+  // JWT Invalid Token Error
   if (error instanceof JsonWebTokenError) {
-    res.status(HTTP_STATUS.UNAUTHORIZED).json({
+    res.status(StatusCodes.UNAUTHORIZED).json({
       success: false,
       code: ERROR_CODE.AUTH_TOKEN_INVALID,
       message: API_MESSAGES.TOKEN_INVALID,
@@ -60,16 +57,14 @@ const globalErrorHandler = (
     return;
   }
 
-  /**
-   * Zod Validation Error
-   */
+  // Zod Validation Error
   if (error instanceof ZodError) {
     const errors = error.issues.map((issue) => ({
       field: issue.path.length > 0 ? issue.path.join(".") : "unknown",
       message: issue.message,
     }));
 
-    res.status(HTTP_STATUS.BAD_REQUEST).json({
+    res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
       code: ERROR_CODE.VALIDATION_ERROR,
       message: API_MESSAGES.VALIDATION_ERROR,
@@ -79,9 +74,7 @@ const globalErrorHandler = (
     return;
   }
 
-  /**
-   * Custom Error
-   */
+  // Custom Error
   const err = error as {
     statusCode?: number;
     status?: number;
@@ -90,20 +83,14 @@ const globalErrorHandler = (
     stack?: string;
   };
 
-  /**
-   * Set Status Code
-   */
+  // Set Status Code
   const statusCode =
-    err.statusCode ?? err.status ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    err.statusCode ?? err.status ?? StatusCodes.INTERNAL_SERVER_ERROR;
 
-  /**
-   * Set Error Message
-   */
+  // Error Message
   const message = err.message ?? API_MESSAGES.INTERNAL_SERVER_ERROR;
 
-  /**
-   * Send Error Response
-   */
+  // Send Error Response
   res.status(statusCode).json({
     success: false,
     code: err.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR,
@@ -114,4 +101,7 @@ const globalErrorHandler = (
   });
 };
 
+/**
+ * Export default globalErrorHandler
+ */
 export default globalErrorHandler;
