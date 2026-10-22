@@ -6,7 +6,7 @@ import { Types } from "mongoose";
 /**
  * Application Modules
  */
-import { UserRole } from "@/modules/v1/auth/auth.intarface";
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 import User from "@/modules/v1/auth/auth.model";
 import { OrderStatus } from "@/modules/v1/order/order.interface";
 import Order from "@/modules/v1/order/order.model";

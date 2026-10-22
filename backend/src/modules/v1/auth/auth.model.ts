@@ -11,9 +11,9 @@ import bcrypt from "bcrypt";
 import { Schema, model, models } from "mongoose";
 
 /**
- * Type
+ * Types
  */
-import { type IUser, UserRole } from "@/modules/v1/auth/auth.intarface";
+import { type IUser, UserRole } from "@/modules/v1/auth/auth.interface";
 
 /**
  * User Schema Definition
@@ -49,11 +49,6 @@ const userSchema = new Schema<IUser>(
       default: UserRole.BUYER,
       required: true,
     },
-
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
   },
   {
     timestamps: true,
@@ -79,4 +74,7 @@ userSchema.pre("save", async function () {
  */
 const User = models.User || model<IUser>("User", userSchema);
 
+/**
+ * Export User Model
+ */
 export default User;

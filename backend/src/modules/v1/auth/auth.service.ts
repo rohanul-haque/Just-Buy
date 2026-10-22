@@ -15,6 +15,8 @@ import path from "path";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import ejs from "ejs";
+import { StatusCodes } from "http-status-codes";
+import mongoose from "mongoose";
 
 /**
  * Application Modules
@@ -24,7 +26,7 @@ import { transporter } from "@/lib/nodemailer";
 import { redisClient } from "@/lib/redis";
 import { logger } from "@/lib/winston";
 import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -32,7 +34,7 @@ import {
 } from "@/utils/jwt";
 
 /**
- * Models
+ * Application Models
  */
 import Admin from "@/modules/v1/admin/admin.model";
 import User from "@/modules/v1/auth/auth.model";
@@ -42,24 +44,22 @@ import Seller from "@/modules/v1/seller/seller.model";
 /**
  * Types
  */
-import {
-  IResetPasswordRequest,
-  UserRole,
-  type AuthResponse,
-  type IForgotPasswordRequest,
-  type ILoginRequest,
-  type IRegisterRequest,
-} from "@/modules/v1/auth/auth.intarface";
+import type {
+  AuthResponse,
+  IForgotPasswordPayload,
+  ILoginPayload,
+  IRegisterPayload,
+  IResetPasswordPaylod,
+} from "@/modules/v1/auth/auth.interface";
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 import type { Request, Response } from "express";
 
 /**
- * User Register Service
- * @param { IRegisterRequest } payload
+ * Service for user registration
+ * @param { IRegisterPayload } payload
  * @returns { Promise<AuthResponse> }
  */
-export const registerService = async (
-  payload: IRegisterRequest,
-): Promise<AuthResponse> => {
+const register = async (payload: IRegisterPayload): Promise<AuthResponse> => {
   // Destructure the all payload
   const { fullName, email, password, role } = payload;
 
@@ -74,77 +74,154 @@ export const registerService = async (
     );
 
     throw new AppError(
-      HTTP_STATUS.FORBIDDEN,
+      StatusCodes.FORBIDDEN,
       ERROR_CODE.AUTHENTICATION_ERROR,
       API_MESSAGES.ADMIN_CANNOT_REGISTER,
     );
   }
 
-  // Check existing user
-  const existingUser = await User.findOne({
-    email,
-  });
+  // Start Transaction
+  const session = await mongoose.startSession();
 
-  if (existingUser) {
-    throw new AppError(
-      HTTP_STATUS.CONFLICT,
-      ERROR_CODE.AUTH_EMAIL_EXISTS,
-      API_MESSAGES.EMAIL_ALREADY_EXISTS,
-    );
-  }
+  try {
+    // Execute Transaction
+    const user = await session.withTransaction(async () => {
+      // Check existing user
+      const existingUser = await User.findOne({
+        email,
+      }).session(session);
 
-  // Create User
-  const user = await User.create({
-    fullName,
-    email,
-    password,
-    role,
-    isActive: true,
-  });
+      if (existingUser) {
+        logger.warn(API_MESSAGES.EMAIL_ALREADY_EXISTS, {
+          email,
+        });
 
-  // Create Profile based on role
-  if (role === UserRole.BUYER) {
-    await Buyer.create({
-      user: user?._id,
+        throw new AppError(
+          StatusCodes.CONFLICT,
+          ERROR_CODE.AUTH_EMAIL_EXISTS,
+          API_MESSAGES.EMAIL_ALREADY_EXISTS,
+        );
+      }
+
+      // Create User
+      const [createdUser] = await User.create(
+        [
+          {
+            fullName,
+            email,
+            password,
+            role,
+          },
+        ],
+        { session },
+      );
+
+      // Create Profile based on role
+      if (role === UserRole.BUYER) {
+        await Buyer.create(
+          [
+            {
+              user: createdUser._id,
+            },
+          ],
+          { session },
+        );
+      }
+
+      if (role === UserRole.SELLER) {
+        await Seller.create(
+          [
+            {
+              user: createdUser._id,
+            },
+          ],
+          { session },
+        );
+      }
+
+      if (role === UserRole.ADMIN) {
+        await Admin.create(
+          [
+            {
+              user: createdUser._id,
+            },
+          ],
+          { session },
+        );
+      }
+
+      return createdUser;
     });
+
+    // Ensure Transaction completed successfully
+    if (!user) {
+      logger.warn(
+        role === UserRole.BUYER
+          ? "Buyer profile creation failed"
+          : role === UserRole.SELLER
+            ? "Seller profile creation failed"
+            : "Admin profile creation failed",
+        { email },
+      );
+
+      throw new AppError(
+        StatusCodes.UNAUTHORIZED,
+        ERROR_CODE.AUTHENTICATION_ERROR,
+        role === UserRole.BUYER
+          ? "Buyer profile creation failed"
+          : role === UserRole.SELLER
+            ? "Seller profile creation failed"
+            : "Admin profile creation failed",
+      );
+    }
+
+    // Create Token
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Return the user, access & and refresh token
+    return {
+      user: {
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
+      accessToken,
+      refreshToken,
+    };
+  } catch (error: unknown) {
+    // Handle duplicate email error from unique index
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === 11000
+    ) {
+      logger.warn(API_MESSAGES.EMAIL_ALREADY_EXISTS, {
+        email,
+      });
+
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        ERROR_CODE.AUTH_EMAIL_EXISTS,
+        API_MESSAGES.EMAIL_ALREADY_EXISTS,
+      );
+    }
+
+    // Throw error to asyncHandler and global error handler
+    throw error;
+  } finally {
+    // End Transaction Session
+    await session.endSession();
   }
-
-  if (role === UserRole.SELLER) {
-    await Seller.create({
-      user: user?._id,
-    });
-  }
-
-  if (role === UserRole.ADMIN) {
-    await Admin.create({
-      user: user?._id,
-    });
-  }
-
-  // Create Token
-  const accessToken = generateAccessToken(user._id);
-  const refreshToken = generateRefreshToken(user._id);
-
-  // Return the user, access & and refresh token
-  return {
-    user: {
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-    },
-    accessToken,
-    refreshToken,
-  };
 };
 
 /**
- * User Login Service
+ * Service for user login
  * @param { ILoginRequest } payload
  * @returns { Promise<AuthResponse> }
  */
-export const loginService = async (
-  payload: ILoginRequest,
-): Promise<AuthResponse> => {
+const login = async (payload: ILoginPayload): Promise<AuthResponse> => {
   // Destructure the all payload
   const { email, password } = payload;
 
@@ -155,7 +232,7 @@ export const loginService = async (
 
   if (!existingUser) {
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.AUTH_ACCOUNT_NOT_FOUND,
       API_MESSAGES.ACCOUNT_NOT_FOUND,
     );
@@ -169,7 +246,7 @@ export const loginService = async (
 
   if (!isPasswordValid) {
     throw new AppError(
-      HTTP_STATUS.UNAUTHORIZED,
+      StatusCodes.UNAUTHORIZED,
       ERROR_CODE.AUTH_INVALID_CREDENTIALS,
       API_MESSAGES.INVALID_CREDENTIALS,
     );
@@ -192,12 +269,12 @@ export const loginService = async (
 };
 
 /**
- * Service for refresh token.
+ * Service for user refresh token.
  * @param {Request} req
  * @param {Response} res
  * @returns {Promise<void>}
  */
-export const refreshTokenService = async ({
+const refreshToken = async ({
   req,
   res,
 }: {
@@ -209,7 +286,7 @@ export const refreshTokenService = async ({
 
   if (!refreshToken) {
     throw new AppError(
-      HTTP_STATUS.UNAUTHORIZED,
+      StatusCodes.UNAUTHORIZED,
       ERROR_CODE.AUTH_REFRESH_TOKEN_MISSING,
       API_MESSAGES.REFRESH_TOKEN_MISSING,
     );
@@ -223,7 +300,7 @@ export const refreshTokenService = async ({
 
   if (!user) {
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.AUTH_ACCOUNT_NOT_FOUND,
       API_MESSAGES.ACCOUNT_NOT_FOUND,
     );
@@ -242,41 +319,40 @@ export const refreshTokenService = async ({
 };
 
 /**
- * Forgot Password Service
+ * Service for user forgot password
  * @param { string } payload
- * @returns { Promise<AuthResponse> }
+ * @returns { Promise<void> }
  */
-export const forgotPasswordService = async (
-  payload: IForgotPasswordRequest,
+const forgotPassword = async (
+  payload: IForgotPasswordPayload,
 ): Promise<void> => {
-  const email = payload.email.trim().toLowerCase();
+  // Destructure the all payload
+  const { email } = payload;
 
+  // Check existing user
   const user = await User.findOne({
     email,
   });
 
   if (!user) {
+    logger.warn(API_MESSAGES.ACCOUNT_NOT_FOUND, { email });
+
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.AUTH_ACCOUNT_NOT_FOUND,
       API_MESSAGES.ACCOUNT_NOT_FOUND,
     );
   }
 
-  if (user.isActive === false) {
-    throw new AppError(
-      HTTP_STATUS.UNAUTHORIZED,
-      ERROR_CODE.AUTH_ACCOUNT_DISABLED,
-      API_MESSAGES.ACCOUNT_DISABLED,
-    );
-  }
-
+  // Generate OTP
   const otp = crypto.randomInt(100000, 1000000).toString();
 
+  // Set OTP in Redis
   const key = `forgot-password-otp:${user.email}`;
 
   const expirationSeconds = 5 * 60;
 
+  // Set OTP in Redis
   await redisClient.set(key, otp, {
     expiration: {
       type: "EX",
@@ -284,31 +360,36 @@ export const forgotPasswordService = async (
     },
   });
 
+  // Get the forgot password template path
   const templatePath = path.join(
     process.cwd(),
     "src/templates/forgot-password.ejs",
   );
 
+  // Render the forgot password template
   const html = await ejs.renderFile(templatePath, {
     name: user.fullName,
     otp,
     expiresIn: expirationSeconds / 60,
   });
 
+  // Send OTP to user's email
   await transporter.sendMail({
     from: config.EMAIL_SENDER,
     to: user.email,
-    subject: "Reset Your Just-Buy Password",
+    subject: "Reset Your Jus-Buy Password",
     html,
   });
 };
 
-export const resetPasswordService = async (
-  payload: IResetPasswordRequest,
-): Promise<void> => {
+/**
+ * Service for user reset password
+ * @param payload { IResetPasswordPaylod }
+ * @returns { Promise<void> }
+ */
+const resetPassword = async (payload: IResetPasswordPaylod): Promise<void> => {
   // Destructure the all payload
-  const { otp, newPassword } = payload;
-  const email = payload.email.trim().toLowerCase();
+  const { otp, newPassword, email } = payload;
 
   const user = await User.findOne({
     email,
@@ -316,19 +397,12 @@ export const resetPasswordService = async (
 
   // Check user exist or not
   if (!user) {
+    logger.warn(API_MESSAGES.ACCOUNT_NOT_FOUND, { email });
+
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.AUTH_ACCOUNT_NOT_FOUND,
       API_MESSAGES.ACCOUNT_NOT_FOUND,
-    );
-  }
-
-  // Check user is active or not
-  if (user.isActive === false) {
-    throw new AppError(
-      HTTP_STATUS.UNAUTHORIZED,
-      ERROR_CODE.AUTH_ACCOUNT_DISABLED,
-      API_MESSAGES.ACCOUNT_DISABLED,
     );
   }
 
@@ -341,7 +415,7 @@ export const resetPasswordService = async (
   // Check OTP expired or not
   if (!redisOtp) {
     throw new AppError(
-      HTTP_STATUS.BAD_REQUEST,
+      StatusCodes.BAD_REQUEST,
       ERROR_CODE.AUTH_OTP_EXPIRED,
       API_MESSAGES.OTP_EXPIRED,
     );
@@ -350,7 +424,7 @@ export const resetPasswordService = async (
   // Check OTP match or not
   if (String(redisOtp).trim() !== String(otp).trim()) {
     throw new AppError(
-      HTTP_STATUS.BAD_REQUEST,
+      StatusCodes.BAD_REQUEST,
       ERROR_CODE.AUTH_OTP_NOT_MATCH,
       API_MESSAGES.OTP_NOT_MATCH,
     );
@@ -364,6 +438,20 @@ export const resetPasswordService = async (
 
   // Save the user
   await user.save();
-
-  logger.info("Password reset successfully", { email });
 };
+
+/**
+ * Auth service instance
+ */
+const authService = {
+  register,
+  login,
+  refreshToken,
+  forgotPassword,
+  resetPassword,
+};
+
+/**
+ * Export auth service
+ */
+export default authService;

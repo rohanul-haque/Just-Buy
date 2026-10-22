@@ -7,7 +7,7 @@
 /**
  * Types
  */
-import type { IUser } from "@/modules/v1/auth/auth.intarface";
+import type { IUser } from "@/modules/v1/auth/auth.interface";
 import type { IAvatar } from "@/modules/v1/seller/seller.interface";
 import type { Types } from "mongoose";
 

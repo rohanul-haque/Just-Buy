@@ -40,7 +40,7 @@ import {
   updateSellerSchema,
   userIdSchema,
 } from "@/modules/v1/seller/seller.validation";
-import { UserRole } from "../auth/auth.intarface";
+import { UserRole } from "../auth/auth.interface";
 
 /**
  * Router Instance

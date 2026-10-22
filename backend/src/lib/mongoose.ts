@@ -5,11 +5,6 @@
  */
 
 /**
- * Node.js Module
- */
-import dns from "dns";
-
-/**
  * Third-Party Module
  */
 import mongoose from "mongoose";
@@ -45,9 +40,6 @@ export const connectToMongoDB = async (): Promise<void> => {
   if (!config.MONGO_URI) {
     throw new Error("MONGO_URI is not defined");
   }
-
-  // Set DNS servers for local development
-  if (config.NODE_ENV === "development") dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
   try {
     await mongoose.connect(config.MONGO_URI, clientOptions);

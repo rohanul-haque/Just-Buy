@@ -159,6 +159,7 @@ export const API_MESSAGES = {
   // Admin
   ADMIN_CANNOT_REGISTER: "You cannot register as an admin",
   ADMIN_PROFILE_CREATED: "Admin profile created successfully",
+  ADMIN_LOGIN_SUCCESS: "Admin login successful",
 
   // Buyer Authentication
   BUYER_SIGNUP_SUCCESS: "Buyer signup successful",

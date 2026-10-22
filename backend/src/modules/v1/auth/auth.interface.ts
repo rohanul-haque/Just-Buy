@@ -21,13 +21,12 @@ export interface IUser {
   email: string;
   password: string;
   role: UserRole;
-  isActive: boolean;
 }
 
 /**
  * Register Request Interface
  */
-export interface IRegisterRequest {
+export interface IRegisterPayload {
   fullName: string;
   email: string;
   password: string;
@@ -37,16 +36,9 @@ export interface IRegisterRequest {
 /**
  * Login Request Interface
  */
-export interface ILoginRequest {
+export interface ILoginPayload {
   email: string;
   password: string;
-}
-
-/**
- * Refresh Token Request Interface
- */
-export interface IRefreshTokenRequest {
-  refreshToken: string;
 }
 
 /**
@@ -65,14 +57,14 @@ export interface AuthResponse {
 /**
  * Forgot Password Request Interface
  */
-export interface IForgotPasswordRequest {
+export interface IForgotPasswordPayload {
   email: string;
 }
 
 /**
  * Reset Password Request Interface
  */
-export interface IResetPasswordRequest {
+export interface IResetPasswordPaylod {
   email: string;
   otp: string | number;
   newPassword: string;

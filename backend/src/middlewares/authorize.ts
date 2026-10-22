@@ -24,7 +24,7 @@ import User from "@/modules/v1/auth/auth.model";
 /**
  * Types
  */
-import { UserRole } from "@/modules/v1/auth/auth.intarface";
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 import type { NextFunction, Request, Response } from "express";
 
 /**

@@ -10,9 +10,13 @@
 import { z } from "zod";
 
 /**
- * User Roles
+ * User Role
  */
-export const userRoleSchema = z.enum(["buyer", "seller", "admin"]);
+export const userRoleSchema = z
+  .enum(["buyer", "seller", "admin"], {
+    error: "Invalid role",
+  })
+  .default("buyer");
 
 /**
  * User Registar Validation Schema
@@ -20,65 +24,46 @@ export const userRoleSchema = z.enum(["buyer", "seller", "admin"]);
 export const registerSchema = z.object({
   fullName: z
     .string()
-    .min(2, "Full name is required")
-    .max(50, "Full name cannot exceed 50 characters")
+    .min(2, "Full name must be at least 2 characters long")
+    .max(50, "Full name must be less than 50 characters")
     .trim(),
-
   email: z
     .string()
-    .email("Email is required")
-    .max(254, "Email cannot exceed 254 characters")
+    .email("Invalid email address")
+    .max(254, "Email must be less than 254 characters")
     .trim()
     .toLowerCase(),
-
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(128, "Password cannot exceed 128 characters"),
+    .max(128, "Password must be less than 128 characters"),
 
-  role: userRoleSchema.default("buyer"),
+  role: userRoleSchema,
 });
 
 /**
- * Login Validation Schema
+ * User Login Validation Schema
  */
 export const loginSchema = z.object({
-  email: z.string().email("Email is required").trim().toLowerCase(),
-
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email("Invalid email address").trim().toLowerCase(),
+  password: z.string().min(1, "Password is Required"),
 });
 
 /**
- * Refresh Token Validation Schema
- */
-export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, "Refresh token is required"),
-});
-
-/**
- * Forgot Password Validation Schema
+ * User Forgot Password Validation Schema
  */
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Email is required").trim().toLowerCase(),
+  email: z.email("Invalid email address"),
 });
 
 /**
- * Reset Password Validation Schema
+ * User Reset Password Validation Schema
  */
 export const resetPasswordSchema = z.object({
-  email: z.string().email("Email is required").trim().toLowerCase(),
-  otp: z.coerce.string().trim().length(6, "OTP must be 6 digits"),
-  newPassword: z.coerce
+  email: z.string().email("Invalid email address"),
+  otp: z.string().trim().length(6, "OTP must be 6 digits"),
+  newPassword: z
     .string()
     .min(8, "Password must be at least 8 characters")
     .max(128, "Password cannot exceed 128 characters"),
 });
-
-/**
- * Types
- */
-export type RegisterInput = z.infer<typeof registerSchema>;
-export type LoginInput = z.infer<typeof loginSchema>;
-export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

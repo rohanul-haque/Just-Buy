@@ -19,7 +19,7 @@ import validation from "@/middlewares/validation";
 /**
  * Type
  */
-import { UserRole } from "@/modules/v1/auth/auth.intarface";
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 
 /**
  * Validation

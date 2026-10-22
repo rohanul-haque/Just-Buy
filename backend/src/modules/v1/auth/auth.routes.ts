@@ -18,14 +18,7 @@ import validation from "@/middlewares/validation";
 /**
  * API Controllers
  */
-import {
-  forgotPasswordController,
-  loginController,
-  logoutController,
-  refreshTokenController,
-  registerController,
-  resetPasswordController,
-} from "@/modules/v1/auth/auth.controller";
+import authController from "@/modules/v1/auth/auth.controller";
 
 /**
  * Validations
@@ -48,7 +41,11 @@ const router = Router();
  * @method - POST
  * @route - /api/v1/auth/register
  */
-router.post("/register", validation(registerSchema), registerController);
+router.post(
+  "/register",
+  validation(registerSchema, "body"),
+  authController.register,
+);
 
 /**
  * User Login Route
@@ -56,15 +53,7 @@ router.post("/register", validation(registerSchema), registerController);
  * @method - POST
  * @route - /api/v1/auth/login
  */
-router.post("/login", validation(loginSchema), loginController);
-
-/**
- * User Logout Route
- * @access - public
- * @method - GET
- * @route - /api/v1/auth/logout
- */
-router.get("/logout", authenticate, logoutController);
+router.post("/login", validation(loginSchema, "body"), authController.login);
 
 /**
  * Refresh Token Route
@@ -72,7 +61,15 @@ router.get("/logout", authenticate, logoutController);
  * @method - POST
  * @route - /api/v1/auth/refresh-token
  */
-router.post("/refresh-token", refreshTokenController);
+router.post("/refresh-token", authController.refreshToken);
+
+/**
+ * User Logout Route
+ * @access - private
+ * @method - GET
+ * @route - /api/v1/auth/logout
+ */
+router.get("/logout", authenticate, authController.logout);
 
 /**
  * Forgot Password Route
@@ -82,20 +79,23 @@ router.post("/refresh-token", refreshTokenController);
  */
 router.post(
   "/forgot-password",
-  validation(forgotPasswordSchema),
-  forgotPasswordController,
+  validation(forgotPasswordSchema, "body"),
+  authController.forgotPassword,
 );
 
 /**
  * Reset Password Route
  * @access - public
- * @method - POST
+ * @method - PATCH
  * @route - /api/v1/auth/reset-password
  */
-router.post(
+router.patch(
   "/reset-password",
-  validation(resetPasswordSchema),
-  resetPasswordController,
+  validation(resetPasswordSchema, "body"),
+  authController.resetPassword,
 );
 
+/**
+ * Export auth routes
+ */
 export default router;

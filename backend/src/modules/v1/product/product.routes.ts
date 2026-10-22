@@ -20,7 +20,7 @@ import fileUpload from "@/utils/fileUpload";
 /**
  * Roles & Types
  */
-import { UserRole } from "@/modules/v1/auth/auth.intarface";
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 
 /**
  * Validations

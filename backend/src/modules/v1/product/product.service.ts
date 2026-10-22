@@ -31,7 +31,7 @@ import type {
   IProductId,
   IUpdateProductRequest,
 } from "@/modules/v1/product/product.interface";
-import { UserRole } from "../auth/auth.intarface";
+import { UserRole } from "../auth/auth.interface";
 import Category from "../category/category.model";
 
 /**

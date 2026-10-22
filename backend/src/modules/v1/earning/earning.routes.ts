@@ -23,7 +23,7 @@ import { getEarningsController } from "@/modules/v1/earning/earning.controller";
 /**
  * Type
  */
-import { UserRole } from "@/modules/v1/auth/auth.intarface";
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 
 /**
  * Router
