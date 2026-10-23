@@ -11,6 +11,23 @@ import { Types } from "mongoose";
 import { z } from "zod";
 
 /**
+ * User ID Schema
+ */
+export const idSchema = z.object({
+  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid User ID",
+  }),
+});
+
+/**
+ * All Buyer List Query Schema
+ */
+export const buyerListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(15),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+/**
  * Update Buyer Schema
  */
 export const updateBuyerSchema = z.object({
@@ -36,35 +53,3 @@ export const updateBuyerSchema = z.object({
     .trim()
     .optional(),
 });
-
-/**
- * Object ID Schema
- */
-export const objectIdSchema = z
-  .string()
-  .refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid User ID",
-  });
-
-/**
- * User ID Schema
- */
-export const userIdSchema = z.object({
-  userId: objectIdSchema,
-});
-
-/**
- * All Buyer List Query Schema
- */
-export const buyerListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(15),
-  offset: z.coerce.number().int().min(0).default(0),
-  verificationStatus: z.enum(["pending", "verified", "rejected"]).optional(),
-});
-
-/**
- * Types
- */
-export type BuyerListQueryInput = z.infer<typeof buyerListQuerySchema>;
-export type UserIdParamsInput = z.infer<typeof userIdSchema>;
-export type UpdateBuyerInput = z.infer<typeof updateBuyerSchema>;

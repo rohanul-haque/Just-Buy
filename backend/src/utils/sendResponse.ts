@@ -10,6 +10,18 @@
 import type { Response } from "express";
 
 /**
+ * Type for pagination data
+ */
+interface PaginationSchema {
+  skip: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+/**
  * Type for response data
  */
 interface ResponseSchema<T> {
@@ -17,9 +29,7 @@ interface ResponseSchema<T> {
   success: boolean;
   message?: string;
   data?: T;
-  skip?: number;
-  limit?: number;
-  total?: number;
+  pagination?: PaginationSchema;
 }
 
 /**
@@ -28,15 +38,13 @@ interface ResponseSchema<T> {
  * @param response - Response data
  */
 const sendResponse = <T>(res: Response, response: ResponseSchema<T>): void => {
-  const { statusCode, success, message, data, limit, total, skip } = response;
+  const { statusCode, success, message, data, pagination } = response;
 
   res.status(statusCode).json({
     success,
-    ...(message && { message }),
-    ...(skip !== undefined && { skip }),
-    ...(limit !== undefined && { limit }),
-    ...(total !== undefined && { total }),
+    ...(message !== undefined && { message }),
     ...(data !== undefined && { data }),
+    ...(pagination !== undefined && { pagination }),
   });
 };
 

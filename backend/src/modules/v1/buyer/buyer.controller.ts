@@ -5,9 +5,9 @@
  */
 
 /**
- * Third-Party Modules
+ * Third-Party Module
  */
-import { Types } from "mongoose";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Application Modules
@@ -15,41 +15,39 @@ import { Types } from "mongoose";
 import config from "@/config";
 import { logger } from "@/lib/winston";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
 
 /**
- * Services
+ * Application Service
  */
-import {
-  deleteBuyerProfileService,
-  getAllBuyerProfileService,
-  getBuyerProfileByIdService,
-  updateBuyerProfileService,
-} from "@/modules/v1/buyer/buyer.service";
+import buyerService from "@/modules/v1/buyer/buyer.service";
 
 /**
- * Types
+ * Type
  */
 import type { Request, Response } from "express";
-import type { SellerVerificationStatus } from "../seller/seller.interface";
 
 /**
  * Controller for get current buyer profile
  */
-export const getCurrentBuyerProfileController = asyncHandler(
+export const getCurrentBuyerProfile = asyncHandler(
   async (req: Request, res: Response) => {
     // Call get buyer profile by ID service
-    const result = await getBuyerProfileByIdService({
-      userId: req.userId!,
+    const result = await buyerService.getCurrentBuyerProfile({
+      id: req.userId!.toString(),
     });
 
-    // Log success
-    logger.info("Buyer profile fetched successfully");
+    // Log the get
+    if (result) {
+      logger.info("Buyer profile fetched successfully", {
+        userId: req.userId,
+      });
+    }
 
     // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       data: result,
     });
@@ -59,56 +57,65 @@ export const getCurrentBuyerProfileController = asyncHandler(
 /**
  * Controller for get buyer profile by ID
  */
-export const getBuyerProfileByIdController = asyncHandler(
+export const getBuyerProfileById = asyncHandler(
   async (req: Request, res: Response) => {
     // Get buyer user ID from params
-    const { userId } = req.params;
+    const { id } = req.params;
 
     // Call get buyer profile by ID service
-    const result = await getBuyerProfileByIdService({
-      userId: userId as unknown as Types.ObjectId,
+    const result = await buyerService.getCurrentBuyerProfile({
+      id: id as string,
     });
 
-    // Log success
-    logger.info("Buyer profile fetched successfully");
+    // Log the get buyer profile successfully
+    if (result) {
+      logger.info("Buyer profile fetched successfully", {
+        userId: id,
+      });
+    }
 
     // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       data: result,
     });
   },
 );
 
-export const getAllBuyerProfileController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Get limit and offset from request query parameters
-    const limit =
-      parseInt(req.query.limit as string, 15) || config.DEFAULT_LIMIT;
-    const offset =
-      parseInt(req.query.offset as string, 15) || config.DEFAULT_OFFSET;
-    const verificationStatus = req.query
-      .verificationStatus as SellerVerificationStatus;
+/**
+ * Controlller for get all buyer profile
+ */
+export const getAllBuyerProfile = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    // Pagination query parameters
+    const limit = Number(req.query.limit) || config.DEFAULT_LIMIT;
+    const offset = Number(req.query.offset) || config.DEFAULT_OFFSET;
 
-    // Call get all buyer profile service
-    const result = await getAllBuyerProfileService({
+    // Fetch buyer profiles
+    const result = await buyerService.getAllBuyerProfile({
       limit,
       offset,
-      verificationStatus: verificationStatus || undefined,
     });
 
-    // Log success
-    logger.info("Buyer profiles fetched successfully");
+    // Log successful get all buyer profile
+    if (result.allBuyers.length > 0) {
+      logger.info("All buyer profiles fetched successfully");
+    }
 
     // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       data: result.allBuyers,
-      total: result.total,
-      limit: result.limit,
-      skip: result.skip,
+      pagination: {
+        limit: result.limit,
+        skip: result.skip,
+        total: result.total,
+        totalPages: result.totalPages,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      },
     });
   },
 );
@@ -116,24 +123,24 @@ export const getAllBuyerProfileController = asyncHandler(
 /**
  * Controller for update buyer profile
  */
-export const updateBuyerProfileController = asyncHandler(
+export const updateBuyerProfile = asyncHandler(
   async (req: Request, res: Response) => {
-    // Call update buyer profile service
-    await updateBuyerProfileService({
+    // Update buyer profile
+    await buyerService.updateBuyerProfile({
       userId: req.userId!,
       payload: req.body,
       file: req.file,
     });
 
-    // Log success
+    // Log successful profile update
     logger.info(API_MESSAGES.BUYER_PROFILE_UPDATED, {
-      userId: req.userId!,
+      userId: req.userId,
     });
 
     // Send success response
     sendResponse(res, {
+      statusCode: StatusCodes.OK,
       success: true,
-      statusCode: HTTP_STATUS.OK,
       message: API_MESSAGES.BUYER_PROFILE_UPDATED,
     });
   },
@@ -142,26 +149,40 @@ export const updateBuyerProfileController = asyncHandler(
 /**
  * Controller for delete buyer profile
  */
-export const deleteBuyerProfileController = asyncHandler(
+export const deleteBuyerProfile = asyncHandler(
   async (req: Request, res: Response) => {
     // Get buyer user ID from params
-    const { userId } = req.params;
+    const { id } = req.params;
 
     // Call delete buyer profile service
-    await deleteBuyerProfileService({
-      userId: userId as unknown as Types.ObjectId,
-    });
+    await buyerService.deleteBuyerProfile(id as string);
 
     // Log success
     logger.info(API_MESSAGES.BUYER_PROFILE_DELETED, {
-      userId,
+      id,
     });
 
     // Send success response
     sendResponse(res, {
       success: true,
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       message: API_MESSAGES.BUYER_PROFILE_DELETED,
     });
   },
 );
+
+/**
+ * Buyer controller instance
+ */
+const buyerController = {
+  getCurrentBuyerProfile,
+  getBuyerProfileById,
+  getAllBuyerProfile,
+  updateBuyerProfile,
+  deleteBuyerProfile,
+};
+
+/**
+ * Export default buyerController
+ */
+export default buyerController;

@@ -19,7 +19,7 @@ import { API_MESSAGES } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
 
 /**
- * Services
+ * Application Service
  */
 import authService from "@/modules/v1/auth/auth.service";
 

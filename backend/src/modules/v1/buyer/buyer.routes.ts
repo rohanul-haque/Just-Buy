@@ -24,13 +24,7 @@ import validation from "@/middlewares/validation";
 /**
  * API Controllers
  */
-import {
-  deleteBuyerProfileController,
-  getAllBuyerProfileController,
-  getBuyerProfileByIdController,
-  getCurrentBuyerProfileController,
-  updateBuyerProfileController,
-} from "@/modules/v1/buyer/buyer.controller";
+import buyerController from "@/modules/v1/buyer/buyer.controller";
 
 /**
  * Type
@@ -42,8 +36,8 @@ import { UserRole } from "@/modules/v1/auth/auth.interface";
  */
 import {
   buyerListQuerySchema,
+  idSchema,
   updateBuyerSchema,
-  userIdSchema,
 } from "@/modules/v1/buyer/buyer.validation";
 
 /**
@@ -61,21 +55,21 @@ router.get(
   "/current",
   authenticate,
   authorize([UserRole.BUYER]),
-  getCurrentBuyerProfileController,
+  buyerController.getCurrentBuyerProfile,
 );
 
 /**
  * Get All Seller Profiles
  * @access - Private
  * @method - GET
- * @route - /api/v1/seller/list
+ * @route - /api/v1/buyer/list
  */
 router.get(
   "/list",
   authenticate,
   authorize([UserRole.ADMIN]),
   validation(buyerListQuerySchema, "query"),
-  getAllBuyerProfileController,
+  buyerController.getAllBuyerProfile,
 );
 
 /**
@@ -89,8 +83,8 @@ router.patch(
   authenticate,
   authorize([UserRole.BUYER]),
   fileUpload.single("avatar"),
-  validation(updateBuyerSchema),
-  updateBuyerProfileController,
+  validation(updateBuyerSchema, "body"),
+  buyerController.updateBuyerProfile,
 );
 
 /**
@@ -100,11 +94,9 @@ router.patch(
  * @route - /api/v1/buyer/:userId
  */
 router.get(
-  "/:userId",
-  authenticate,
-  authorize([UserRole.BUYER, UserRole.ADMIN]),
-  validation(userIdSchema, "params"),
-  getBuyerProfileByIdController,
+  "/:id",
+  validation(idSchema, "params"),
+  buyerController.getBuyerProfileById,
 );
 
 /**
@@ -114,11 +106,11 @@ router.get(
  * @route - /api/v1/buyer/:userId
  */
 router.delete(
-  "/:userId",
+  "/:id",
   authenticate,
   authorize([UserRole.BUYER, UserRole.ADMIN]),
-  validation(userIdSchema, "params"),
-  deleteBuyerProfileController,
+  validation(idSchema, "params"),
+  buyerController.deleteBuyerProfile,
 );
 
 export default router;

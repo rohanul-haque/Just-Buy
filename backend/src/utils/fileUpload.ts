@@ -5,28 +5,48 @@
  */
 
 /**
- * Thired-Party Modules
+ * Third-party modules
  */
 import multer from "multer";
 
 /**
- * In-Memory Storage for Multer
- * Stores file data in server memory instead of temporary files
+ * In-memory storage for uploaded files
  */
 const storage = multer.memoryStorage();
 
 /**
- * Multer configuration for file uploads
- * @param limits - Optional file size limits
+ * Allowed image MIME types
+ */
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
+
+/**
+ * Maximum file size: 5 MB
+ */
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+/**
+ * Multer configuration for image uploads
  */
 const fileUpload = multer({
   storage,
+
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: MAX_FILE_SIZE,
+    files: 1,
+  },
+
+  fileFilter: (_req, file, callback) => {
+    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      return callback(
+        new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname),
+      );
+    }
+
+    callback(null, true);
   },
 });
 
 /**
- * Export default fileUpload
+ * Export configured file upload middleware
  */
 export default fileUpload;
