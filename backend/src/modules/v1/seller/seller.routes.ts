@@ -24,23 +24,18 @@ import validation from "@/middlewares/validation";
 /**
  * API Controllers
  */
-import {
-  deleteSellerProfileController,
-  getAllSellerProfileController,
-  getCurrentSellerProfileController,
-  getSellerProfileByIdController,
-  updateSellerController,
-} from "@/modules/v1/seller/seller.controller";
+import sellerController from "@/modules/v1/seller/seller.controller";
 
 /**
  * Validations
  */
+import { UserRole } from "@/modules/v1/auth/auth.interface";
 import {
+  changeSellerStatusSchema,
+  idSchema,
   sellerListQuerySchema,
   updateSellerSchema,
-  userIdSchema,
 } from "@/modules/v1/seller/seller.validation";
-import { UserRole } from "../auth/auth.interface";
 
 /**
  * Router Instance
@@ -57,7 +52,7 @@ router.get(
   "/current",
   authenticate,
   authorize([UserRole.SELLER]),
-  getCurrentSellerProfileController,
+  sellerController.getCurrentSellerProfile,
 );
 
 /**
@@ -71,7 +66,7 @@ router.get(
   authenticate,
   authorize([UserRole.ADMIN]),
   validation(sellerListQuerySchema, "query"),
-  getAllSellerProfileController,
+  sellerController.getAllSellerProfile,
 );
 
 /**
@@ -86,21 +81,36 @@ router.patch(
   authorize([UserRole.SELLER]),
   fileUpload.single("avatar"),
   validation(updateSellerSchema),
-  updateSellerController,
+  sellerController.updateSeller,
+);
+
+/**
+ * Update Current Seller Profile
+ * @access - Private
+ * @method - PATCH
+ * @route - /api/v1/seller/:id
+ */
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize([UserRole.ADMIN]),
+  validation(idSchema, "params"),
+  validation(changeSellerStatusSchema, "body"),
+  sellerController.changeSellerStatus,
 );
 
 /**
  * Get Seller Profile By ID
  * @access - Private
  * @method - GET
- * @route - /api/v1/seller/:userId
+ * @route - /api/v1/seller/:ID
  */
 router.get(
-  "/:userId",
+  "/:id",
   authenticate,
   authorize([UserRole.SELLER, UserRole.ADMIN]),
-  validation(userIdSchema, "params"),
-  getSellerProfileByIdController,
+  validation(idSchema, "params"),
+  sellerController.getSellerProfileById,
 );
 
 /**
@@ -110,11 +120,11 @@ router.get(
  * @route - /api/v1/seller/:userId
  */
 router.delete(
-  "/:userId",
+  "/:id",
   authenticate,
   authorize([UserRole.SELLER, UserRole.ADMIN]),
-  validation(userIdSchema, "params"),
-  deleteSellerProfileController,
+  validation(idSchema, "params"),
+  sellerController.deleteSellerProfile,
 );
 
 export default router;

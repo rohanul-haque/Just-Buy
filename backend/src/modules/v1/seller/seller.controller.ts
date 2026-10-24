@@ -7,7 +7,7 @@
 /**
  * Thired Party Modules
  */
-import { Types } from "mongoose";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Application Modules
@@ -15,41 +15,40 @@ import { Types } from "mongoose";
 import config from "@/config";
 import { logger } from "@/lib/winston";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
 
 /**
  * Services
  */
-import {
-  deleteControllerSellerService,
-  getAllSellerProfileService,
-  getCurrentSellerProfileService,
-  updateSellerService,
-} from "@/modules/v1/seller/seller.service";
+import sellerService from "@/modules/v1/seller/seller.service";
 
 /**
  * Type
  */
-import type { SellerVerificationStatus } from "@/modules/v1/seller/seller.interface";
+import { SellerVerificationStatus } from "@/modules/v1/seller/seller.interface";
 import type { Request, Response } from "express";
 
 /**
  * Controller for get current seller profile
  */
-export const getCurrentSellerProfileController = asyncHandler(
+export const getCurrentSellerProfile = asyncHandler(
   async (req: Request, res: Response) => {
-    // Call get seller profile by id service
-    const result = await getCurrentSellerProfileService({
-      userId: req.userId!,
-    });
+    // Call get current seller profile service
+    const result = await sellerService.getCurrentSellerProfile(
+      req.userId!.toString(),
+    );
 
-    // Log the success message
-    logger.info("Seller Profile Get Successfully");
+    // Log successful profile retrieval.
+    if (result) {
+      logger.info("Seller profile fetched successfully", {
+        userId: req.userId!,
+      });
+    }
 
-    // Send success response
+    // Send the seller profile response.
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       data: result,
     });
@@ -59,22 +58,24 @@ export const getCurrentSellerProfileController = asyncHandler(
 /**
  * Controller for get seller profile by id
  */
-export const getSellerProfileByIdController = asyncHandler(
+export const getSellerProfileById = asyncHandler(
   async (req: Request, res: Response) => {
     // Get seller id from request parameters
-    const { userId } = req.params;
+    const { id } = req.params;
 
-    // Get seller profile by id service
-    const result = await getCurrentSellerProfileService({
-      userId: userId as unknown as Types.ObjectId,
-    });
+    // Call get seller profile by id service
+    const result = await sellerService.getCurrentSellerProfile(id as string);
 
     // Log the success message
-    logger.info("Seller profile fetched successfully");
+    if (result) {
+      logger.info("Seller profile fetched successfully", {
+        userId: id,
+      });
+    }
 
     // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       data: result,
     });
@@ -82,12 +83,55 @@ export const getSellerProfileByIdController = asyncHandler(
 );
 
 /**
+ * Controller for get all seller profile
+ */
+export const getAllSellerProfile = asyncHandler(
+  async (req: Request, res: Response) => {
+    // Pagination query parameters.
+    const limit = Number(req.query.limit) || config.DEFAULT_LIMIT;
+    const offset = Number(req.query.offset) || config.DEFAULT_OFFSET;
+
+    // Default verification status is VERIFIED.
+    const verificationStatus =
+      (req.query.verificationStatus as SellerVerificationStatus) ||
+      SellerVerificationStatus.VERIFIED;
+
+    // Call get all seller profile service
+    const result = await sellerService.getAllSellerProfileService({
+      limit,
+      offset,
+      verificationStatus,
+    });
+
+    // Log successful get all seller profile
+    if (result) {
+      logger.info("All seller profiles fetched successfully");
+    }
+
+    // Send success response
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result.allSellers,
+      pagination: {
+        total: result.total,
+        limit: result.limit,
+        skip: result.skip,
+        totalPages: result.totalPages,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      },
+    });
+  },
+);
+
+/**
  * Controller for seller update
  */
-export const updateSellerController = asyncHandler(
+export const updateSeller = asyncHandler(
   async (req: Request, res: Response) => {
     // Call update seller service
-    await updateSellerService({
+    await sellerService.updateSeller({
       userId: req.userId!,
       payload: req.body,
       file: req.file,
@@ -98,7 +142,7 @@ export const updateSellerController = asyncHandler(
 
     // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       message: API_MESSAGES.SELLER_PROFILE_UPDATED,
     });
@@ -108,22 +152,20 @@ export const updateSellerController = asyncHandler(
 /**
  * Controller for delete seller profile
  */
-export const deleteSellerProfileController = asyncHandler(
+export const deleteSellerProfile = asyncHandler(
   async (req: Request, res: Response) => {
     // Get seller id from request parameters
-    const { userId } = req.params;
+    const { id } = req.params;
 
     // Delete seller profile service
-    await deleteControllerSellerService({
-      userId: userId as unknown as Types.ObjectId,
-    });
+    await sellerService.deleteSeller(id as string);
 
     // Log the success message
     logger.info(API_MESSAGES.SELLER_PROFILE_DELETED);
 
     // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.NO_CONTENT,
+      statusCode: StatusCodes.NO_CONTENT,
       success: true,
       message: API_MESSAGES.SELLER_PROFILE_DELETED,
     });
@@ -131,36 +173,43 @@ export const deleteSellerProfileController = asyncHandler(
 );
 
 /**
- * Controller for get all seller profile
+ * Controller for change seller status
  */
-export const getAllSellerProfileController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Get limit and offset from request query parameters
-    const limit =
-      parseInt(req.query.limit as string, 15) || config.DEFAULT_LIMIT;
-    const offset =
-      parseInt(req.query.offset as string, 15) || config.DEFAULT_OFFSET;
-    const verificationStatus = req.query
-      .verificationStatus as SellerVerificationStatus;
+const changeSellerStatus = asyncHandler(async (req: Request, res: Response) => {
+  // Get id from request parameters and status from request body
+  const { id } = req.params;
+  const { status } = req.body;
 
-    // Get all seller profile service
-    const result = await getAllSellerProfileService({
-      limit,
-      offset,
-      verificationStatus: verificationStatus || undefined,
-    });
+  // Call change seller status service
+  await sellerService.changeSellerStatus({
+    id: id as string,
+    status: status as SellerVerificationStatus,
+  });
 
-    // Log the success message
-    logger.info("Seller profiles fetched successfully");
+  // Log the success message
+  logger.info(API_MESSAGES.SELLER_STATUS_CHANGED);
 
-    // Send success response
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      data: result.allSellers,
-      total: result.total,
-      skip: result.skip,
-      limit: result.limit,
-    });
-  },
-);
+  // Send success response
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: API_MESSAGES.SELLER_STATUS_CHANGED,
+  });
+});
+
+/**
+ * Seller controller instance
+ */
+const sellerController = {
+  getCurrentSellerProfile,
+  getSellerProfileById,
+  getAllSellerProfile,
+  updateSeller,
+  deleteSellerProfile,
+  changeSellerStatus,
+};
+
+/**
+ * Export default sellerController
+ */
+export default sellerController;

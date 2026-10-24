@@ -92,14 +92,14 @@ export const getAllBuyerProfile = asyncHandler(
     const limit = Number(req.query.limit) || config.DEFAULT_LIMIT;
     const offset = Number(req.query.offset) || config.DEFAULT_OFFSET;
 
-    // Fetch buyer profiles
+    // Call get all buyer profile service
     const result = await buyerService.getAllBuyerProfile({
       limit,
       offset,
     });
 
     // Log successful get all buyer profile
-    if (result.allBuyers.length > 0) {
+    if (result) {
       logger.info("All buyer profiles fetched successfully");
     }
 

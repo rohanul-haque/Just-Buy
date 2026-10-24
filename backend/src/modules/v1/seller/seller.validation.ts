@@ -7,7 +7,7 @@
 /**
  * Third-Party Module
  */
-import mongoose from "mongoose";
+import { Types } from "mongoose";
 import { z } from "zod";
 
 /**
@@ -54,19 +54,21 @@ export const updateSellerSchema = z.object({
 });
 
 /**
- * Object ID Schema
+ * Change Seller Status Schema
  */
-export const objectIdSchema = z
-  .string()
-  .refine((value) => mongoose.Types.ObjectId.isValid(value), {
-    message: "Invalid User ID",
-  });
+export const changeSellerStatusSchema = z.object({
+  status: z.enum(["pending", "verified", "rejected"], {
+    error: "Invalid status",
+  }),
+});
 
 /**
  * User ID Schema
  */
-export const userIdSchema = z.object({
-  userId: objectIdSchema,
+export const idSchema = z.object({
+  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid User ID",
+  }),
 });
 
 /**
@@ -77,10 +79,3 @@ export const sellerListQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
   verificationStatus: z.enum(["pending", "verified", "rejected"]).optional(),
 });
-
-/**
- * Type
- */
-export type SellerListQueryInput = z.infer<typeof sellerListQuerySchema>;
-export type UpdateSellerInput = z.infer<typeof updateSellerSchema>;
-export type UserIdParamsInput = z.infer<typeof userIdSchema>;

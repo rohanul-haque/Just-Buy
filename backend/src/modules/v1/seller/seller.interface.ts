@@ -41,7 +41,6 @@ export interface IUser {
   fullName: string;
   email: string;
   role: "seller";
-  isActive: boolean;
 }
 
 /**
@@ -77,10 +76,12 @@ export interface IUpdateSellerRequest {
 }
 
 /**
- * Seller ID
+ * Get All Seller Profiles Params Interface
  */
-export interface ISellerId {
-  userId: Types.ObjectId;
+export interface GetAllSellerProfilesParams {
+  limit: number;
+  offset: number;
+  verificationStatus?: SellerVerificationStatus;
 }
 
 /**
@@ -106,5 +107,16 @@ export interface IAllSellerProfile {
   total: number;
   limit: number;
   skip: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
   allSellers: ISellerProfile[];
+}
+
+/**
+ * Change Seller Status Payload Interface
+ */
+export interface IChangeSellerStatusPaylod {
+  id: string;
+  status: SellerVerificationStatus;
 }

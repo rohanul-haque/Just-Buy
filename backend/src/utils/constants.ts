@@ -184,6 +184,7 @@ export const API_MESSAGES = {
   SELLER_PROFILE_DELETED: "Seller profile deleted successfully",
   SELLER_PROFILE_NOT_FOUND: "Seller profile not found",
   SELLER_PROFILE_ALREADY_EXISTS: "Seller profile already exists",
+  SELLER_STATUS_CHANGED: "Seller status changed successfully",
 
   SELLER_NOT_APPROVED: "Seller account is not approved",
   SELLER_VERIFICATION_PENDING: "Seller verification is pending",

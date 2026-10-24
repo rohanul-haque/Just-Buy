@@ -14,6 +14,7 @@ import express from "express";
  */
 import AuthRoutes from "@/modules/v1/auth/auth.routes";
 import buyerRoutes from "@/modules/v1/buyer/buyer.routes";
+import sellerRoutes from "@/modules/v1/seller/seller.routes";
 
 /**
  * API Controller
@@ -30,7 +31,7 @@ const router = express.Router();
  */
 router.use("/health", healthRoute);
 router.use("/auth", AuthRoutes);
-// router.use("/seller", sellerRoutes);
+router.use("/seller", sellerRoutes);
 router.use("/buyer", buyerRoutes);
 // router.use("/category", categoryRoutes);
 // router.use("/product", productRoutes);
