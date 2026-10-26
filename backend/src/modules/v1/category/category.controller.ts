@@ -5,48 +5,47 @@
  */
 
 /**
- * Third-Party Modules
+ * Thired-party Module
  */
-import { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Application Modules
  */
+import config from "@/config";
 import { logger } from "@/lib/winston";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
 
 /**
  * Application Services
  */
-import {
-  createCategoryService,
-  deleteCategoryService,
-  getAllCategoriesService,
-  getCategoryByIdService,
-  updateCategoryService,
-} from "@/modules/v1/category/category.service";
-import { Types } from "mongoose";
+import categoryService from "@/modules/v1/category/category.service";
 
 /**
- * Create Category Controller
- * @access - Private (Admin)
- * @method - POST
- * @route - /api/v1/category
+ * Type
  */
-export const createCategoryController = asyncHandler(
+import { Request, Response } from "express";
+
+/**
+ * Controller for create category
+ */
+export const createCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    await createCategoryService({
+    // Get category user ID from request
+    await categoryService.createCategory({
       userId: req.userId!,
       payload: req.body,
       file: req.file,
     });
 
+    // Log success
     logger.info(API_MESSAGES.CATEGORY_CREATED);
 
+    // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.CREATED,
+      statusCode: StatusCodes.CREATED,
       success: true,
       message: API_MESSAGES.CATEGORY_CREATED,
     });
@@ -54,44 +53,62 @@ export const createCategoryController = asyncHandler(
 );
 
 /**
- * Get All Categories Controller
- * @access - Public
- * @method - GET
- * @route - /api/v1/category
+ * Controller for get all categories
  */
-export const getAllCategoriesController = asyncHandler(
+export const getAllCategories = asyncHandler(
   async (req: Request, res: Response) => {
-    const result = await getAllCategoriesService();
+    // Pagination query parameters
+    const limit = Number(req.query.limit) || config.DEFAULT_LIMIT;
+    const offset = Number(req.query.offset) || config.DEFAULT_OFFSET;
 
-    logger.info(API_MESSAGES.CATEGORIES_FETCHED);
+    // Call get all categories service
+    const result = await categoryService.getAllCategories({
+      limit,
+      offset,
+    });
 
+    // Log the get all categories successfully
+    if (result) {
+      logger.info(API_MESSAGES.CATEGORIES_FETCHED);
+    }
+
+    // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
+      message: API_MESSAGES.CATEGORIES_FETCHED,
       data: result.categories,
-      total: result.total,
+      pagination: {
+        limit: result.limit,
+        skip: result.skip,
+        total: result.total,
+        totalPages: result.totalPages,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      },
     });
   },
 );
 
 /**
- * Get Category By ID Controller
- * @access - Public
- * @method - GET
- * @route - /api/v1/category/:id
+ * Controller for get category by ID
  */
-export const getCategoryByIdController = asyncHandler(
+export const getCategoryById = asyncHandler(
   async (req: Request, res: Response) => {
-    const { categoryId } = req.params;
+    // Get buyer user ID from params
+    const { id } = req.params;
 
-    const result = await getCategoryByIdService({
-      categoryId: categoryId as unknown as Types.ObjectId,
-    });
+    // Call get category by ID service
+    const result = await categoryService.getCategoryById(id as string);
 
-    logger.info(API_MESSAGES.CATEGORY_FETCHED);
+    // Log the get category successfully
+    if (result) {
+      logger.info(API_MESSAGES.CATEGORY_FETCHED);
+    }
 
+    // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       data: result,
     });
@@ -99,28 +116,28 @@ export const getCategoryByIdController = asyncHandler(
 );
 
 /**
- * Update Category Controller
- * @access - Private (Admin)
- * @method - PATCH
- * @route - /api/v1/category/:id
+ * Controller for update category
  */
-/**
- * Update Category Controller
- */
-export const updateCategoryController = asyncHandler(
+export const updateCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    const { categoryId } = req.params;
+    // Get category user ID from params
+    const { id } = req.params;
 
-    await updateCategoryService({
-      categoryId: categoryId as unknown as Types.ObjectId,
+    // Call update category service
+    await categoryService.updateCategory({
+      id: id as string,
       payload: req.body,
       file: req.file,
     });
 
-    logger.info(API_MESSAGES.CATEGORY_UPDATED, { categoryId });
+    // Log success
+    logger.info(API_MESSAGES.CATEGORY_UPDATED, {
+      id: id,
+    });
 
+    // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       message: API_MESSAGES.CATEGORY_UPDATED,
     });
@@ -128,22 +145,40 @@ export const updateCategoryController = asyncHandler(
 );
 
 /**
- * Delete Category Controller
+ * Controller for delete category
  */
-export const deleteCategoryController = asyncHandler(
+export const deleteCategory = asyncHandler(
   async (req: Request, res: Response) => {
-    const { categoryId } = req.params;
+    // Get category user ID from params
+    const { id } = req.params;
 
-    await deleteCategoryService({
-      categoryId: categoryId as unknown as Types.ObjectId,
-    });
+    // Call delete category service
+    await categoryService.deleteCategory(id as string);
 
-    logger.info(API_MESSAGES.CATEGORY_DELETED, { categoryId });
+    // Log success
+    logger.info(API_MESSAGES.CATEGORY_DELETED, { id });
 
+    // Send success response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.NO_CONTENT,
+      statusCode: StatusCodes.NO_CONTENT,
       success: true,
       message: API_MESSAGES.CATEGORY_DELETED,
     });
   },
 );
+
+/**
+ * Category Controller Instance
+ */
+const categoryController = {
+  createCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory,
+  deleteCategory,
+};
+
+/**
+ * Export Category Controller
+ */
+export default categoryController;

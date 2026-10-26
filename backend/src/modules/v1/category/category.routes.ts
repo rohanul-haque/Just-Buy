@@ -18,29 +18,24 @@ import validation from "@/middlewares/validation";
 import fileUpload from "@/utils/fileUpload";
 
 /**
- * Application Modules - Types
+ * Type
  */
 import { UserRole } from "@/modules/v1/auth/auth.interface";
 
 /**
- * Application Modules - Validations
+ * Validations
  */
 import {
-  categoryIdSchema,
+  categoryListQuerySchema,
   createCategorySchema,
+  idSchema,
   updateCategorySchema,
 } from "@/modules/v1/category/category.validation";
 
 /**
- * Application Modules - Controllers
+ * API Controllers
  */
-import {
-  createCategoryController,
-  deleteCategoryController,
-  getAllCategoriesController,
-  getCategoryByIdController,
-  updateCategoryController,
-} from "@/modules/v1/category/category.controller";
+import categoryController from "@/modules/v1/category/category.controller";
 
 /**
  * Router Instance
@@ -49,7 +44,7 @@ const router = Router();
 
 /**
  * Create Category
- * @access Private (Admin)
+ * @access Private
  * @method POST
  * @route /api/v1/category
  */
@@ -59,7 +54,7 @@ router.post(
   authorize([UserRole.ADMIN]),
   fileUpload.single("image"),
   validation(createCategorySchema, "body"),
-  createCategoryController,
+  categoryController.createCategory,
 );
 
 /**
@@ -68,7 +63,11 @@ router.post(
  * @method GET
  * @route /api/v1/category/list
  */
-router.get("/list", getAllCategoriesController);
+router.get(
+  "/list",
+  validation(categoryListQuerySchema, "query"),
+  categoryController.getAllCategories,
+);
 
 /**
  * Get Category by ID
@@ -77,9 +76,9 @@ router.get("/list", getAllCategoriesController);
  * @route /api/v1/category/:categoryId
  */
 router.get(
-  "/:categoryId",
-  validation(categoryIdSchema, "params"),
-  getCategoryByIdController,
+  "/:id",
+  validation(idSchema, "params"),
+  categoryController.getCategoryById,
 );
 
 /**
@@ -89,13 +88,13 @@ router.get(
  * @route /api/v1/category/:id
  */
 router.patch(
-  "/:categoryId",
+  "/:id",
   authenticate,
   authorize([UserRole.ADMIN]),
   fileUpload.single("image"),
-  validation(categoryIdSchema, "params"),
+  validation(idSchema, "params"),
   validation(updateCategorySchema, "body"),
-  updateCategoryController,
+  categoryController.updateCategory,
 );
 
 /**
@@ -105,11 +104,11 @@ router.patch(
  * @route /api/v1/category/:id
  */
 router.delete(
-  "/:categoryId",
+  "/:id",
   authenticate,
   authorize([UserRole.ADMIN]),
-  validation(categoryIdSchema, "params"),
-  deleteCategoryController,
+  validation(idSchema, "params"),
+  categoryController.deleteCategory,
 );
 
 /**

@@ -40,7 +40,7 @@ import { Types } from "mongoose";
 /**
  * Create Product Controller
  */
-export const createProductController = asyncHandler(
+export const createProduct = asyncHandler(
   async (req: Request, res: Response) => {
     const files = Array.isArray(req.files) ? req.files : [];
 
@@ -67,7 +67,7 @@ export const createProductController = asyncHandler(
  * @route - /api/v1/products
  */
 
-export const getAllProductsController = asyncHandler(
+export const getAllProducts = asyncHandler(
   async (req: Request, res: Response) => {
     const { category, name, price, search } = req.query;
 
@@ -105,7 +105,7 @@ export const getAllProductsController = asyncHandler(
  * @method - GET
  * @route - /api/v1/products/:id
  */
-export const getProductByIdController = asyncHandler(
+export const getProductById = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = req.params.productId;
 
@@ -129,7 +129,7 @@ export const getProductByIdController = asyncHandler(
  * @method - PATCH
  * @route - /api/v1/products/:id
  */
-export const updateProductController = asyncHandler(
+export const updateProduct = asyncHandler(
   async (req: Request, res: Response) => {
     const files =
       (req.files as Express.Multer.File[]) ||
@@ -158,7 +158,7 @@ export const updateProductController = asyncHandler(
  * @method - DELETE
  * @route - /api/v1/products/:id
  */
-export const deleteProductController = asyncHandler(
+export const deleteProduct = asyncHandler(
   async (req: Request, res: Response) => {
     const productId = req.params.productId;
 
@@ -176,3 +176,13 @@ export const deleteProductController = asyncHandler(
     });
   },
 );
+
+const productController = {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+};
+
+export default productController;

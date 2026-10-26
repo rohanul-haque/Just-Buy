@@ -4,8 +4,26 @@
  * @license Apache-2.0
  */
 
-import { Types } from "mongoose";
-import { IAvatar } from "../seller/seller.interface";
+/**
+ * Third-party module
+ */
+import type { Types } from "mongoose";
+
+/**
+ * Type
+ */
+import type { IAvatar } from "@/modules/v1/seller/seller.interface";
+
+/**
+ * Create Category Request
+ */
+export interface ICreateCategoryPaylod {
+  userId: Types.ObjectId;
+  payload: {
+    name: string;
+  };
+  file?: Express.Multer.File;
+}
 
 /**
  * Category Interface
@@ -14,25 +32,8 @@ export interface ICategory {
   createdBy: Types.ObjectId;
   name: string;
   image: IAvatar;
-}
-
-/**
- * Create Category Payload
- */
-export interface ICreateCategoryPayload {
-  name: string;
-  slug?: string;
-  description?: string;
-  isActive?: boolean;
-}
-
-/**
- * Create Category Request
- */
-export interface ICreateCategoryRequest {
-  userId: Types.ObjectId;
-  payload: ICreateCategoryPayload;
-  file?: Express.Multer.File;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**
@@ -45,8 +46,8 @@ export interface IUpdateCategoryPayload {
 /**
  * Update Category Request
  */
-export interface IUpdateCategoryRequest {
-  categoryId: Types.ObjectId;
+export interface IUpdateCategoryPaylod {
+  id: string;
   payload: IUpdateCategoryPayload;
   file?: Express.Multer.File;
 }
@@ -54,26 +55,20 @@ export interface IUpdateCategoryRequest {
 /**
  * Get Categories Query Parameters
  */
-export interface IGetCategoriesQuery {
-  page?: number;
-  limit?: number;
-  search?: string;
-  isActive?: boolean;
-  sortBy?: "name" | "createdAt" | "updatedAt";
-  sortOrder?: "asc" | "desc";
+export interface IGetCategoriesParams {
+  limit: number;
+  offset: number;
 }
 
 /**
  * Paginated Categories Result
  */
 export interface IGetCategoriesResult {
-  categories: ICategory[];
   total: number;
-}
-
-/**
- * Category ID
- */
-export interface ICategoryId {
-  categoryId: Types.ObjectId;
+  limit: number;
+  skip: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  categories: ICategory[];
 }

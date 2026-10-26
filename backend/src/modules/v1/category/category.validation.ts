@@ -22,6 +22,23 @@ export const createCategorySchema = z.object({
 });
 
 /**
+ * Category List Query Validation Schema
+ */
+export const categoryListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(15),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+/**
+ * User ID Schema
+ */
+export const idSchema = z.object({
+  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid User ID",
+  }),
+});
+
+/**
  * Update Category Validation Schema
  */
 export const updateCategorySchema = z.object({
@@ -68,12 +85,3 @@ export const getCategoriesQuerySchema = z.object({
     .optional(),
   sortOrder: z.enum(["asc", "desc"]).default("desc").optional(),
 });
-
-/**
- * Types
- */
-export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
-export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
-export type CategoryIdInput = z.infer<typeof categoryIdSchema>;
-export type GetCategoriesQueryInput = z.infer<typeof getCategoriesQuerySchema>;
-export type CategoryObjectIdInput = z.infer<typeof categoryObjectIdSchema>;

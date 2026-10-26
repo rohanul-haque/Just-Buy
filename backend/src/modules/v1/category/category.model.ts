@@ -58,7 +58,13 @@ const categorySchema = new Schema<ICategory>(
   },
 );
 
+/**
+ * Category Model
+ */
 const Category =
   models.Category || model<ICategory>("Category", categorySchema);
 
+/**
+ * Category Model export
+ */
 export default Category;
