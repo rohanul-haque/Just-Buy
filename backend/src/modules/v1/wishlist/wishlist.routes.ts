@@ -24,15 +24,15 @@ import { UserRole } from "@/modules/v1/auth/auth.interface";
 /**
  * Validation
  */
-import { productIdSchema } from "@/modules/v1/product/product.validation";
+import {
+  idSchema,
+  wishListQuerySchema,
+} from "@/modules/v1/wishlist/wishlist.validation";
 
 /**
  * API Controllers
  */
-import {
-  addWishlistController,
-  removeWishlistController,
-} from "@/modules/v1/wishlist/wishlist.controller";
+import wishlistController from "@/modules/v1/wishlist/wishlist.controller";
 
 /**
  * Router instance
@@ -46,11 +46,25 @@ const router = Router();
  * @route - /api/v1/wishlist/:productId
  */
 router.post(
-  "/:productId",
+  "/:id",
   authenticate,
   authorize([UserRole.BUYER]),
-  validation(productIdSchema, "params"),
-  addWishlistController,
+  validation(idSchema, "params"),
+  wishlistController.addWishlist,
+);
+
+/**
+ * Add Wishlist
+ * @access - Private
+ * @method - POST
+ * @route - /api/v1/wishlist/:productId
+ */
+router.get(
+  "/list",
+  authenticate,
+  authorize([UserRole.BUYER]),
+  validation(wishListQuerySchema, "query"),
+  wishlistController.allWishlist,
 );
 
 /**
@@ -60,11 +74,11 @@ router.post(
  * @route - /api/v1/wishlist/list
  */
 router.delete(
-  "/:productId",
+  "/:id",
   authenticate,
   authorize([UserRole.BUYER]),
-  validation(productIdSchema, "params"),
-  removeWishlistController,
+  validation(idSchema, "params"),
+  wishlistController.removeWishlist,
 );
 
 export default router;

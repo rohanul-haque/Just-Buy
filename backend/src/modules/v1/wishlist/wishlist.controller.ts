@@ -7,94 +7,99 @@
 /**
  * Third-party Module
  */
-import { Types } from "mongoose";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Application Modules
  */
+import config from "@/config";
 import { logger } from "@/lib/winston";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
 
 /**
- * Services
+ * Application Service
  */
-import {
-  addWishlistService,
-  getAllWishlistsService,
-  removeWishlistService,
-} from "@/modules/v1/wishlist/wishlist.service";
+import wishlistService from "@/modules/v1/wishlist/wishlist.service";
 
 /**
  * Type
  */
 import type { Request, Response } from "express";
+
 /**
  * Controller for adding a product to the wishlist
  */
-export const addWishlistController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { productId } = req.params;
-    const buyerId = req.userId!;
+export const addWishlist = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const buyerId = req.userId!;
 
-    await addWishlistService({
-      buyerId,
-      productId: productId as unknown as Types.ObjectId,
-    });
+  await wishlistService.addWishlist({
+    buyerId,
+    id: id as string,
+  });
 
-    logger.info("Wishlist item added", {
-      buyerId,
-      productId,
-    });
+  logger.info(API_MESSAGES.WISHLIST_CREATED, {
+    buyerId: buyerId,
+    productId: id,
+  });
 
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.WISHLIST_ITEM_ADDED,
-    });
-  },
-);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: API_MESSAGES.WISHLIST_ITEM_ADDED,
+  });
+});
 
 /**
  * Controller for getting all wishlist items
  */
-export const allWishlistController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const buyerId = req.userId!;
+export const allWishlist = asyncHandler(async (req: Request, res: Response) => {
+  const limit = Number(req.query.limit) || config.DEFAULT_LIMIT;
+  const offset = Number(req.query.offset) || config.DEFAULT_OFFSET;
 
-    const result = await getAllWishlistsService(buyerId);
+  const buyerId = req.userId!;
 
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      data: result,
-    });
-  },
-);
+  const result = await wishlistService.getAllWishlists({
+    buyerId,
+    limit,
+    offset,
+  });
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    data: result,
+  });
+});
 
 /**
  * Controller for removing a product from the wishlist
  */
-export const removeWishlistController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { productId } = req.params;
+export const removeWishlist = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
     const buyerId = req.userId!;
 
-    await removeWishlistService({
+    await wishlistService.removeWishlist({
       buyerId,
-      productId: productId as unknown as Types.ObjectId,
+      id: id as string,
     });
 
-    logger.info("Wishlist item removed", {
+    logger.info(API_MESSAGES.WISHLIST_ITEM_REMOVED, {
       buyerId,
-      productId,
+      productId: id,
     });
 
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.NO_CONTENT,
       success: true,
       message: API_MESSAGES.WISHLIST_ITEM_REMOVED,
     });
   },
 );
+
+const wishListController = { addWishlist, allWishlist, removeWishlist };
+
+export default wishListController;

@@ -73,7 +73,6 @@ export interface IGetProductsQuery {
   category?: string;
   name?: string;
   search?: string;
-  price?: number;
   limit: number;
   offset: number;
 }

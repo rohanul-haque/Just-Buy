@@ -5,7 +5,7 @@
  */
 
 /**
- * Thired-party Module
+ * Third-party Module
  */
 import { Types } from "mongoose";
 
@@ -23,17 +23,23 @@ export interface IWishlist {
 }
 
 /**
- * Interface for adding a product to the wishlist
- */
-export interface IAddWishlistRequest {
-  buyerId: Types.ObjectId;
-  productId: Types.ObjectId;
-}
-
-/**
  * Type alias for buyer ID
  */
 export type BuyerId = IWishlist["buyer"];
+
+/**
+ * Interface for adding a product to the wishlist
+ */
+export interface IAddWishlistPayload {
+  buyerId: Types.ObjectId;
+  id: string;
+}
+
+export interface GetAllWishlistParams {
+  limit: number;
+  offset: number;
+  buyerId: Types.ObjectId;
+}
 
 /**
  * Interface for populated product inside wishlist
@@ -43,15 +49,23 @@ export interface IWishlistProduct {
   name: string;
   price: number;
   images: IAvatar[];
+  createdAt?: Date | string;
 }
 
 /**
- * Interface for wishlist response with populated products
+ * Interface for paginated wishlist response
  */
 export interface IWishlistResponse {
-  _id: Types.ObjectId;
-  buyer: Types.ObjectId;
   products: IWishlistProduct[];
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  total: number;
+  limit: number;
+  offset: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface IRemoveWishlistPayload {
+  buyerId: Types.ObjectId;
+  id: string;
 }

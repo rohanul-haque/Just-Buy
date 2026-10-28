@@ -5,20 +5,26 @@
  */
 
 /**
+ * Third-Party Module
+ */
+import { StatusCodes } from "http-status-codes";
+
+/**
  * Application Modules
  */
-import { logger } from "@/lib/winston";
 import Product from "@/modules/v1/product/product.model";
 import Wishlist from "@/modules/v1/wishlist/wishlist.model";
 import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
 
 /**
  * Type
  */
 import type {
   BuyerId,
-  IAddWishlistRequest,
+  GetAllWishlistParams,
+  IAddWishlistPayload,
+  IRemoveWishlistPayload,
   IWishlistResponse,
 } from "@/modules/v1/wishlist/wishlist.interface";
 
@@ -28,59 +34,46 @@ import type {
  * @param {ProductId} productId - Product ID
  * @returns {Promise<void>}
  */
-export const addWishlistService = async ({
+export const addWishlist = async ({
   buyerId,
-  productId,
-}: IAddWishlistRequest): Promise<void> => {
-  // Check whether the product exists
+  id,
+}: IAddWishlistPayload): Promise<void> => {
   const productExists = await Product.exists({
-    _id: productId,
+    _id: id,
   });
 
   if (!productExists) {
-    logger.warn("Product not found", { productId });
-
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
       API_MESSAGES.PRODUCT_NOT_FOUND,
     );
   }
 
-  // Check whether the product is already wishlisted
-  const isWished = await Wishlist.exists({
+  const alreadyAdded = await Wishlist.exists({
     buyer: buyerId,
-    products: productId,
+    products: id,
   });
 
-  if (isWished) {
-    logger.warn("Product already exists in wishlist", {
-      buyerId,
-      productId,
-    });
-
+  if (alreadyAdded) {
     throw new AppError(
-      HTTP_STATUS.CONFLICT,
+      StatusCodes.CONFLICT,
       ERROR_CODE.PRODUCT_ALREADY_WISHED,
       API_MESSAGES.PRODUCT_ALREADY_WISHED,
     );
   }
 
-  // Add the product to the buyer's wishlist
   await Wishlist.findOneAndUpdate(
     { buyer: buyerId },
     {
-      $addToSet: {
-        products: productId,
-      },
+      $addToSet: { products: id },
     },
     {
-      new: true,
       upsert: true,
       runValidators: true,
       setDefaultsOnInsert: true,
     },
-  );
+  ).exec();
 };
 
 /**
@@ -88,18 +81,57 @@ export const addWishlistService = async ({
  * @param {BuyerId} buyerId - Buyer ID
  * @returns {Promise<IWishlistResponse>}
  */
-export const getAllWishlistsService = async (
-  buyerId: BuyerId,
-): Promise<IWishlistResponse> => {
-  // Find the buyer's wishlist and populate products
-  const wishlist = await Wishlist.findOne({
-    buyer: buyerId,
-  })
-    .populate("products", "name images price")
+export const getAllWishlists = async ({
+  buyerId,
+  limit,
+  offset,
+}: GetAllWishlistParams): Promise<IWishlistResponse> => {
+  const wishlist = await Wishlist.findOne({ buyer: buyerId })
+    .select("products")
     .lean()
     .exec();
 
-  return wishlist;
+  if (!wishlist || wishlist.products.length === 0) {
+    return {
+      products: [],
+      total: 0,
+      limit,
+      offset,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
+    };
+  }
+
+  const filter = {
+    _id: { $in: wishlist.products },
+  };
+
+  const [total, products] = await Promise.all([
+    Product.countDocuments(filter).exec(),
+
+    Product.find(filter)
+      .select("name images price createdAt")
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .lean()
+      .exec(),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+  const hasNextPage = offset + products.length < total;
+  const hasPrevPage = offset > 0 && offset < total;
+
+  return {
+    products,
+    total,
+    limit,
+    offset,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+  };
 };
 
 /**
@@ -108,40 +140,37 @@ export const getAllWishlistsService = async (
  * @param {ProductId} productId - Product ID
  * @returns {Promise<void>}
  */
-export const removeWishlistService = async ({
+export const removeWishlist = async ({
   buyerId,
-  productId,
-}: IAddWishlistRequest): Promise<void> => {
-  // heck whether the product is already wishlisted
-  const isWished = await Wishlist.exists({
-    buyer: buyerId,
-    products: productId,
-  });
+  id,
+}: IRemoveWishlistPayload): Promise<void> => {
+  const wishlist = await Wishlist.findOneAndUpdate(
+    {
+      buyer: buyerId,
+      products: id,
+    },
+    {
+      $pull: {
+        products: id,
+      },
+    },
+    {
+      runValidators: true,
+    },
+  )
+    .select("_id")
+    .lean()
+    .exec();
 
-  if (!isWished) {
-    logger.warn("Product not found in wishlist", {
-      buyerId,
-      productId,
-    });
-
+  if (!wishlist) {
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.WISHLIST_NOT_FOUND,
       API_MESSAGES.WISHLIST_ITEM_NOT_FOUND,
     );
   }
-
-  // Remove the product from the buyer's wishlist
-  await Wishlist.findOneAndUpdate(
-    { buyer: buyerId },
-    {
-      $pull: {
-        products: productId,
-      },
-    },
-    {
-      new: true,
-      runValidators: true,
-    },
-  );
 };
+
+const wishlistService = { addWishlist, getAllWishlists, removeWishlist };
+
+export default wishlistService;

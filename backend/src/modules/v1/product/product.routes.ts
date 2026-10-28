@@ -88,7 +88,7 @@ router.get(
  * @route - /api/v1/product/:id
  */
 router.patch(
-  "/:id",
+  "/:id", 
   authenticate,
   authorize([UserRole.SELLER]),
   fileUpload.array("images"),
