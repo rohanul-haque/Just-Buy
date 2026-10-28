@@ -23,7 +23,9 @@ export const createProductSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(2000, "Description cannot exceed 2000 characters"),
 
-  category: z.string().trim().min(1, "Category is required"),
+  category: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid Category ID",
+  }),
 
   brand: z
     .string()
@@ -42,18 +44,31 @@ export const createProductSchema = z.object({
     .min(0, "Stock quantity cannot be negative")
     .default(0),
 
-  sizes: z
-    .array(
-      z.enum(["S", "M", "L", "XL", "XXL"], {
-        message: "Invalid product size",
-      }),
-    )
-    .max(5, "Maximum 5 sizes are allowed")
-    .refine(
-      (sizes) => new Set(sizes).size === sizes.length,
-      "Duplicate sizes are not allowed",
-    )
-    .default([]),
+  sizes: z.preprocess(
+    (value) => {
+      if (typeof value === "string") {
+        try {
+          return JSON.parse(value);
+        } catch {
+          return value;
+        }
+      }
+
+      return value;
+    },
+    z
+      .array(
+        z.enum(["S", "M", "L", "XL", "XXL"], {
+          message: "Invalid product size",
+        }),
+      )
+      .max(5, "Maximum 5 sizes are allowed")
+      .refine(
+        (sizes) => new Set(sizes).size === sizes.length,
+        "Duplicate sizes are not allowed",
+      )
+      .default([]),
+  ),
 });
 
 /**
@@ -96,56 +111,50 @@ export const updateProductSchema = z.object({
     .default(0)
     .optional(),
 
-  sizes: z
-    .array(
-      z
-        .enum(["S", "M", "L", "XL", "XXL"], {
-          message: "Invalid product size",
-        })
-        .optional(),
-    )
-    .max(5, "Maximum 5 sizes are allowed")
-    .refine(
-      (sizes) => new Set(sizes).size === sizes.length,
-      "Duplicate sizes are not allowed",
-    )
-    .default([]),
+  sizes: z.preprocess(
+    (value) => {
+      if (typeof value === "string") {
+        try {
+          return JSON.parse(value);
+        } catch {
+          return value;
+        }
+      }
+
+      return value;
+    },
+    z
+      .array(
+        z
+          .enum(["S", "M", "L", "XL", "XXL"], {
+            message: "Invalid product size",
+          })
+          .optional(),
+      )
+      .max(5, "Maximum 5 sizes are allowed")
+      .refine(
+        (sizes) => new Set(sizes).size === sizes.length,
+        "Duplicate sizes are not allowed",
+      )
+      .default([]),
+  ),
 });
 
 /**
  * Get Products Query Validation Schema
  */
 export const getProductsQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(15).optional(),
   offset: z.coerce.number().int().min(0).default(0).optional(),
   search: z.string().trim().optional(),
   category: z.string().trim().optional(),
-  name: z.string().trim().optional(),
-  price: z.coerce.number().min(0).optional(),
 });
 
 /**
- * Object ID Schema
- */
-export const categoryObjectIdSchema = z
-  .string()
-  .refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid Category ID",
-  });
-
-/**
- * Category ID Schema
+ * Product ID Schema
  */
 export const productIdSchema = z.object({
-  productId: categoryObjectIdSchema,
+  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid Product ID",
+  }),
 });
-
-/**
- * Types
- */
-// export type ProductImageInput = z.infer<typeof productImageSchema>;
-export type CreateProductInput = z.infer<typeof createProductSchema>;
-// export type UpdateProductInput = z.infer<typeof updateProductSchema>;
-export type ProductIdInput = z.infer<typeof productIdSchema>;
-// export type ProductIdParamInput = z.infer<typeof productIdParamSchema>;
-export type GetProductsQueryInput = z.infer<typeof getProductsQuerySchema>;

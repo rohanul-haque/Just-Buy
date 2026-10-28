@@ -4,7 +4,10 @@
  * @license Apache-2.0
  */
 
-import { Types } from "mongoose";
+/**
+ * Thired-party Module
+ */
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Application Modules
@@ -12,321 +15,371 @@ import { Types } from "mongoose";
 import { deleteFromCloudinary, uploadToCloudinary } from "@/lib/cloudinary";
 import { logger } from "@/lib/winston";
 import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
 
 /**
- * Models
+ * Application Models
  */
-import User from "@/modules/v1/auth/auth.model";
+import Category from "@/modules/v1/category/category.model";
 import Product from "@/modules/v1/product/product.model";
+import Seller from "@/modules/v1/seller/seller.model";
 
 /**
- * Roles & Types
+ * Types
  */
 import type {
-  ICreateProductRequest,
+  ICreateProductPayload,
+  IDeleteProductPayload,
   IGetProductsQuery,
+  IGetProductsResponse,
   IGetProductsResult,
   IProduct,
-  IProductId,
-  IUpdateProductRequest,
+  IUpdateProductPayload,
 } from "@/modules/v1/product/product.interface";
-import { UserRole } from "../auth/auth.interface";
-import Category from "../category/category.model";
+import { SellerVerificationStatus } from "@/modules/v1/seller/seller.interface";
 
 /**
- * Create Product Service (Add product)
- * @param {ICreateProductRequest} params - user ID, product payload, and optional files
+ * Service for Creating Product
+ * @param {Object} sellerId, payload, files
  * @returns {Promise<IProduct>} Created product document
  */
-export const createProductService = async ({
+const createProduct = async ({
   sellerId,
   payload,
   files = [],
-}: ICreateProductRequest): Promise<IProduct> => {
-  // Validate product images
+}: ICreateProductPayload): Promise<IProduct> => {
+  // check files
   if (files.length === 0) {
     throw new AppError(
-      HTTP_STATUS.BAD_REQUEST,
+      StatusCodes.BAD_REQUEST,
       ERROR_CODE.VALIDATION_ERROR,
       "At least one product image is required",
     );
   }
 
-  if (payload.category) {
-    const existingCategory = await Category.findOne({
-      name: {
-        $regex: `^${payload.category.trim()}$`,
-        $options: "i",
-      },
-    });
+  // check file size and number of files
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const MAX_IMAGES = 5;
 
-    if (!existingCategory) {
+  // check number of files
+  if (files.length > MAX_IMAGES) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      ERROR_CODE.VALIDATION_ERROR,
+      `You can upload a maximum of ${MAX_IMAGES} product images`,
+    );
+  }
+
+  // check file size
+  for (const file of files) {
+    if (file.size > MAX_FILE_SIZE) {
       throw new AppError(
-        HTTP_STATUS.BAD_REQUEST,
-        ERROR_CODE.VALIDATION_ERROR,
-        "Category not found. Please select an existing category.",
+        StatusCodes.REQUEST_TOO_LONG,
+        ERROR_CODE.FILE_TOO_LARGE,
+        "Each product image must not exceed 5 MB",
       );
     }
   }
 
-  // Validate image size (5 MB per image)
-  const maxFileSize = 5 * 1024 * 1024;
+  // find seller
+  const seller = await Seller.findOne({
+    user: sellerId,
+    verificationStatus: SellerVerificationStatus.VERIFIED,
+  })
+    .select("_id")
+    .lean()
+    .exec();
 
-  if (files.some((file) => file.size > maxFileSize)) {
+  // check if seller is verified
+  if (!seller) {
     throw new AppError(
-      HTTP_STATUS.PAYLOAD_TOO_LARGE,
-      ERROR_CODE.FILE_TOO_LARGE,
-      "Each product image must not exceed 5 MB",
+      StatusCodes.FORBIDDEN,
+      ERROR_CODE.VALIDATION_ERROR,
+      "Only verified sellers can create products",
     );
   }
 
+  // find category
+  const existingCategory = await Category.findById(payload.category)
+    .select("_id")
+    .lean()
+    .exec();
+
+  // check if category exists
+  if (!existingCategory) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      ERROR_CODE.VALIDATION_ERROR,
+      "Category not found. Please select an existing category.",
+    );
+  }
+
+  // array to store uploaded image public IDs for cleanup
   const uploadedPublicIds: string[] = [];
 
   try {
-    // Upload images to Cloudinary
-    const images = await Promise.all(
-      files.map(async (file) => {
-        const result = await uploadToCloudinary(
-          file.buffer,
-          "Just-Buy-API/products",
-        );
+    const images: IProduct["images"] = [];
 
-        uploadedPublicIds.push(result.public_id);
+    // upload files to cloudinary
+    for (const file of files) {
+      const result = await uploadToCloudinary(
+        file.buffer,
+        "Just-Buy-API/products",
+      );
 
-        return {
-          publicId: result.public_id,
-          url: result.secure_url,
-          width: result.width ?? null,
-          height: result.height ?? null,
-        };
-      }),
-    );
+      // store uploaded image public IDs
+      uploadedPublicIds.push(result.public_id);
 
-    // Create product in MongoDB
+      // add image to images array
+      images.push({
+        publicId: result.public_id,
+        url: result.secure_url,
+        width: result.width ?? null,
+        height: result.height ?? null,
+      });
+    }
+
+    // create product
     const product = await Product.create({
-      ...payload,
+      name: payload.name,
+      description: payload.description,
+      category: existingCategory._id,
+      brand: payload.brand,
+      price: payload.price,
+      stockQuantity: payload.stockQuantity ?? 0,
+      sizes: payload.sizes ?? [],
       seller: sellerId,
+      sellCount: 0,
       images,
     });
 
-    logger.info("Product created successfully", {
-      productId: product._id,
-      sellerId,
-    });
+    // populate seller and category
+    await product.populate([
+      { path: "seller", select: "fullName email role" },
+      { path: "category", select: "name" },
+    ]);
 
+    // return created product
     return product;
   } catch (error) {
-    // Clean up uploaded images if product creation fails
+    // cleanup uploaded images on error
     await Promise.allSettled(
       uploadedPublicIds.map((publicId) => deleteFromCloudinary(publicId)),
     );
-
-    logger.error("Failed to create product", {
-      sellerId,
-      error,
-    });
-
-    throw error;
   }
-};
-
-/**
- * Get All Products Service (Product list)
- * @param {IGetProductsQuery} query - Filtering, pagination and sorting options
- * @returns {Promise<IGetProductsResult>} Paginated products results
- */
-
-export const getAllProductsService = async (
-  query: IGetProductsQuery,
-): Promise<IGetProductsResult> => {
-  const limit = query.limit;
-  const skip = query.offset;
-
-  const filter: Record<string, unknown> = {};
-
-  // Filter by product name
-  if (query.name) {
-    filter.name = new RegExp(query.name.trim(), "i");
-  }
-
-  // Search by name or description
-  if (query.search?.trim()) {
-    const searchRegex = new RegExp(query.search.trim(), "i");
-
-    filter.$or = [{ name: searchRegex }, { description: searchRegex }];
-  }
-
-  // Filter by category
-  if (query.category) {
-    filter.category = new RegExp(`^${query.category.trim()}$`, "i");
-  }
-
-  // Filter by exact price
-  if (query.price !== undefined) {
-    filter.price = query.price;
-  }
-
-  // Fetch products and count in parallel
-  const [products, total] = await Promise.all([
-    Product.find(filter)
-      .populate("seller", "_id fullName email role")
-      .sort({ createdAt: -1 })
-      .skip(Number(skip))
-      .limit(Number(limit))
-      .lean(),
-
-    Product.countDocuments(filter),
-  ]);
-
-  return {
-    products,
-    total,
-    limit: Number(limit),
-    skip: Number(skip),
-  };
 };
 
 /**
  * Get Product By ID Service (Product details)
- * @param {IProductId} params - Product ObjectId
- * @returns {Promise<IProduct>} Product document
+ * @param {id} params - Product ID
+ * @returns {Promise<IGetProductsResult>} Product document
  */
-export const getProductByIdService = async ({
-  productId,
-}: IProductId): Promise<IProduct> => {
-  const product = await Product.findById(productId)
+export const getProductById = async (
+  id: string,
+): Promise<IGetProductsResult> => {
+  // find product
+  const product = await Product.findById(id)
     .populate("seller", "fullName email role")
+    .populate("category", "name")
     .lean()
     .exec();
 
+  // check if product exists
   if (!product) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, { productId });
+    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
+      productId: id,
+    });
+
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
       API_MESSAGES.PRODUCT_NOT_FOUND,
     );
   }
 
+  // return product
   return product;
 };
 
 /**
- * Update Product Service
- * @param {IUpdateProductRequest} params - Product ID, user ID, payload, and optional files
+ * Service for getting all products
+ * @param {IGetProductsQuery} query
+ * @returns {Promise<IGetProductsResponse>}
+ */
+export const getAllProducts = async (
+  query: IGetProductsQuery,
+): Promise<IGetProductsResponse> => {
+  // extract limit and offset
+  const { limit, offset: skip } = query;
+
+  // filter object
+  const filter: Record<string, unknown> = {};
+
+  // escape regex characters
+  const escapeRegex = (value: string): string =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  // Search by product name or description.
+  if (query.search?.trim()) {
+    const searchRegex = new RegExp(escapeRegex(query.search.trim()), "i");
+
+    filter.$or = [{ name: searchRegex }, { description: searchRegex }];
+  }
+
+  // Filter by Category ObjectId.
+  if (query.category) {
+    filter.category = query.category;
+  }
+
+  // Fetch products and total count in parallel.
+  const [products, total] = await Promise.all([
+    Product.find(filter)
+      .populate("seller", "_id fullName email role")
+      .populate("category", "name")
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .exec(),
+
+    Product.countDocuments(filter).exec(),
+  ]);
+
+  // Calculate pagination metadata.
+  const totalPages = Math.ceil(total / limit);
+  const hasNextPage = skip + products.length < total;
+  const hasPrevPage = skip > 0 && skip < total;
+
+  // return paginated products with metadata
+  return {
+    products,
+    total,
+    limit,
+    skip,
+    totalPages,
+    hasNextPage,
+    hasPrevPage,
+  };
+};
+
+/**
+ * Service for updating product
+ * @param {IUpdateProductRequest} params
  * @returns {Promise<IProduct>} Updated product document
  */
-
-export const updateProductService = async ({
-  productId,
-  userId,
+export const updateProduct = async ({
+  id,
+  sellerId,
   payload,
-  files,
-}: IUpdateProductRequest): Promise<void> => {
-  const { name, description, category, brand, price, stockQuantity, sizes } =
-    payload;
+  files = [],
+}: IUpdateProductPayload): Promise<void> => {
+  // find product owned by current seller
+  const product = await Product.findOne({
+    _id: id,
+    seller: sellerId,
+  });
 
-  // Find product
-  const product = await Product.findById(productId);
-
+  // check if product exists and belongs to the seller
   if (!product) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, { productId });
+    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
+      productId: id,
+      sellerId: String(sellerId),
+    });
 
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
       API_MESSAGES.PRODUCT_NOT_FOUND,
     );
   }
 
-  // Verify seller and product ownership
-  if (!userId) {
-    throw new AppError(
-      HTTP_STATUS.UNAUTHORIZED,
-      ERROR_CODE.UNAUTHORIZED,
-      "Authentication required",
-    );
-  }
+  // destructure all fields from payload
+  const { name, description, category, brand, price, stockQuantity, sizes } =
+    payload;
 
-  const user = await User.findById(userId).select("role").lean();
+  // validate category ID and ensure the category exists
+  if (category !== undefined) {
+    const existingCategory = await Category.findById(category)
+      .select("_id")
+      .lean()
+      .exec();
 
-  if (!user || user.role !== UserRole.SELLER) {
-    throw new AppError(
-      HTTP_STATUS.FORBIDDEN,
-      ERROR_CODE.FORBIDDEN,
-      API_MESSAGES.FORBIDDEN,
-    );
-  }
-
-  // Validate category created by admin
-  if (category) {
-    const existingCategory = await Category.findOne({
-      name: {
-        $regex: `^${category.trim()}$`,
-        $options: "i",
-      },
-    });
-
+    // check if category exists
     if (!existingCategory) {
       throw new AppError(
-        HTTP_STATUS.NOT_FOUND,
+        StatusCodes.NOT_FOUND,
         ERROR_CODE.NOT_FOUND,
         "Category not found",
       );
     }
 
-    product.category = existingCategory;
+    product.category = existingCategory._id;
   }
 
-  // Update product name
-  if (name) {
+  // Update fields only when provided.
+  if (name !== undefined) {
     product.name = name;
   }
 
-  // Update description
-  if (description) {
+  if (description !== undefined) {
     product.description = description;
   }
 
-  // Update brand
-  if (brand) {
+  if (brand !== undefined) {
     product.brand = brand;
   }
 
-  // Update price, including zero
-  if (price) {
+  // Zero is a valid price or stock value if permitted by the schema.
+  if (price !== undefined) {
     product.price = price;
   }
 
-  // Update stock, including zero
-  if (stockQuantity) {
+  if (stockQuantity !== undefined) {
     product.stockQuantity = stockQuantity;
   }
 
-  // Update sizes
-  if (sizes) {
+  if (sizes !== undefined) {
     product.sizes = sizes;
   }
 
-  // Validate image size and upload new images
-  if (files?.length) {
-    const maxFileSize = 5 * 1024 * 1024;
+  // max file size and max images
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const MAX_IMAGES = 5;
 
-    if (files.some((file) => file.size > maxFileSize)) {
+  // check if product has more than max images
+  if (product.images.length + files.length > MAX_IMAGES) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      ERROR_CODE.VALIDATION_ERROR,
+      `A product can have a maximum of ${MAX_IMAGES} images`,
+    );
+  }
+
+  // check if file size is more than max file size
+  for (const file of files) {
+    if (file.size > MAX_FILE_SIZE) {
       throw new AppError(
-        HTTP_STATUS.PAYLOAD_TOO_LARGE,
+        StatusCodes.REQUEST_TOO_LONG,
         ERROR_CODE.FILE_TOO_LARGE,
         API_MESSAGES.FILE_TOO_LARGE,
       );
     }
+  }
 
+  // Track newly uploaded images for cleanup on failure.
+  const uploadedPublicIds: string[] = [];
+
+  try {
+    // Upload new images and append them to existing images.
     for (const file of files) {
       const cloudinaryData = await uploadToCloudinary(
         file.buffer,
         "Just-Buy-API/products",
       );
 
+      uploadedPublicIds.push(cloudinaryData.public_id);
+
+      // push uploaded images into product
       product.images.push({
         publicId: cloudinaryData.public_id,
         url: cloudinaryData.secure_url,
@@ -334,9 +387,23 @@ export const updateProductService = async ({
         height: cloudinaryData.height ?? null,
       });
     }
-  }
 
-  await product.save();
+    // Run schema validation and persist changes.
+    await product.save();
+
+    logger.info(API_MESSAGES.PRODUCT_UPDATED, {
+      productId: String(product._id),
+      sellerId: String(sellerId),
+      uploadedImageCount: uploadedPublicIds.length,
+    });
+  } catch (error) {
+    // Remove newly uploaded images if saving or uploading fails.
+    await Promise.allSettled(
+      uploadedPublicIds.map((publicId) => deleteFromCloudinary(publicId)),
+    );
+
+    throw error;
+  }
 };
 
 /**
@@ -345,47 +412,55 @@ export const updateProductService = async ({
  * @param {Types.ObjectId} [userId] - Optional user ID for authorization check
  * @returns {Promise<void>}
  */
-export const deleteProductService = async (
-  productId: Types.ObjectId,
-  userId?: Types.ObjectId,
-): Promise<void> => {
-  const product = await Product.findById(productId);
+export const deleteProduct = async ({
+  id,
+  sellerId,
+}: IDeleteProductPayload): Promise<void> => {
+  // Delete only the product owned by this seller.
+  // The deleted document contains the image information for cleanup.
+  const product = await Product.findOneAndDelete({
+    _id: id,
+    seller: sellerId,
+  })
+    .lean()
+    .exec();
 
   if (!product) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, { productId });
+    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
+      productId: id,
+      sellerId,
+    });
+
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
       API_MESSAGES.PRODUCT_NOT_FOUND,
     );
   }
 
-  if (userId) {
-    const user = await User.findById(userId).select("role").lean();
-    if (user && user.role !== UserRole.SELLER) {
-      throw new AppError(
-        HTTP_STATUS.FORBIDDEN,
-        ERROR_CODE.FORBIDDEN,
-        API_MESSAGES.FORBIDDEN,
-      );
-    }
-  }
+  // Clean up product images after successful database deletion.
+  const publicIds = [
+    ...new Set(
+      (product.images ?? [])
+        .map((image: any) => image.publicId)
+        .filter(
+          (publicId: any): publicId is string =>
+            typeof publicId === "string" && publicId.length > 0,
+        ),
+    ),
+  ];
 
-  // Delete product images from Cloudinary if present
-  if (product.images && product.images.length > 0) {
-    for (const image of product.images) {
-      if (image.publicId) {
-        try {
-          await deleteFromCloudinary(image.publicId);
-        } catch (error) {
-          logger.error("Failed to delete product image from Cloudinary", {
-            publicId: image.publicId,
-            error,
-          });
-        }
-      }
-    }
-  }
-
-  await Product.findByIdAndDelete(productId);
+  await Promise.allSettled(
+    publicIds.map((publicId: any) => deleteFromCloudinary(publicId)),
+  );
 };
+
+const productService = {
+  createProduct,
+  getProductById,
+  getAllProducts,
+  updateProduct,
+  deleteProduct,
+};
+
+export default productService;

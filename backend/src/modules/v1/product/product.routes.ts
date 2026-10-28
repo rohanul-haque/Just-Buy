@@ -18,12 +18,12 @@ import validation from "@/middlewares/validation";
 import fileUpload from "@/utils/fileUpload";
 
 /**
- * Roles & Types
+ * Types
  */
 import { UserRole } from "@/modules/v1/auth/auth.interface";
 
 /**
- * Validations
+ * Validation
  */
 import {
   createProductSchema,
@@ -35,13 +35,7 @@ import {
 /**
  * Controllers
  */
-import {
-  createProductController,
-  deleteProductController,
-  getAllProductsController,
-  getProductByIdController,
-  updateProductController,
-} from "@/modules/v1/product/product.controller";
+import productController from "@/modules/v1/product/product.controller";
 
 /**
  * Router instance
@@ -49,8 +43,8 @@ import {
 const router = Router();
 
 /**
- * Create Product (Add product)
- * @access - Private (Seller, Admin)
+ * Create Product Route
+ * @access - Private
  * @method - POST
  * @route - /api/v1/product
  */
@@ -58,13 +52,13 @@ router.post(
   "/",
   authenticate,
   authorize([UserRole.SELLER]),
-  fileUpload.array("images"),
+  fileUpload.array("images", 5),
   validation(createProductSchema),
-  createProductController,
+  productController.createProduct,
 );
 
 /**
- * Get All Products (Product list)
+ * Get All Products Route
  * @access - Public
  * @method - GET
  * @route - /api/v1/product/list
@@ -72,49 +66,49 @@ router.post(
 router.get(
   "/list",
   validation(getProductsQuerySchema, "query"),
-  getAllProductsController,
+  productController.getAllProducts,
 );
 
 /**
- * Get Product By ID (Product details)
+ * Get Product By ID Route
  * @access - Public
  * @method - GET
  * @route - /api/v1/product/:id
  */
 router.get(
-  "/:productId",
+  "/:id",
   validation(productIdSchema, "params"),
-  getProductByIdController,
+  productController.getProductById,
 );
 
 /**
- * Update Product
- * @access - Private (Seller, Admin)
+ * Update Product Route
+ * @access - Private
  * @method - PATCH
  * @route - /api/v1/product/:id
  */
 router.patch(
-  "/:productId",
+  "/:id",
   authenticate,
-  authorize([UserRole.SELLER, UserRole.ADMIN]),
+  authorize([UserRole.SELLER]),
   fileUpload.array("images"),
   validation(productIdSchema, "params"),
   validation(updateProductSchema),
-  updateProductController,
+  productController.updateProduct,
 );
 
 /**
- * Delete Product
- * @access - Private (Seller, Admin)
+ * Delete Product Route
+ * @access - Private
  * @method - DELETE
  * @route - /api/v1/product/:id
  */
 router.delete(
-  "/:productId",
+  "/:id",
   authenticate,
   authorize([UserRole.SELLER]),
   validation(productIdSchema, "params"),
-  deleteProductController,
+  productController.deleteProduct,
 );
 
 /**

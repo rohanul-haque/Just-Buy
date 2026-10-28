@@ -4,13 +4,19 @@
  * @license Apache-2.0
  */
 
+/**
+ * Thired-party Module
+ */
 import { Types } from "mongoose";
-import { IAvatar } from "../seller/seller.interface";
 
 /**
- * Product Interface
+ * Type
  */
+import type { IAvatar } from "@/modules/v1/seller/seller.interface";
 
+/**
+ * Size Enum
+ */
 export enum Size {
   S = "S",
   M = "M",
@@ -19,20 +25,19 @@ export enum Size {
   XXL = "XXL",
 }
 
+/**
+ * Product Model Interface
+ */
 export interface IProduct {
   _id: Types.ObjectId;
-  seller: {
-    _id: Types.ObjectId;
-    fullName: string;
-    email: string;
-    role: "seller";
-  };
+  seller: Types.ObjectId;
   name: string;
   description: string;
-  category: string;
+  category: Types.ObjectId;
   brand: string;
   price: number;
   stockQuantity: number;
+  sellCount: number;
   sizes?: Size[];
   images: IAvatar[];
 }
@@ -53,37 +58,63 @@ export type CreateProduct = Pick<
 >;
 
 /**
- * Create Product Request
+ * Create Product Request Interface
  */
-export interface ICreateProductRequest {
+export interface ICreateProductPayload {
   sellerId: Types.ObjectId;
   payload: CreateProduct;
   files?: Express.Multer.File[];
 }
 
+/**
+ * Get All Products Query Interface
+ */
 export interface IGetProductsQuery {
   category?: string;
   name?: string;
-  price?: number;
   search?: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface IGetProductsResult {
-  products: IProduct[];
-  total: number;
+  price?: number;
   limit: number;
-  skip: number;
+  offset: number;
 }
 
 /**
- * Product ID
+ * Get All Products Result Interface
  */
-export interface IProductId {
-  productId: Types.ObjectId;
+export interface IGetProductsResult {
+  seller: {
+    _id: Types.ObjectId;
+    fullName: string;
+    email: string;
+    role: "seller";
+  };
+  name: string;
+  description: string;
+  category: { _id: Types.ObjectId; name: string };
+  brand: string;
+  price: number;
+  stockQuantity: number;
+  sellCount: number;
+  sizes?: Size[];
+  images: IAvatar[];
 }
 
+/**
+ * Get All Products Response Interface
+ */
+export interface IGetProductsResponse {
+  products: IGetProductsResult[];
+  total: number;
+  limit: number;
+  skip: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+/**
+ * Update Product Payload Interface
+ */
 export type UpdateProductPayload = Partial<
   Pick<
     IProduct,
@@ -97,9 +128,20 @@ export type UpdateProductPayload = Partial<
   >
 >;
 
-export interface IUpdateProductRequest {
-  userId: Types.ObjectId;
-  productId: Types.ObjectId;
+/**
+ * Update Product Request Interface
+ */
+export interface IUpdateProductPayload {
+  id: string;
+  sellerId: Types.ObjectId;
   payload: UpdateProductPayload;
   files?: Express.Multer.File[];
+}
+
+/**
+ * Delete Product Payload Interface
+ */
+export interface IDeleteProductPayload {
+  id: string;
+  sellerId: Types.ObjectId;
 }

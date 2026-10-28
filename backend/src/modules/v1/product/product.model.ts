@@ -40,7 +40,8 @@ const productSchema = new Schema<IProduct>(
     },
 
     category: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Category",
       required: [true, "Category is required"],
     },
 
@@ -60,6 +61,12 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       default: 0,
       min: [0, "Stock quantity cannot be negative"],
+    },
+
+    sellCount: {
+      type: Number,
+      min: [0, "Sell count cannot be negative"],
+      default: 0,
     },
 
     sizes: {
@@ -95,7 +102,7 @@ const productSchema = new Schema<IProduct>(
           _id: false,
         },
       ],
-      default: [],
+      required: [true, "Image is required"],
     },
   },
   {
