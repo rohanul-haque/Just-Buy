@@ -41,13 +41,13 @@ import { SellerVerificationStatus } from "@/modules/v1/seller/seller.interface";
 /**
  * Service for Creating Product
  * @param {Object} sellerId, payload, files
- * @returns {Promise<IProduct>} Created product document
+ * @returns {Promise<void>} Created product document
  */
 const createProduct = async ({
   sellerId,
   payload,
   files = [],
-}: ICreateProductPayload): Promise<IProduct> => {
+}: ICreateProductPayload): Promise<void> => {
   // check files
   if (files.length === 0) {
     throw new AppError(
