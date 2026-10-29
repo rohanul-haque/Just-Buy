@@ -4,44 +4,41 @@
  * @license Apache-2.0
  */
 
-/**
- * Third-party Modules
- */
+/* Third-party Modules */
 import { model, models, Schema } from "mongoose";
 
-/**
- * Type
- */
+/* Type */
 import type { ICart } from "@/modules/v1/cart/cart.interface";
 
-/**
- * Cart Schema Definition
- */
+/* Cart Schema Definition */
 const cartSchema = new Schema<ICart>(
   {
     buyer: {
       type: Schema.Types.ObjectId,
-      ref: "Buyer",
+      ref: "User",
       required: true,
       unique: true,
     },
 
-    items: [
-      {
-        product: {
-          type: Schema.Types.ObjectId,
-          ref: "Product",
-          required: true,
-        },
+    items: {
+      type: [
+        {
+          product: {
+            type: Schema.Types.ObjectId,
+            ref: "Product",
+            required: true,
+          },
 
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-          default: 1,
+          quantity: {
+            type: Number,
+            required: true,
+            min: 1,
+            default: 1,
+          },
         },
-      },
-    ],
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -49,9 +46,7 @@ const cartSchema = new Schema<ICart>(
   },
 );
 
-/**
- * Cart Model Definition
- */
+/* Cart Model Definition */
 const Cart = models.Cart || model<ICart>("Cart", cartSchema);
 
 export default Cart;

@@ -4,9 +4,6 @@
  * @license Apache-2.0
  */
 
-/**
- * Application Error Codes
- */
 export const ERROR_CODE = {
   // General
   BAD_REQUEST: "BAD_REQUEST",
@@ -75,6 +72,7 @@ export const ERROR_CODE = {
   CART_NOT_FOUND: "CART_NOT_FOUND",
   CART_ITEM_NOT_FOUND: "CART_ITEM_NOT_FOUND",
   CART_ITEM_OUT_OF_STOCK: "CART_ITEM_OUT_OF_STOCK",
+  INSUFFICIENT_STOCK: "INSUFFICIENT_STOCK",
 
   // Wishlist
   WISHLIST_NOT_FOUND: "WISHLIST_NOT_FOUND",
@@ -238,6 +236,7 @@ export const API_MESSAGES = {
   CART_ITEM_REMOVED: "Item removed from cart successfully",
   CART_ITEM_NOT_FOUND: "Cart item not found",
   CART_ITEM_OUT_OF_STOCK: "Product is out of stock",
+  INSUFFICIENT_STOCK: "Requested quantity exceeds available stock",
 
   // Wishlist
   WISHLIST_CREATED: "Wishlist created successfully",

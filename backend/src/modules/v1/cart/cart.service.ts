@@ -5,12 +5,17 @@
  */
 
 /**
+ * Third-party Modules
+ */
+import { StatusCodes } from "http-status-codes";
+
+/**
  * Application Modules
  */
 import Cart from "@/modules/v1/cart/cart.model";
 import Product from "@/modules/v1/product/product.model";
 import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
 
 /**
  * Types
@@ -18,36 +23,43 @@ import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
 import { logger } from "@/lib/winston";
 import type {
   BuyerId,
-  IAddToCartRequest,
+  IAddToCartPayload,
   ICartResponse,
   IRemoveFromCartRequest,
-  IUpdateCartQuantityRequest,
+  IUpdateCartQuantityPayload,
 } from "@/modules/v1/cart/cart.interface";
 
 /**
  * Add Product to Cart
  */
-export const addToCartService = async ({
+export const addToCart = async ({
   buyerId,
-  productId,
+  id,
   quantity,
-}: IAddToCartRequest): Promise<void> => {
-  // Check if the product exists
-  const productExists = await Product.exists({ _id: productId });
+}: IAddToCartPayload): Promise<void> => {
+  // Check whether the product exists
+  const productExists = await Product.exists({
+    _id: id,
+  });
 
   if (!productExists) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, { productId });
+    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
+      productId: id,
+    });
 
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
       API_MESSAGES.PRODUCT_NOT_FOUND,
     );
   }
 
-  // Find or create the buyer's cart
-  let cart = await Cart.findOne({ buyer: buyerId });
+  // Find the buyer's cart
+  let cart = await Cart.findOne({
+    buyer: buyerId,
+  });
 
+  // Create a cart if it does not exist
   if (!cart) {
     cart = await Cart.create({
       buyer: buyerId,
@@ -55,24 +67,42 @@ export const addToCartService = async ({
     });
   }
 
-  // Check if the product is already in the cart
+  // Check whether the product already exists in the cart
   const existingItem = cart.items.find(
-    (item: any) => item.product.toString() === productId.toString(),
+    (item: any) => item.product.toString() === id.toString(),
   );
 
   if (existingItem) {
-    // Increase the quantity
+    // Increase the existing item's quantity
     await Cart.updateOne(
-      { buyer: buyerId, "items.product": productId },
-      { $inc: { "items.$.quantity": quantity } },
+      {
+        buyer: buyerId,
+        "items.product": id,
+      },
+      {
+        $inc: {
+          "items.$.quantity": quantity,
+        },
+      },
     );
-  } else {
-    // Add a new product
-    await Cart.updateOne(
-      { buyer: buyerId },
-      { $push: { items: { product: productId, quantity } } },
-    );
+
+    return;
   }
+
+  // Add a new product to the cart
+  await Cart.updateOne(
+    {
+      buyer: buyerId,
+    },
+    {
+      $push: {
+        items: {
+          product: id,
+          quantity,
+        },
+      },
+    },
+  );
 };
 
 /**
@@ -80,22 +110,17 @@ export const addToCartService = async ({
  * @param {BuyerId} buyerId - Buyer ID
  * @returns {Promise<ICartResponse>}
  */
-export const getCartService = async (
-  buyerId: BuyerId,
-): Promise<ICartResponse> => {
+export const getAllCart = async (buyerId: BuyerId): Promise<ICartResponse> => {
   const cart = await Cart.findOne({ buyer: buyerId })
     .populate("items.product", "name price images")
-    .lean<ICartResponse>()
+    .lean()
     .exec();
 
   if (!cart) {
-    logger.info(API_MESSAGES.CART_ITEM_NOT_FOUND, { buyerId });
-
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      ERROR_CODE.CART_ITEM_NOT_FOUND,
-      API_MESSAGES.CART_ITEM_NOT_FOUND,
-    );
+    return {
+      buyer: buyerId,
+      items: [],
+    };
   }
 
   return cart;
@@ -104,15 +129,39 @@ export const getCartService = async (
 /**
  * Update Cart Item Quantity
  */
-export const updateCartQuantityService = async ({
+export const updateCartQuantity = async ({
   buyerId,
-  productId,
+  id,
   quantity,
-}: IUpdateCartQuantityRequest): Promise<void> => {
-  const cart = await Cart.findOneAndUpdate(
+}: IUpdateCartQuantityPayload): Promise<void> => {
+  // Find the product and check available stock.
+  const product = await Product.findById(id)
+    .select("stockQuantity")
+    .lean()
+    .exec();
+
+  if (!product) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      ERROR_CODE.PRODUCT_NOT_FOUND,
+      API_MESSAGES.PRODUCT_NOT_FOUND,
+    );
+  }
+
+  // Prevent cart quantity from exceeding available stock.
+  if (quantity > product.stockQuantity) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      ERROR_CODE.INSUFFICIENT_STOCK,
+      API_MESSAGES.INSUFFICIENT_STOCK,
+    );
+  }
+
+  // Update the quantity only if the product belongs to this buyer's cart.
+  const updatedCart = await Cart.findOneAndUpdate(
     {
       buyer: buyerId,
-      "items.product": productId,
+      "items.product": id,
     },
     {
       $set: {
@@ -120,16 +169,21 @@ export const updateCartQuantityService = async ({
       },
     },
     {
-      new: true,
       runValidators: true,
     },
-  );
+  )
+    .select("_id")
+    .lean()
+    .exec();
 
-  if (!cart) {
-    logger.warn(API_MESSAGES.CART_ITEM_NOT_FOUND, { buyerId, productId });
+  if (!updatedCart) {
+    logger.warn(API_MESSAGES.CART_ITEM_NOT_FOUND, {
+      buyerId,
+      id,
+    });
 
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.CART_ITEM_NOT_FOUND,
       API_MESSAGES.CART_ITEM_NOT_FOUND,
     );
@@ -139,7 +193,7 @@ export const updateCartQuantityService = async ({
 /**
  * Remove Product from Cart
  */
-export const removeFromCartService = async ({
+const removeFromCart = async ({
   buyerId,
   productId,
 }: IRemoveFromCartRequest) => {
@@ -162,9 +216,13 @@ export const removeFromCartService = async ({
     logger.warn(API_MESSAGES.CART_ITEM_NOT_FOUND, { buyerId, productId });
 
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      StatusCodes.NOT_FOUND,
       ERROR_CODE.CART_ITEM_NOT_FOUND,
       API_MESSAGES.CART_ITEM_NOT_FOUND,
     );
   }
 };
+
+const cartService = { addToCart, getAllCart, updateCartQuantity };
+
+export default cartService;

@@ -31,11 +31,11 @@ export interface ICart {
 }
 
 /**
- * Add to Cart Request
+ * Add to Cart Payload
  */
-export interface IAddToCartRequest {
+export interface IAddToCartPayload {
   buyerId: Types.ObjectId;
-  productId: Types.ObjectId;
+  id: string;
   quantity: number;
 }
 
@@ -47,13 +47,13 @@ export interface IRemoveFromCartRequest {
 /**
  * Update Cart Quantity Request
  */
-export interface IUpdateCartQuantityRequest {
+export interface IUpdateCartQuantityPayload {
   buyerId: Types.ObjectId;
-  productId: Types.ObjectId;
+  id: string;
   quantity: number;
 }
 
-export type BuyerId = IUpdateCartQuantityRequest["buyerId"];
+export type BuyerId = IUpdateCartQuantityPayload["buyerId"];
 
 /**
  * Populated Product inside Cart
@@ -78,9 +78,9 @@ export interface IPopulatedCartItem {
  * Cart Response with Populated Products
  */
 export interface ICartResponse {
-  _id: Types.ObjectId;
+  _id?: Types.ObjectId;
   buyer: Types.ObjectId;
   items: IPopulatedCartItem[];
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }

@@ -7,6 +7,7 @@
 /**
  * Third-Party Module
  */
+import { Types } from "mongoose";
 import { z } from "zod";
 
 /**
@@ -21,6 +22,10 @@ export const addToCartSchema = z.object({
 });
 
 /**
- * Types
+ * Product ID Schema
  */
-export type AddToCartInput = z.infer<typeof addToCartSchema>;
+export const IdSchema = z.object({
+  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid Product ID",
+  }),
+});

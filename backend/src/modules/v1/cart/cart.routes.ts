@@ -19,12 +19,7 @@ import validation from "@/middlewares/validation";
 /**
  * API Controllers
  */
-import {
-  addToCartController,
-  getCartController,
-  removeFromCartController,
-  updateCartQuantityController,
-} from "@/modules/v1/cart/cart.controller";
+import cartController from "@/modules/v1/cart/cart.controller";
 
 /**
  * Type
@@ -34,8 +29,7 @@ import { UserRole } from "@/modules/v1/auth/auth.interface";
 /**
  * Validations
  */
-import { productIdSchema } from "@/modules/v1/product/product.validation";
-import { addToCartSchema } from "./cart.validation";
+import { addToCartSchema, IdSchema } from "./cart.validation";
 
 /**
  * Router Instance
@@ -48,36 +42,41 @@ const router = Router();
  * @method - GET
  * @route - /api/v1/cart
  */
-router.get("/", authenticate, authorize([UserRole.BUYER]), getCartController);
+router.get(
+  "/list",
+  authenticate,
+  authorize([UserRole.BUYER]),
+  cartController.getAllCarts,
+);
 
 /**
  * Add Product to Cart
  * @access - Private
  * @method - POST
- * @route - /api/v1/cart/:productId
+ * @route - /api/v1/cart/:id
  */
 router.post(
-  "/:productId",
+  "/:id",
   authenticate,
   authorize([UserRole.BUYER]),
-  validation(productIdSchema, "params"),
+  validation(IdSchema, "params"),
   validation(addToCartSchema, "body"),
-  addToCartController,
+  cartController.addToCart,
 );
 
 /**
  * Update Cart Item Quantity
  * @access - Private
  * @method - PUT
- * @route - /api/v1/cart/:productId/quantity
+ * @route - /api/v1/cart/:id
  */
 router.patch(
-  "/:productId/quantity",
+  "/:id",
   authenticate,
   authorize([UserRole.BUYER]),
-  validation(productIdSchema, "params"),
+  validation(IdSchema, "params"),
   validation(addToCartSchema, "body"),
-  updateCartQuantityController,
+  cartController.updateCartQuantity,
 );
 
 /**
@@ -86,12 +85,12 @@ router.patch(
  * @method - DELETE
  * @route - /api/v1/cart/:productId
  */
-router.delete(
-  "/:productId",
-  authenticate,
-  authorize([UserRole.BUYER]),
-  validation(productIdSchema, "params"),
-  removeFromCartController,
-);
+// router.delete(
+//   "/:productId",
+//   authenticate,
+//   authorize([UserRole.BUYER]),
+//   validation(productIdSchema, "params"),
+//   removeFromCartController,
+// );
 
 export default router;

@@ -17,7 +17,8 @@ import buyerRoutes from "@/modules/v1/buyer/buyer.routes";
 import sellerRoutes from "@/modules/v1/seller/seller.routes";
 import categoryRoutes from "@/modules/v1/category/category.routes";
 import productRoutes from "@/modules/v1/product/product.routes";
-import wishlistRoutes from "@/modules/v1/wishlist/wishlist.routes"
+import wishlistRoutes from "@/modules/v1/wishlist/wishlist.routes";
+import cartRoutes from "@/modules/v1/cart/cart.routes";
 
 /**
  * API Controller
@@ -39,7 +40,7 @@ router.use("/buyer", buyerRoutes);
 router.use("/category", categoryRoutes);
 router.use("/product", productRoutes);
 router.use("/wishlist", wishlistRoutes);
-// router.use("/cart", cartRoute);
+router.use("/cart", cartRoutes);
 // router.use("/order", orderRoute);
 // router.use("/earning", earningRoutes);
 

@@ -7,19 +7,14 @@
 /**
  * Third-party Modules
  */
-import { Types } from "mongoose";
+import { StatusCodes } from "http-status-codes";
 
 /**
  * Application Modules
  */
-import {
-  addToCartService,
-  getCartService,
-  removeFromCartService,
-  updateCartQuantityService,
-} from "@/modules/v1/cart/cart.service";
+import cartService from "@/modules/v1/cart/cart.service";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import { API_MESSAGES } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
 
 /**
@@ -31,43 +26,47 @@ import type { Request, Response } from "express";
 /**
  * Add Product to Cart Controller
  */
-export const addToCartController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { productId } = req.params;
-    const buyerId = req.userId!;
-    const { quantity } = req.body;
+export const addToCart = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const buyerId = req.userId!;
+  const { quantity } = req.body;
 
-    await addToCartService({
-      buyerId,
-      productId: productId as unknown as Types.ObjectId,
-      quantity,
-    });
+  console.log(id);
 
-    logger.info(API_MESSAGES.CART_ITEM_ADDED, { productId });
+  await cartService.addToCart({
+    buyerId,
+    id: id as string,
+    quantity,
+  });
 
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.CART_ITEM_ADDED,
-    });
-  },
-);
+  logger.info(API_MESSAGES.CART_ITEM_ADDED, {
+    buyerId,
+    productId: id,
+    quantity,
+  });
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: API_MESSAGES.CART_ITEM_ADDED,
+  });
+});
 
 /**
  * Get Cart Controller
  */
-export const getCartController = asyncHandler(
-  async (req: Request, res: Response) => {
+export const getAllCarts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
     const buyerId = req.userId!;
 
-    const result = await getCartService(buyerId);
+    const cart = await cartService.getAllCart(buyerId);
 
-    logger.info("Cart fetched successfully", result);
+    logger.info("Cart fetched successfully", { buyerId });
 
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
-      data: result,
+      data: cart,
     });
   },
 );
@@ -75,22 +74,26 @@ export const getCartController = asyncHandler(
 /**
  * Update Cart Quantity Controller
  */
-export const updateCartQuantityController = asyncHandler(
+export const updateCartQuantity = asyncHandler(
   async (req: Request, res: Response) => {
-    const { productId } = req.params;
+    const { id } = req.params;
     const buyerId = req.userId!;
     const { quantity } = req.body;
 
-    await updateCartQuantityService({
+    await cartService.updateCartQuantity({
       buyerId,
-      productId: productId as unknown as Types.ObjectId,
+      id: id as string,
       quantity,
     });
 
-    logger.info(API_MESSAGES.CART_ITEM_UPDATED, { productId });
+    logger.info(API_MESSAGES.CART_ITEM_UPDATED, {
+      buyerId,
+      productId: id,
+      quantity,
+    });
 
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: StatusCodes.OK,
       success: true,
       message: API_MESSAGES.CART_ITEM_UPDATED,
     });
@@ -100,22 +103,24 @@ export const updateCartQuantityController = asyncHandler(
 /**
  * Remove Product from Cart Controller
  */
-export const removeFromCartController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { productId } = req.params;
-    const buyerId = req.userId!;
+// const removeFromCart = asyncHandler(async (req: Request, res: Response) => {
+//   const { productId } = req.params;
+//   const buyerId = req.userId!;
 
-    await removeFromCartService({
-      buyerId,
-      productId: productId as unknown as Types.ObjectId,
-    });
+//   await removeFromCartService({
+//     buyerId,
+//     productId: productId as unknown as Types.ObjectId,
+//   });
 
-    logger.info(API_MESSAGES.CART_ITEM_REMOVED, productId);
+//   logger.info(API_MESSAGES.CART_ITEM_REMOVED, productId);
 
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.CART_ITEM_REMOVED,
-    });
-  },
-);
+//   sendResponse(res, {
+//     statusCode: StatusCodes.OK,
+//     success: true,
+//     message: API_MESSAGES.CART_ITEM_REMOVED,
+//   });
+// });
+
+const cartController = { addToCart, getAllCarts, updateCartQuantity };
+
+export default cartController;
