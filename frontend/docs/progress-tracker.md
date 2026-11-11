@@ -42,9 +42,9 @@ Status values: Not Started / In Progress / Blocked / Needs Review / Completed.
 
 | Task | Status | API verified | UI verified |
 |---|---|---|---|
-| Get buyer profile | Not Started | No | No |
-| Update buyer profile | Not Started | No | No |
-| Order history | Not Started | No | No |
+| Get buyer profile | Completed | Yes | Yes |
+| Update buyer profile | Completed | Yes | Yes |
+| Order history | Completed | Yes | Yes |
 
 ## Phase 4 — Public shopping
 
@@ -81,6 +81,8 @@ Buyer Dashboard, Seller Dashboard and Admin Dashboard — deferred to a separate
 | 2026-11-11 | Phase 2 Authentication | `pnpm --filter frontend build` | Passed (Turbopack compile in 1.3s, TS check in 3.2s, 10/10 static pages generated) |
 | 2026-11-11 | Dynamic Header & Toasts | `pnpm --filter frontend lint` | Passed (0 errors, 0 warnings) |
 | 2026-11-11 | Dynamic Header & Toasts | `pnpm --filter frontend build` | Passed (Turbopack compile in 1.1s, TS check in 3.3s, 10/10 static pages generated) |
+| 2026-11-11 | Phase 3 Buyer & Orders | `pnpm --filter frontend exec eslint .` | Passed (0 errors, 0 warnings) |
+| 2026-11-11 | Phase 3 Buyer & Orders | `pnpm --filter frontend build` | Passed (Turbopack compile in 2.2s, TS check in 4.2s, 13/13 pages generated) |
 
 ## Blockers / decisions
 
