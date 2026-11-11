@@ -1,71 +1,57 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
+import type { TUserRole } from "@/modules/v1/user/user.constant";
 
-/**
- * User Roles Enum
- */
-export enum UserRole {
-  BUYER = "buyer",
-  SELLER = "seller",
-  ADMIN = "admin",
-}
-
-/**
- * User Interface
- */
-export interface IUser {
-  fullName: string;
+export interface IRegisterInput {
+  name: string;
   email: string;
   password: string;
-  role: UserRole;
+  role?: TUserRole;
 }
 
-/**
- * Register Request Interface
- */
-export interface IRegisterPayload {
-  fullName: string;
-  email: string;
-  password: string;
-  role: UserRole.BUYER | UserRole.SELLER | UserRole.ADMIN;
-}
-
-/**
- * Login Request Interface
- */
-export interface ILoginPayload {
+export interface ILoginInput {
   email: string;
   password: string;
 }
 
-/**
- * Auth Response Interface
- */
-export interface AuthResponse {
-  user: {
-    fullName: string;
-    email: string;
-    role: UserRole;
-  };
+export interface IVerifyEmailInput {
+  email: string;
+  otp: string;
+}
+
+export interface IResendOtpInput {
+  email: string;
+}
+
+export interface IForgotPasswordInput {
+  email: string;
+}
+
+export interface IResetPasswordInput {
+  token: string;
+  newPassword: string;
+}
+
+export interface IAuthUserSummary {
+  id: string;
+  name: string;
+  email: string;
+  role: TUserRole;
+  isEmailVerified: boolean;
+}
+
+export interface IAuthResponse {
+  user: IAuthUserSummary;
   accessToken: string;
   refreshToken: string;
+  redirectUrl: string;
 }
 
-/**
- * Forgot Password Request Interface
- */
-export interface IForgotPasswordPayload {
-  email: string;
-}
-
-/**
- * Reset Password Request Interface
- */
-export interface IResetPasswordPaylod {
-  email: string;
-  otp: string | number;
-  newPassword: string;
+export interface IRegisterResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: TUserRole;
+    isEmailVerified: boolean;
+  };
+  message: string;
 }

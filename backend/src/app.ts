@@ -1,91 +1,64 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Modules
- */
+import config from "@/config";
+import corsOptions from "@/lib/corsOptions";
+import limiter from "@/lib/expressRateLimit";
+import globalErrorHandler from "@/middlewares/globalErrorHandler";
+import notFoundRoute from "@/middlewares/notFoundRoute";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import { status } from "http-status";
 
-/**
- * Application Modules
- */
-import config from "@/config";
-import corsOptions from "@/lib/corsOptions";
-import limiter from "@/lib/expressRateLimit";
-
-/**
- * Middlewares
- */
-import globalErrorHandler from "@/middlewares/globalErrorHandler";
-import notFoundRoute from "@/middlewares/notFoundRoute";
-
-/**
- * Route
- */
 import v1Routes from "@/routes/v1";
 
-/**
- * Initialize Express
- */
 const app = express();
 
-/**
- * Security Middlewares
- */
-
-// Helmet Middleware for Cross Site Scripting (XSS) attacks and other security headers
 app.use(
   helmet({
     contentSecurityPolicy: config.NODE_ENV === "production",
   }),
 );
-
-// CORS Middleware for Cross-Origin Resource Sharing
 app.use(cors(corsOptions));
-
-// Response Compression Middleware
 app.use(
   compression({
     threshold: 1024,
   }),
 );
-
-// JSON Body Parser Middleware for handling JSON payloads
+// Stripe webhook requires raw body parsing for signature verification
 app.use(
-  express.json({
-    limit: "10mb",
-  }),
+  "/api/v1/payments/stripe/webhook",
+  express.raw({ type: "application/json" }),
 );
 
-// URL-encoded Body Parser Middleware for handling URL-encoded payloads
+app.use(
+  express.json({
+    limit: "5mb",
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 app.use(
   express.urlencoded({
     extended: true,
-    limit: "10mb",
+    limit: "5mb",
   }),
 );
-
-// Cookie Parser Middleware for handling cookies
 app.use(cookieParser());
-
-// Rate Limiter Middleware for limiting the number of requests
 app.use(limiter);
 
-// API Route
+app.get("/", (_, res) => {
+  return res.status(status.OK).json({
+    success: true,
+    version: "1.0.0",
+    message: "API is healthy",
+    timeStamp: new Date().toLocaleTimeString(),
+  });
+});
 app.use("/api/v1", v1Routes);
 
-// Route Not Found Middleware for handling 404 errors
 app.use(notFoundRoute);
-
-// Global Error Handler Middleware for handling errors
 app.use(globalErrorHandler);
 
-// Export Express App
 export default app;

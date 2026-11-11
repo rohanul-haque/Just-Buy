@@ -1,17 +1,5 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Type
- */
 import type { Response } from "express";
 
-/**
- * Type for pagination data
- */
 interface PaginationSchema {
   skip: number;
   limit: number;
@@ -21,9 +9,6 @@ interface PaginationSchema {
   hasPrevPage: boolean;
 }
 
-/**
- * Type for response data
- */
 interface ResponseSchema<T> {
   statusCode: number;
   success: boolean;
@@ -32,11 +17,6 @@ interface ResponseSchema<T> {
   pagination?: PaginationSchema;
 }
 
-/**
- * Send Response
- * @param res - Response object
- * @param response - Response data
- */
 const sendResponse = <T>(res: Response, response: ResponseSchema<T>): void => {
   const { statusCode, success, message, data, pagination } = response;
 
@@ -48,7 +28,4 @@ const sendResponse = <T>(res: Response, response: ResponseSchema<T>): void => {
   });
 };
 
-/**
- * Export default sendResponse
- */
 export default sendResponse;

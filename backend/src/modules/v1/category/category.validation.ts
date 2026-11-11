@@ -1,87 +1,66 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
-import { Types } from "mongoose";
 import { z } from "zod";
 
-/**
- * Create Category Validation Schema
- */
-export const createCategorySchema = z.object({
-  name: z
-    .string()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters")
-    .trim(),
-});
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
-/**
- * Category List Query Validation Schema
- */
-export const categoryListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(15),
-  offset: z.coerce.number().int().min(0).default(0),
-});
+const booleanPreprocessor = (val: unknown): unknown => {
+  if (typeof val === "string") {
+    const trimmed = val.trim().toLowerCase();
+    if (trimmed === "true" || trimmed === "1") return true;
+    if (trimmed === "false" || trimmed === "0") return false;
+  }
+  return val;
+};
 
-/**
- * User ID Schema
- */
-export const idSchema = z.object({
-  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid User ID",
-  }),
-});
+export const createCategorySchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Category name is required" })
+      .max(100, { message: "Category name cannot exceed 100 characters" }),
+  })
+  .strict();
 
-/**
- * Update Category Validation Schema
- */
-export const updateCategorySchema = z.object({
-  name: z
-    .string()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters")
-    .trim()
-    .optional(),
-});
+export const updateCategorySchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Category name cannot be empty" })
+      .max(100, { message: "Category name cannot exceed 100 characters" })
+      .optional(),
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+  })
+  .strict();
 
-/**
- * Object ID Schema
- */
-export const categoryObjectIdSchema = z
-  .string()
-  .refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid Category ID",
-  });
+export const updateCategoryStatusSchema = z
+  .object({
+    isActive: z.preprocess(
+      booleanPreprocessor,
+      z.boolean({
+        message: "isActive is required and must be a boolean",
+      }),
+    ),
+  })
+  .strict();
 
-/**
- * Category ID Schema
- */
-export const categoryIdSchema = z.object({
-  categoryId: categoryObjectIdSchema,
-});
+export const categoryIdParamsSchema = z
+  .object({
+    categoryId: z
+      .string()
+      .regex(objectIdRegex, { message: "Invalid category ID" }),
+  })
+  .strict();
 
-/**
- * Get Categories Query Validation Schema
- */
-export const getCategoriesQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
-  search: z.string().trim().optional(),
-  isActive: z
-    .union([
-      z.boolean(),
-      z.enum(["true", "false"]).transform((val) => val === "true"),
-    ])
-    .optional(),
-  sortBy: z
-    .enum(["name", "createdAt", "updatedAt"])
-    .default("createdAt")
-    .optional(),
-  sortOrder: z.enum(["asc", "desc"]).default("desc").optional(),
-});
+export const categoryQuerySchema = z
+  .object({
+    search: z.string().trim().optional(),
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+    sort: z.string().trim().optional(),
+  })
+  .strict();
+
+export type TCreateCategoryInput = z.infer<typeof createCategorySchema>;
+export type TUpdateCategoryInput = z.infer<typeof updateCategorySchema>;
+export type TUpdateCategoryStatus = z.infer<typeof updateCategoryStatusSchema>;
+export type TCategoryQuery = z.infer<typeof categoryQuerySchema>;

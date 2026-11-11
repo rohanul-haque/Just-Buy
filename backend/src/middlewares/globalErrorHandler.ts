@@ -1,80 +1,68 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
-import { StatusCodes } from "http-status-codes";
+import ERROR_CODE from "@/utils/ERROR_CODES";
+import MESSAGES from "@/utils/MESSAGE";
+import type { NextFunction, Request, Response } from "express";
+import { status } from "http-status";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import multer from "multer";
 import { ZodError } from "zod";
 
-/**
- * Application Modules
- */
-import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
-
-/**
- * Type
- */
-import type { NextFunction, Request, Response } from "express";
-
-/**
- * Global Error Handler Middleware
- *
- * @param error - The error to handle
- * @param _req - The request object
- * @param res - The response object
- * @param _next - The next function
- */
 const globalErrorHandler = (
   error: unknown,
   _req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
-  //  JWT Expired Token Error
   if (error instanceof TokenExpiredError) {
-    res.status(StatusCodes.UNAUTHORIZED).json({
+    res.status(status.UNAUTHORIZED).json({
       success: false,
       code: ERROR_CODE.AUTH_TOKEN_EXPIRED,
-      message: API_MESSAGES.TOKEN_EXPIRED,
+      message: MESSAGES.TOKEN_EXPIRED,
     });
 
     return;
   }
 
-  // JWT Invalid Token Error
   if (error instanceof JsonWebTokenError) {
-    res.status(StatusCodes.UNAUTHORIZED).json({
+    res.status(status.UNAUTHORIZED).json({
       success: false,
       code: ERROR_CODE.AUTH_TOKEN_INVALID,
-      message: API_MESSAGES.TOKEN_INVALID,
+      message: MESSAGES.TOKEN_INVALID,
     });
 
     return;
   }
 
-  // Zod Validation Error
   if (error instanceof ZodError) {
     const errors = error.issues.map((issue) => ({
       field: issue.path.length > 0 ? issue.path.join(".") : "unknown",
       message: issue.message,
     }));
 
-    res.status(StatusCodes.BAD_REQUEST).json({
+    res.status(status.BAD_REQUEST).json({
       success: false,
       code: ERROR_CODE.VALIDATION_ERROR,
-      message: API_MESSAGES.VALIDATION_ERROR,
+      message: MESSAGES.VALIDATION_ERROR,
       errors,
     });
 
     return;
   }
 
-  // Custom Error
+  if (error instanceof multer.MulterError) {
+    const message =
+      error.code === "LIMIT_FILE_SIZE"
+        ? "File size exceeds 5 MB limit."
+        : error.message;
+
+    res.status(status.BAD_REQUEST).json({
+      success: false,
+      code: ERROR_CODE.VALIDATION_ERROR,
+      message,
+    });
+
+    return;
+  }
+
   const err = error as {
     statusCode?: number;
     status?: number;
@@ -83,14 +71,11 @@ const globalErrorHandler = (
     stack?: string;
   };
 
-  // Set Status Code
   const statusCode =
-    err.statusCode ?? err.status ?? StatusCodes.INTERNAL_SERVER_ERROR;
+    err.statusCode ?? err.status ?? status.INTERNAL_SERVER_ERROR;
 
-  // Error Message
-  const message = err.message ?? API_MESSAGES.INTERNAL_SERVER_ERROR;
+  const message = err.message ?? MESSAGES.INTERNAL_SERVER_ERROR;
 
-  // Send Error Response
   res.status(statusCode).json({
     success: false,
     code: err.code ?? ERROR_CODE.INTERNAL_SERVER_ERROR,
@@ -101,7 +86,4 @@ const globalErrorHandler = (
   });
 };
 
-/**
- * Export default globalErrorHandler
- */
 export default globalErrorHandler;

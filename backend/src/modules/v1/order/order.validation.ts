@@ -1,61 +1,97 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Thired-party Module
- */
+import { OrderStatus, OrderType } from "@/modules/v1/order/order.constant";
 import { z } from "zod";
 
-/**
- * Application InterFace
- */
-import { OrderStatus, PaymentMethod } from "@/modules/v1/order/order.interface";
-import { Types } from "mongoose";
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+const phoneNumberRegex = /^[+0-9\s-]{7,20}$/;
 
-/**
- * Order Validation
- */
-export const createOrderSchema = z
+export const shippingAddressSchema = z
   .object({
-    shippingAddress: z
-      .object({
-        fullName: z.string().trim().min(2).max(100),
-        location: z.string().trim(),
-        phoneNumber: z.string().trim().min(10).max(20),
-        emailAddress: z.string().trim().email(),
-      })
-      .strict(),
-
-    paymentMethod: z.nativeEnum(PaymentMethod),
+    fullName: z
+      .string({ message: "Full name is required" })
+      .trim()
+      .min(1, "Full name cannot be empty")
+      .max(100, "Full name cannot exceed 100 characters"),
+    phoneNumber: z
+      .string({ message: "Phone number is required" })
+      .trim()
+      .regex(phoneNumberRegex, { message: "Invalid phone number format" }),
+    address: z
+      .string({ message: "Address is required" })
+      .trim()
+      .min(1, "Address cannot be empty")
+      .max(300, "Address cannot exceed 300 characters"),
+    city: z
+      .string({ message: "City is required" })
+      .trim()
+      .min(1, "City cannot be empty")
+      .max(100, "City cannot exceed 100 characters"),
+    postalCode: z
+      .string({ message: "Postal code is required" })
+      .trim()
+      .min(1, "Postal code cannot be empty")
+      .max(20, "Postal code cannot exceed 20 characters"),
+    country: z.string().trim().default("Bangladesh").optional(),
   })
   .strict();
 
-/**
- * Update Order Status Schema
- */
-export const updateOrderStatusSchema = z.object({
-  status: z.nativeEnum(OrderStatus),
-});
+export const createOrderSchema = z.preprocess(
+  (val: any) => {
+    if (val && typeof val === "object" && !val.shippingAddress && val.address) {
+      const { orderType, ...shippingAddress } = val;
+      return { orderType, shippingAddress };
+    }
+    return val;
+  },
+  z
+    .object({
+      orderType: z
+        .enum(Object.values(OrderType) as [string, ...string[]], {
+          message: "Order type must be either COD or ONLINE",
+        })
+        .default(OrderType.COD)
+        .optional(),
+      shippingAddress: shippingAddressSchema,
+    })
+    .strict(),
+);
 
-/**
- * Object Id Schema
- */
-export const objectIdSchema = z
-  .string()
-  .refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid ID",
-  });
+export const orderIdParamsSchema = z
+  .object({
+    orderId: z
+      .string({ message: "Order ID is required" })
+      .regex(objectIdRegex, { message: "Invalid order ID format" }),
+  })
+  .strict();
 
-export const orderIdSchema = z.object({
-  orderId: objectIdSchema,
-});
+export const updateOrderStatusSchema = z
+  .object({
+    status: z.enum(Object.values(OrderStatus) as [string, ...string[]], {
+      message: "Invalid order status",
+    }),
+    note: z
+      .string()
+      .trim()
+      .max(500, "Note cannot exceed 500 characters")
+      .optional(),
+  })
+  .strict();
 
-/**
- * Type
- */
-export type CreateOrderInput = z.infer<typeof createOrderSchema>;
-export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
-export type OrderIdParamsInput = z.infer<typeof orderIdSchema>;
+export const orderQuerySchema = z
+  .object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().default(10),
+    skip: z.coerce.number().int().nonnegative().optional(),
+    status: z
+      .enum(Object.values(OrderStatus) as [string, ...string[]])
+      .optional(),
+    orderType: z
+      .enum(Object.values(OrderType) as [string, ...string[]])
+      .optional(),
+  })
+  .strict();
+
+export type TShippingAddress = z.infer<typeof shippingAddressSchema>;
+export type TCreateOrderInput = z.infer<typeof createOrderSchema>;
+export type TOrderIdParams = z.infer<typeof orderIdParamsSchema>;
+export type TUpdateOrderStatus = z.infer<typeof updateOrderStatusSchema>;
+export type TOrderQuery = z.infer<typeof orderQuerySchema>;

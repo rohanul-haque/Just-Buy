@@ -1,209 +1,151 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
-import { StatusCodes } from "http-status-codes";
-
-/**
- * Application Modules
- */
-import { logger } from "@/lib/winston";
-import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES } from "@/utils/constants";
-import sendResponse from "@/utils/sendResponse";
-import config from "@/config";
-
-/**
- * Application Service
- */
+import { PRODUCT_MESSAGES } from "@/modules/v1/product/product.constant";
 import productService from "@/modules/v1/product/product.service";
+import asyncHandler from "@/utils/asyncHandler";
+import sendResponse from "@/utils/sendResponse";
+import type { Request, Response } from "express";
+import { status } from "http-status";
 
-/**
- * Type
- */
-import { Request, Response } from "express";
+const createProduct = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const files = req.files as
+      { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-/**
- * Controller for Creating Product
- */
-const createProduct = asyncHandler(async (req: Request, res: Response) => {
-  // get files
-  const files = Array.isArray(req.files)
-    ? (req.files as Express.Multer.File[])
-    : [];
-
-  // Call product service to create product
-  await productService.createProduct({
-    sellerId: req.userId!,
-    payload: req.body,
-    files,
-  });
-
-  // log product created
-  logger.info(API_MESSAGES.PRODUCT_CREATED, {
-    sellerId: req.userId,
-  });
-
-  // send success response
-  sendResponse(res, {
-    statusCode: StatusCodes.CREATED,
-    success: true,
-    message: API_MESSAGES.PRODUCT_CREATED,
-  });
-});
-
-/**
- * Controller for Getting Product By ID
- */
-export const getProductById = asyncHandler(
-  async (req: Request, res: Response) => {
-    // get product id
-    const { id } = req.params;
-
-    // Call product service to get product by ID
-    const product = await productService.getProductById(id as string);
-
-    // log product fetched
-    logger.info(API_MESSAGES.PRODUCT_FETCHED, {
-      productId: id,
-    });
-
-    // send success response
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      data: product,
-    });
-  },
-);
-
-/**
- * Controller for Getting All Products
- */
-export const getAllProducts = asyncHandler(
-  async (req: Request, res: Response) => {
-    // get limit and offset
-    const limit = Number(req.query.limit) || config.DEFAULT_LIMIT;
-    const offset = Number(req.query.offset) || config.DEFAULT_OFFSET;
-
-    // get category and search
-    const { category, search } = req.query as {
-      category?: string;
-      search?: string;
-    };
-
-    // call service to get all products
-    const result = await productService.getAllProducts({
-      category,
-      search,
-      limit,
-      offset,
-    });
-
-    // log products fetched
-    logger.info(API_MESSAGES.PRODUCTS_FETCHED, {
-      total: result.total,
-      limit: result.limit,
-      offset: result.skip,
-    });
-
-    // send success response
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      data: result.products,
-      pagination: {
-        total: result.total,
-        limit: result.limit,
-        skip: result.skip,
-        totalPages: result.totalPages,
-        hasNextPage: result.hasNextPage,
-        hasPrevPage: result.hasPrevPage,
-      },
-    });
-  },
-);
-
-/**
- * Controller for Updating Product
- */
-export const updateProduct = asyncHandler(
-  async (req: Request, res: Response) => {
-    // get product id
-    const { id } = req.params;
-
-    // get files
-    const files = Array.isArray(req.files)
-      ? (req.files as Express.Multer.File[])
-      : req.file
-        ? [req.file]
-        : [];
-
-    // call service to update product
-    await productService.updateProduct({
-      id: id as string,
-      sellerId: req.userId!,
-      payload: req.body,
+    const result = await productService.createProduct(
+      req.user!.userId,
+      req.body,
       files,
-    });
+    );
 
-    // log product updated
-    logger.info(API_MESSAGES.PRODUCT_UPDATED, {
-      productId: id,
-      sellerId: req.userId,
-    });
-
-    // send success response
     sendResponse(res, {
-      statusCode: StatusCodes.OK,
+      statusCode: status.CREATED,
       success: true,
-      message: API_MESSAGES.PRODUCT_UPDATED,
+      message: PRODUCT_MESSAGES.PRODUCT_CREATED,
+      data: result,
     });
   },
 );
 
-/**
- * Controller for Deleting Product
- */
-export const deleteProduct = asyncHandler(
-  async (req: Request, res: Response) => {
-    // get product id
-    const { id } = req.params;
+const getMyProducts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await productService.getMyProducts(
+      req.user!.userId,
+      req.query,
+    );
 
-    // delete product
-    await productService.deleteProduct({
-      id: id as string,
-      sellerId: req.userId!,
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result.data,
+      pagination: result.pagination,
     });
-
-    // log product deleted
-    logger.info(API_MESSAGES.PRODUCT_DELETED, {
-      productId: id,
-      sellerId: String(req.userId),
-    });
-
-    // send 204 no content response
-    res.status(StatusCodes.NO_CONTENT).end();
   },
 );
 
-/**
- * Product controller Instance
- */
+const updateMyProduct = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const files = req.files as
+      { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+    const result = await productService.updateMyProduct(
+      req.user!.userId,
+      productId,
+      req.body,
+      files,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT_UPDATED,
+      data: result,
+    });
+  },
+);
+
+const deleteMyProduct = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const result = await productService.deleteMyProduct(
+      req.user!.userId,
+      productId,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: result.message,
+    });
+  },
+);
+
+const getPublicProducts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await productService.getPublicProducts(req.query);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  },
+);
+
+const getNewArrivals = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const result = await productService.getNewArrivals(limit);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result,
+    });
+  },
+);
+
+const getProductById = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const result = await productService.getProductById(productId);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT_FETCHED,
+      data: result,
+    });
+  },
+);
+
+const getRelatedProducts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const result = await productService.getRelatedProducts(productId, limit);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result,
+    });
+  },
+);
+
 const productController = {
   createProduct,
+  getMyProducts,
+  updateMyProduct,
+  deleteMyProduct,
+  getPublicProducts,
+  getNewArrivals,
   getProductById,
-  getAllProducts,
-  updateProduct,
-  deleteProduct,
+  getRelatedProducts,
 };
 
-/**
- * Export product controller
- */
 export default productController;

@@ -1,74 +1,38 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
+import type { Document, Types } from "mongoose";
 
-/**
- * Third-party module
- */
-import type { Types } from "mongoose";
-
-/**
- * Type
- */
-import type { IAvatar } from "@/modules/v1/seller/seller.interface";
-
-/**
- * Create Category Request
- */
-export interface ICreateCategoryPaylod {
-  userId: Types.ObjectId;
-  payload: {
-    name: string;
-  };
-  file?: Express.Multer.File;
+export interface ICategoryImage {
+  publicId: string;
+  url: string;
+  width: number | null;
+  height: number | null;
 }
 
-/**
- * Category Interface
- */
 export interface ICategory {
-  createdBy: Types.ObjectId;
+  _id?: Types.ObjectId;
+  admin: Types.ObjectId;
   name: string;
-  image: IAvatar;
-  createdAt: string;
-  updatedAt: string;
+  image: ICategoryImage;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-/**
- * Update Category Payload
- */
-export interface IUpdateCategoryPayload {
+export type ICategoryDocument = ICategory & Document;
+
+export interface ICreateCategoryInput {
+  name: string;
+}
+
+export interface IUpdateCategoryInput {
   name?: string;
+  isActive?: boolean;
 }
 
-/**
- * Update Category Request
- */
-export interface IUpdateCategoryPaylod {
-  id: string;
-  payload: IUpdateCategoryPayload;
-  file?: Express.Multer.File;
+export interface IUpdateCategoryStatusInput {
+  isActive: boolean;
 }
 
-/**
- * Get Categories Query Parameters
- */
-export interface IGetCategoriesParams {
-  limit: number;
-  offset: number;
-}
-
-/**
- * Paginated Categories Result
- */
-export interface IGetCategoriesResult {
-  total: number;
-  limit: number;
-  skip: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-  categories: ICategory[];
+export interface ICategoryQueryOptions {
+  search?: string;
+  isActive?: boolean | string;
 }

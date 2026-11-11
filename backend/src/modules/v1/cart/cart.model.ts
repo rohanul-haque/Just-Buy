@@ -1,16 +1,33 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
+import { ProductSize } from "@/modules/v1/product/product.constant";
+import type { ICart, ICartItem } from "@/modules/v1/cart/cart.interface";
+import { Schema, model } from "mongoose";
 
-/* Third-party Modules */
-import { model, models, Schema } from "mongoose";
+const cartItemSchema = new Schema<ICartItem>(
+  {
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+      validate: {
+        validator: Number.isInteger,
+        message: "Quantity must be an integer",
+      },
+    },
+    size: {
+      type: String,
+      enum: Object.values(ProductSize),
+    },
+  },
+  {
+    _id: true,
+  },
+);
 
-/* Type */
-import type { ICart } from "@/modules/v1/cart/cart.interface";
-
-/* Cart Schema Definition */
 const cartSchema = new Schema<ICart>(
   {
     buyer: {
@@ -19,24 +36,8 @@ const cartSchema = new Schema<ICart>(
       required: true,
       unique: true,
     },
-
-    items: {
-      type: [
-        {
-          product: {
-            type: Schema.Types.ObjectId,
-            ref: "Product",
-            required: true,
-          },
-
-          quantity: {
-            type: Number,
-            required: true,
-            min: 1,
-            default: 1,
-          },
-        },
-      ],
+    productItems: {
+      type: [cartItemSchema],
       default: [],
     },
   },
@@ -46,7 +47,6 @@ const cartSchema = new Schema<ICart>(
   },
 );
 
-/* Cart Model Definition */
-const Cart = models.Cart || model<ICart>("Cart", cartSchema);
-
+export const Cart = model<ICart>("Cart", cartSchema);
 export default Cart;
+

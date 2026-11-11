@@ -1,23 +1,7 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Application Modules
- */
 import config from "@/config";
 import { logger } from "@/lib/winston";
-
-/**
- * Type
- */
 import type { CorsOptions } from "cors";
 
-/**
- * CORS Configuration
- */
 const corsOptions: CorsOptions = {
   credentials: true,
   origin(origin, callback) {
@@ -35,7 +19,4 @@ const corsOptions: CorsOptions = {
   },
 };
 
-/**
- * Export default corsOptions
- */
 export default corsOptions;

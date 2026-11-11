@@ -1,466 +1,548 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Thired-party Module
- */
-import { StatusCodes } from "http-status-codes";
-
-/**
- * Application Modules
- */
-import { deleteFromCloudinary, uploadToCloudinary } from "@/lib/cloudinary";
+import cloudinaryService from "@/lib/cloudinary";
 import { logger } from "@/lib/winston";
-import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
-
-/**
- * Application Models
- */
 import Category from "@/modules/v1/category/category.model";
-import Product from "@/modules/v1/product/product.model";
-import Seller from "@/modules/v1/seller/seller.model";
-
-/**
- * Types
- */
+import {
+  PRODUCT_DEFAULT_LIMIT,
+  PRODUCT_DEFAULT_PAGE,
+  PRODUCT_MESSAGES,
+} from "@/modules/v1/product/product.constant";
 import type {
-  ICreateProductPayload,
-  IDeleteProductPayload,
-  IGetProductsQuery,
-  IGetProductsResponse,
-  IGetProductsResult,
+  ICreateProductInput,
+  IPaginatedProductsResult,
   IProduct,
-  IUpdateProductPayload,
+  IProductImage,
+  IProductQueryOptions,
+  IUpdateProductInput,
 } from "@/modules/v1/product/product.interface";
-import { SellerVerificationStatus } from "@/modules/v1/seller/seller.interface";
+import Product from "@/modules/v1/product/product.model";
+import { VendorStatus } from "@/modules/v1/vendor/vendor.constant";
+import Vendor from "@/modules/v1/vendor/vendor.model";
+import AppError from "@/utils/AppError";
+import ERROR_CODE from "@/utils/ERROR_CODES";
+import MESSAGES from "@/utils/MESSAGE";
+import { status } from "http-status";
 
-/**
- * Service for Creating Product
- * @param {Object} sellerId, payload, files
- * @returns {Promise<void>} Created product document
- */
-const createProduct = async ({
-  sellerId,
-  payload,
-  files = [],
-}: ICreateProductPayload): Promise<void> => {
-  // check files
-  if (files.length === 0) {
+const escapeRegex = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+const resolveApprovedVendor = async (userId: string) => {
+  const vendor = await Vendor.findOne({ vendor: userId }).exec();
+
+  if (!vendor) {
     throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      ERROR_CODE.VALIDATION_ERROR,
-      "At least one product image is required",
+      status.NOT_FOUND,
+      ERROR_CODE.SELLER_PROFILE_NOT_FOUND,
+      MESSAGES.SELLER_PROFILE_NOT_FOUND,
     );
   }
 
-  // check file size and number of files
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
-  const MAX_IMAGES = 5;
-
-  // check number of files
-  if (files.length > MAX_IMAGES) {
+  if (vendor.status !== VendorStatus.APPROVED) {
     throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      ERROR_CODE.VALIDATION_ERROR,
-      `You can upload a maximum of ${MAX_IMAGES} product images`,
+      status.FORBIDDEN,
+      ERROR_CODE.SELLER_NOT_APPROVED,
+      MESSAGES.SELLER_CANNOT_CREATE_PRODUCT,
     );
   }
 
-  // check file size
-  for (const file of files) {
-    if (file.size > MAX_FILE_SIZE) {
-      throw new AppError(
-        StatusCodes.REQUEST_TOO_LONG,
-        ERROR_CODE.FILE_TOO_LARGE,
-        "Each product image must not exceed 5 MB",
-      );
-    }
-  }
+  return vendor;
+};
 
-  // find seller
-  const seller = await Seller.findOne({
-    user: sellerId,
-    verificationStatus: SellerVerificationStatus.VERIFIED,
-  })
-    .select("_id")
-    .lean()
-    .exec();
+const createProduct = async (
+  userId: string,
+  payload: ICreateProductInput,
+  files?: { [fieldname: string]: Express.Multer.File[] },
+): Promise<IProduct> => {
+  // 1. Resolve and verify approved vendor profile
+  const vendor = await resolveApprovedVendor(userId);
 
-  // check if seller is verified
-  if (!seller) {
+  // 2. Verify selected Category exists and is active
+  const category = await Category.findById(payload.category).exec();
+  if (!category) {
     throw new AppError(
-      StatusCodes.FORBIDDEN,
-      ERROR_CODE.VALIDATION_ERROR,
-      "Only verified sellers can create products",
+      status.NOT_FOUND,
+      ERROR_CODE.CATEGORY_NOT_FOUND,
+      PRODUCT_MESSAGES.CATEGORY_NOT_FOUND,
     );
   }
 
-  // find category
-  const existingCategory = await Category.findById(payload.category)
-    .select("_id")
-    .lean()
-    .exec();
-
-  // check if category exists
-  if (!existingCategory) {
+  if (!category.isActive) {
     throw new AppError(
-      StatusCodes.BAD_REQUEST,
+      status.BAD_REQUEST,
       ERROR_CODE.VALIDATION_ERROR,
-      "Category not found. Please select an existing category.",
+      PRODUCT_MESSAGES.CATEGORY_NOT_ACTIVE,
     );
   }
 
-  // array to store uploaded image public IDs for cleanup
-  const uploadedPublicIds: string[] = [];
+  // 3. Verify featureImage file is present
+  const featureImageFile = files?.featureImage?.[0];
+  if (!featureImageFile) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      ERROR_CODE.VALIDATION_ERROR,
+      PRODUCT_MESSAGES.FEATURE_IMAGE_REQUIRED,
+    );
+  }
+
+  // 4. Upload images to Cloudinary
+  let uploadedFeatureImage: IProductImage | null = null;
+  const uploadedAdditionalImages: IProductImage[] = [];
 
   try {
-    const images: IProduct["images"] = [];
+    const featureUploadRes = await cloudinaryService.uploadImage(
+      featureImageFile.buffer,
+      "jus-buy/products",
+    );
+    uploadedFeatureImage = {
+      publicId: featureUploadRes.publicId,
+      url: featureUploadRes.url,
+      width: featureUploadRes.width,
+      height: featureUploadRes.height,
+    };
 
-    // upload files to cloudinary
-    for (const file of files) {
-      const result = await uploadToCloudinary(
-        file.buffer,
-        "Just-Buy-API/products",
-      );
-
-      // store uploaded image public IDs
-      uploadedPublicIds.push(result.public_id);
-
-      // add image to images array
-      images.push({
-        publicId: result.public_id,
-        url: result.secure_url,
-        width: result.width ?? null,
-        height: result.height ?? null,
-      });
+    if (files?.images && files.images.length > 0) {
+      for (const file of files.images) {
+        const imgUploadRes = await cloudinaryService.uploadImage(
+          file.buffer,
+          "jus-buy/products",
+        );
+        uploadedAdditionalImages.push({
+          publicId: imgUploadRes.publicId,
+          url: imgUploadRes.url,
+          width: imgUploadRes.width,
+          height: imgUploadRes.height,
+        });
+      }
     }
 
-    // create product
+    // 5. Save product to MongoDB
     const product = await Product.create({
-      name: payload.name,
-      description: payload.description,
-      category: existingCategory._id,
-      brand: payload.brand,
+      vendor: vendor._id,
+      category: category._id,
+      name: payload.name.trim(),
+      description: payload.description.trim(),
+      brand: payload.brand?.trim() || "",
       price: payload.price,
-      stockQuantity: payload.stockQuantity ?? 0,
-      sizes: payload.sizes ?? [],
-      seller: sellerId,
-      sellCount: 0,
-      images,
+      stock: payload.stock,
+      sizes: payload.sizes || [],
+      featureImage: uploadedFeatureImage,
+      images: uploadedAdditionalImages,
+      salesCount: 0,
+      isActive: true,
+      isFeatured: false,
     });
 
-    // populate seller and category
-    await product.populate([
-      { path: "seller", select: "fullName email role" },
-      { path: "category", select: "name" },
-    ]);
-
-    // return created product
-    return product;
+    return await product.populate("category", "name image isActive");
   } catch (error) {
-    // cleanup uploaded images on error
-    await Promise.allSettled(
-      uploadedPublicIds.map((publicId) => deleteFromCloudinary(publicId)),
-    );
-  }
-};
-
-/**
- * Get Product By ID Service (Product details)
- * @param {id} params - Product ID
- * @returns {Promise<IGetProductsResult>} Product document
- */
-export const getProductById = async (
-  id: string,
-): Promise<IGetProductsResult> => {
-  // find product
-  const product = await Product.findById(id)
-    .populate("seller", "fullName email role")
-    .populate("category", "name")
-    .lean()
-    .exec();
-
-  // check if product exists
-  if (!product) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
-      productId: id,
-    });
-
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      ERROR_CODE.PRODUCT_NOT_FOUND,
-      API_MESSAGES.PRODUCT_NOT_FOUND,
-    );
-  }
-
-  // return product
-  return product;
-};
-
-/**
- * Service for getting all products
- * @param {IGetProductsQuery} query
- * @returns {Promise<IGetProductsResponse>}
- */
-export const getAllProducts = async (
-  query: IGetProductsQuery,
-): Promise<IGetProductsResponse> => {
-  // extract limit and offset
-  const { limit, offset: skip } = query;
-
-  // filter object
-  const filter: Record<string, unknown> = {};
-
-  // escape regex characters
-  const escapeRegex = (value: string): string =>
-    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-  // Search by product name or description.
-  if (query.search?.trim()) {
-    const searchRegex = new RegExp(escapeRegex(query.search.trim()), "i");
-
-    filter.$or = [{ name: searchRegex }, { description: searchRegex }];
-  }
-
-  // Filter by Category ObjectId.
-  if (query.category) {
-    filter.category = query.category;
-  }
-
-  // Fetch products and total count in parallel.
-  const [products, total] = await Promise.all([
-    Product.find(filter)
-      .populate("seller", "_id fullName email role")
-      .populate("category", "name")
-      .sort({ createdAt: -1, _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .exec(),
-
-    Product.countDocuments(filter).exec(),
-  ]);
-
-  // Calculate pagination metadata.
-  const totalPages = Math.ceil(total / limit);
-  const hasNextPage = skip + products.length < total;
-  const hasPrevPage = skip > 0 && skip < total;
-
-  // return paginated products with metadata
-  return {
-    products,
-    total,
-    limit,
-    skip,
-    totalPages,
-    hasNextPage,
-    hasPrevPage,
-  };
-};
-
-/**
- * Service for updating product
- * @param {IUpdateProductRequest} params
- * @returns {Promise<IProduct>} Updated product document
- */
-export const updateProduct = async ({
-  id,
-  sellerId,
-  payload,
-  files = [],
-}: IUpdateProductPayload): Promise<void> => {
-  // find product owned by current seller
-  const product = await Product.findOne({
-    _id: id,
-    seller: sellerId,
-  });
-
-  // check if product exists and belongs to the seller
-  if (!product) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
-      productId: id,
-      sellerId: String(sellerId),
-    });
-
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      ERROR_CODE.PRODUCT_NOT_FOUND,
-      API_MESSAGES.PRODUCT_NOT_FOUND,
-    );
-  }
-
-  // destructure all fields from payload
-  const { name, description, category, brand, price, stockQuantity, sizes } =
-    payload;
-
-  // validate category ID and ensure the category exists
-  if (category !== undefined) {
-    const existingCategory = await Category.findById(category)
-      .select("_id")
-      .lean()
-      .exec();
-
-    // check if category exists
-    if (!existingCategory) {
-      throw new AppError(
-        StatusCodes.NOT_FOUND,
-        ERROR_CODE.NOT_FOUND,
-        "Category not found",
-      );
+    // Cleanup newly uploaded images on database or processing failure
+    if (uploadedFeatureImage?.publicId) {
+      cloudinaryService
+        .deleteImage(uploadedFeatureImage.publicId)
+        .catch((err) => {
+          logger.error(
+            "Failed to cleanup feature image on product creation failure:",
+            err,
+          );
+        });
     }
 
-    product.category = existingCategory._id;
-  }
-
-  // Update fields only when provided.
-  if (name !== undefined) {
-    product.name = name;
-  }
-
-  if (description !== undefined) {
-    product.description = description;
-  }
-
-  if (brand !== undefined) {
-    product.brand = brand;
-  }
-
-  // Zero is a valid price or stock value if permitted by the schema.
-  if (price !== undefined) {
-    product.price = price;
-  }
-
-  if (stockQuantity !== undefined) {
-    product.stockQuantity = stockQuantity;
-  }
-
-  if (sizes !== undefined) {
-    product.sizes = sizes;
-  }
-
-  // max file size and max images
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
-  const MAX_IMAGES = 5;
-
-  // check if product has more than max images
-  if (product.images.length + files.length > MAX_IMAGES) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      ERROR_CODE.VALIDATION_ERROR,
-      `A product can have a maximum of ${MAX_IMAGES} images`,
-    );
-  }
-
-  // check if file size is more than max file size
-  for (const file of files) {
-    if (file.size > MAX_FILE_SIZE) {
-      throw new AppError(
-        StatusCodes.REQUEST_TOO_LONG,
-        ERROR_CODE.FILE_TOO_LARGE,
-        API_MESSAGES.FILE_TOO_LARGE,
-      );
+    for (const img of uploadedAdditionalImages) {
+      if (img.publicId) {
+        cloudinaryService.deleteImage(img.publicId).catch((err) => {
+          logger.error(
+            "Failed to cleanup additional image on product creation failure:",
+            err,
+          );
+        });
+      }
     }
-  }
-
-  // Track newly uploaded images for cleanup on failure.
-  const uploadedPublicIds: string[] = [];
-
-  try {
-    // Upload new images and append them to existing images.
-    for (const file of files) {
-      const cloudinaryData = await uploadToCloudinary(
-        file.buffer,
-        "Just-Buy-API/products",
-      );
-
-      uploadedPublicIds.push(cloudinaryData.public_id);
-
-      // push uploaded images into product
-      product.images.push({
-        publicId: cloudinaryData.public_id,
-        url: cloudinaryData.secure_url,
-        width: cloudinaryData.width ?? null,
-        height: cloudinaryData.height ?? null,
-      });
-    }
-
-    // Run schema validation and persist changes.
-    await product.save();
-
-    logger.info(API_MESSAGES.PRODUCT_UPDATED, {
-      productId: String(product._id),
-      sellerId: String(sellerId),
-      uploadedImageCount: uploadedPublicIds.length,
-    });
-  } catch (error) {
-    // Remove newly uploaded images if saving or uploading fails.
-    await Promise.allSettled(
-      uploadedPublicIds.map((publicId) => deleteFromCloudinary(publicId)),
-    );
 
     throw error;
   }
 };
 
-/**
- * Delete Product Service
- * @param {Types.ObjectId} productId - Product ObjectId string
- * @param {Types.ObjectId} [userId] - Optional user ID for authorization check
- * @returns {Promise<void>}
- */
-export const deleteProduct = async ({
-  id,
-  sellerId,
-}: IDeleteProductPayload): Promise<void> => {
-  // Delete only the product owned by this seller.
-  // The deleted document contains the image information for cleanup.
-  const product = await Product.findOneAndDelete({
-    _id: id,
-    seller: sellerId,
-  })
-    .lean()
-    .exec();
+const getMyProducts = async (
+  userId: string,
+  options: IProductQueryOptions,
+): Promise<IPaginatedProductsResult> => {
+  const vendor = await resolveApprovedVendor(userId);
 
-  if (!product) {
-    logger.warn(API_MESSAGES.PRODUCT_NOT_FOUND, {
-      productId: id,
-      sellerId,
-    });
+  const filter: Record<string, any> = {
+    vendor: vendor._id,
+  };
 
+  if (options.search) {
+    const regex = new RegExp(escapeRegex(options.search), "i");
+    filter.$or = [{ name: regex }, { brand: regex }, { description: regex }];
+  }
+
+  if (options.category) {
+    filter.category = options.category;
+  }
+
+  if (options.isActive !== undefined) {
+    filter.isActive = options.isActive;
+  }
+
+  const page = Math.max(1, options.page || PRODUCT_DEFAULT_PAGE);
+  const limit = Math.max(1, options.limit || PRODUCT_DEFAULT_LIMIT);
+  const skipCount =
+    options.skip !== undefined ? options.skip : (page - 1) * limit;
+
+  const [total, products] = await Promise.all([
+    Product.countDocuments(filter).exec(),
+    Product.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skipCount)
+      .limit(limit)
+      .populate("category", "name image isActive")
+      .exec(),
+  ]);
+
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  return {
+    data: products,
+    pagination: {
+      page,
+      skip: skipCount,
+      limit,
+      total,
+      totalPages,
+      hasPrevPage: options.skip !== undefined ? skipCount > 0 : page > 1,
+      hasNextPage: skipCount + limit < total,
+    },
+  };
+};
+
+const updateMyProduct = async (
+  userId: string,
+  productId: string,
+  payload: IUpdateProductInput,
+  files?: { [fieldname: string]: Express.Multer.File[] },
+): Promise<IProduct> => {
+  const vendor = await resolveApprovedVendor(userId);
+
+  const existingProduct = await Product.findOne({
+    _id: productId,
+    vendor: vendor._id,
+  }).exec();
+
+  if (!existingProduct) {
     throw new AppError(
-      StatusCodes.NOT_FOUND,
+      status.NOT_FOUND,
       ERROR_CODE.PRODUCT_NOT_FOUND,
-      API_MESSAGES.PRODUCT_NOT_FOUND,
+      MESSAGES.PRODUCT_NOT_FOUND,
     );
   }
 
-  // Clean up product images after successful database deletion.
-  const publicIds = [
-    ...new Set(
-      (product.images ?? [])
-        .map((image: any) => image.publicId)
-        .filter(
-          (publicId: any): publicId is string =>
-            typeof publicId === "string" && publicId.length > 0,
-        ),
-    ),
-  ];
+  // Verify category if changed
+  if (payload.category) {
+    const category = await Category.findById(payload.category).exec();
+    if (!category) {
+      throw new AppError(
+        status.NOT_FOUND,
+        ERROR_CODE.CATEGORY_NOT_FOUND,
+        PRODUCT_MESSAGES.CATEGORY_NOT_FOUND,
+      );
+    }
+    if (!category.isActive) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        ERROR_CODE.VALIDATION_ERROR,
+        PRODUCT_MESSAGES.CATEGORY_NOT_ACTIVE,
+      );
+    }
+  }
 
-  await Promise.allSettled(
-    publicIds.map((publicId: any) => deleteFromCloudinary(publicId)),
-  );
+  // Handle image uploads
+  let newFeatureImage: IProductImage | null = null;
+  let oldFeatureImagePublicId: string | null = null;
+  const newUploadedImages: IProductImage[] = [];
+
+  try {
+    if (files?.featureImage?.[0]) {
+      const uploadRes = await cloudinaryService.uploadImage(
+        files.featureImage[0].buffer,
+        "jus-buy/products",
+      );
+      newFeatureImage = {
+        publicId: uploadRes.publicId,
+        url: uploadRes.url,
+        width: uploadRes.width,
+        height: uploadRes.height,
+      };
+      oldFeatureImagePublicId = existingProduct.featureImage?.publicId || null;
+    }
+
+    if (files?.images && files.images.length > 0) {
+      for (const file of files.images) {
+        const uploadRes = await cloudinaryService.uploadImage(
+          file.buffer,
+          "jus-buy/products",
+        );
+        newUploadedImages.push({
+          publicId: uploadRes.publicId,
+          url: uploadRes.url,
+          width: uploadRes.width,
+          height: uploadRes.height,
+        });
+      }
+    }
+
+    const updateFields: Record<string, any> = {};
+
+    if (payload.name !== undefined) updateFields.name = payload.name.trim();
+    if (payload.description !== undefined)
+      updateFields.description = payload.description.trim();
+    if (payload.brand !== undefined) updateFields.brand = payload.brand.trim();
+    if (payload.price !== undefined) updateFields.price = payload.price;
+    if (payload.stock !== undefined) updateFields.stock = payload.stock;
+    if (payload.sizes !== undefined) updateFields.sizes = payload.sizes;
+    if (payload.category !== undefined)
+      updateFields.category = payload.category;
+    if (payload.isActive !== undefined)
+      updateFields.isActive = payload.isActive;
+    if (newFeatureImage) updateFields.featureImage = newFeatureImage;
+    if (newUploadedImages.length > 0) {
+      updateFields.images = [...existingProduct.images, ...newUploadedImages];
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $set: updateFields },
+      { new: true, runValidators: true },
+    )
+      .populate("category", "name image isActive")
+      .exec();
+
+    if (!updatedProduct) {
+      throw new AppError(
+        status.NOT_FOUND,
+        ERROR_CODE.PRODUCT_NOT_FOUND,
+        MESSAGES.PRODUCT_NOT_FOUND,
+      );
+    }
+
+    // Cleanup old feature image from Cloudinary after successful DB update
+    if (newFeatureImage && oldFeatureImagePublicId) {
+      cloudinaryService.deleteImage(oldFeatureImagePublicId).catch((err) => {
+        logger.error(
+          "Failed to delete old feature image from Cloudinary on update:",
+          err,
+        );
+      });
+    }
+
+    return updatedProduct;
+  } catch (error) {
+    // Cleanup newly uploaded images if update failed
+    if (newFeatureImage?.publicId) {
+      cloudinaryService.deleteImage(newFeatureImage.publicId).catch((err) => {
+        logger.error(
+          "Failed to cleanup newly uploaded feature image on update failure:",
+          err,
+        );
+      });
+    }
+
+    for (const img of newUploadedImages) {
+      if (img.publicId) {
+        cloudinaryService.deleteImage(img.publicId).catch((err) => {
+          logger.error(
+            "Failed to cleanup newly uploaded additional image on update failure:",
+            err,
+          );
+        });
+      }
+    }
+
+    throw error;
+  }
+};
+
+const deleteMyProduct = async (
+  userId: string,
+  productId: string,
+): Promise<{ message: string }> => {
+  const vendor = await resolveApprovedVendor(userId);
+
+  const product = await Product.findOne({
+    _id: productId,
+    vendor: vendor._id,
+  }).exec();
+
+  if (!product) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.PRODUCT_NOT_FOUND,
+      MESSAGES.PRODUCT_NOT_FOUND,
+    );
+  }
+
+  // Delete product from MongoDB
+  await Product.findByIdAndDelete(productId).exec();
+
+  // Collect Cloudinary images for cleanup
+  const imagesToDelete: string[] = [];
+  if (product.featureImage?.publicId) {
+    imagesToDelete.push(product.featureImage.publicId);
+  }
+  if (product.images && product.images.length > 0) {
+    for (const img of product.images) {
+      if (img.publicId) {
+        imagesToDelete.push(img.publicId);
+      }
+    }
+  }
+
+  // Delete from Cloudinary in background with error handling
+  for (const publicId of imagesToDelete) {
+    cloudinaryService.deleteImage(publicId).catch((err) => {
+      logger.error(
+        "Failed to delete product asset from Cloudinary on deletion:",
+        { publicId, error: err },
+      );
+    });
+  }
+
+  return { message: MESSAGES.PRODUCT_DELETED };
+};
+
+const getPublicProducts = async (
+  options: IProductQueryOptions,
+): Promise<IPaginatedProductsResult> => {
+  const filter: Record<string, any> = {
+    isActive: true,
+  };
+
+  if (options.search) {
+    const regex = new RegExp(escapeRegex(options.search), "i");
+    filter.$or = [{ name: regex }, { brand: regex }, { description: regex }];
+  }
+
+  if (options.category) {
+    filter.category = options.category;
+  }
+
+  const page = Math.max(1, options.page || PRODUCT_DEFAULT_PAGE);
+  const limit = Math.max(1, options.limit || PRODUCT_DEFAULT_LIMIT);
+  const skipCount =
+    options.skip !== undefined ? options.skip : (page - 1) * limit;
+
+  const [total, products] = await Promise.all([
+    Product.countDocuments(filter).exec(),
+    Product.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skipCount)
+      .limit(limit)
+      .populate("category", "name image")
+      .populate({
+        path: "vendor",
+        select: "shopName profile location",
+      })
+      .exec(),
+  ]);
+
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  return {
+    data: products,
+    pagination: {
+      page,
+      skip: skipCount,
+      limit,
+      total,
+      totalPages,
+      hasPrevPage: options.skip !== undefined ? skipCount > 0 : page > 1,
+      hasNextPage: skipCount + limit < total,
+    },
+  };
+};
+
+const getNewArrivals = async (
+  limit = PRODUCT_DEFAULT_LIMIT,
+): Promise<IProduct[]> => {
+  const safeLimit = Math.max(1, limit);
+  const products = await Product.find({ isActive: true })
+    .sort({ createdAt: -1 })
+    .limit(safeLimit)
+    .populate("category", "name image")
+    .populate({
+      path: "vendor",
+      select: "shopName profile location",
+    })
+    .exec();
+
+  return products;
+};
+
+const getProductById = async (productId: string): Promise<IProduct> => {
+  const product = await Product.findOne({
+    _id: productId,
+    isActive: true,
+  })
+    .populate("category", "name image")
+    .populate({
+      path: "vendor",
+      select: "shopName profile location",
+    })
+    .exec();
+
+  if (!product) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.PRODUCT_NOT_FOUND,
+      MESSAGES.PRODUCT_NOT_FOUND,
+    );
+  }
+
+  return product;
+};
+
+const getRelatedProducts = async (
+  productId: string,
+  limit = 10,
+): Promise<IProduct[]> => {
+  const product = await Product.findOne({
+    _id: productId,
+    isActive: true,
+  }).exec();
+
+  if (!product) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.PRODUCT_NOT_FOUND,
+      MESSAGES.PRODUCT_NOT_FOUND,
+    );
+  }
+
+  const related = await Product.find({
+    category: product.category,
+    _id: { $ne: product._id },
+    isActive: true,
+  })
+    .sort({ createdAt: -1 })
+    .limit(Math.max(1, limit))
+    .populate("category", "name image")
+    .populate({
+      path: "vendor",
+      select: "shopName profile location",
+    })
+    .exec();
+
+  return related;
 };
 
 const productService = {
   createProduct,
+  getMyProducts,
+  updateMyProduct,
+  deleteMyProduct,
+  getPublicProducts,
+  getNewArrivals,
   getProductById,
-  getAllProducts,
-  updateProduct,
-  deleteProduct,
+  getRelatedProducts,
 };
 
 export default productService;

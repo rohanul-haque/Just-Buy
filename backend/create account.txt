@@ -1,0 +1,22 @@
+create account
+login account
+refresh token
+password change
+verify account
+resend otp
+logout
+
+buyer profile get
+             update
+             order history
+
+category 
+new arrivel - 4
+explore product - 8
+all product
+product details
+review
+related product
+
+wishlist
+add to cart

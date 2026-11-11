@@ -1,55 +1,46 @@
-/**
- * @copyright 2026
- * @author Rohanul Hauqe Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
-import { Types } from "mongoose";
+import { AccountStatus } from "@/modules/v1/user/user.constant";
 import { z } from "zod";
+import { Gender } from "@/modules/v1/buyer/buyer.constant";
 
-/**
- * User ID Schema
- */
-export const idSchema = z.object({
-  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid User ID",
+export const updateBuyerProfileSchema = z.object({
+  phoneNumber: z
+    .string()
+    .trim()
+    .regex(/^[+0-9\s-]{7,20}$/, { message: "Invalid phone number format" })
+    .optional(),
+  gender: z
+    .enum(Object.values(Gender) as [string, ...string[]], {
+      message: "Gender must be MALE, FEMALE, or OTHER",
+    })
+    .optional(),
+  address: z
+    .string()
+    .trim()
+    .max(500, { message: "Address cannot exceed 500 characters" })
+    .optional(),
+});
+
+export const buyerIdParamsSchema = z.object({
+  buyerId: z
+    .string({ message: "Buyer ID is required" })
+    .regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid Buyer ID format" }),
+});
+
+export const updateBuyerStatusSchema = z.object({
+  status: z.enum(Object.values(AccountStatus) as [string, ...string[]], {
+    message: "Status must be either ACTIVE or BLOCKED",
   }),
 });
 
-/**
- * All Buyer List Query Schema
- */
-export const buyerListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(15),
-  offset: z.coerce.number().int().min(0).default(0),
+export const buyerQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().default(10),
+  skip: z.coerce.number().int().nonnegative().optional(),
+  search: z.string().trim().optional(),
+  gender: z.enum(Object.values(Gender) as [string, ...string[]]).optional(),
 });
 
-/**
- * Update Buyer Schema
- */
-export const updateBuyerSchema = z.object({
-  fullName: z
-    .string()
-    .min(2, "Full name must be at least 2 characters")
-    .max(50, "Full name cannot exceed 50 characters")
-    .trim()
-    .optional(),
-
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password cannot exceed 128 characters")
-    .optional(),
-
-  gender: z.enum(["male", "female", "other"]).optional(),
-
-  phoneNumber: z
-    .string()
-    .min(1, "Phone number cannot be empty")
-    .max(15, "Phone number cannot exceed 15 digits")
-    .trim()
-    .optional(),
-});
+export type TUpdateBuyerProfileInput = z.infer<typeof updateBuyerProfileSchema>;
+export type TBuyerIdParams = z.infer<typeof buyerIdParamsSchema>;
+export type TUpdateBuyerStatus = z.infer<typeof updateBuyerStatusSchema>;
+export type TBuyerQuery = z.infer<typeof buyerQuerySchema>;

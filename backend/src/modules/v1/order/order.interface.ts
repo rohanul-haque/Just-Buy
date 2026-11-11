@@ -1,135 +1,87 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
+import type {
+  OrderStatus,
+  OrderType,
+} from "@/modules/v1/order/order.constant";
+import type { TProductSize } from "@/modules/v1/product/product.constant";
+import type { Types } from "mongoose";
 
-/**
- * Third-Party Modules
- */
-import { Types } from "mongoose";
-
-/**
- * Application Modules
- */
-import type { IAvatar } from "@/modules/v1/seller/seller.interface";
-
-/**
- * Order Status Enum Definition
- */
-export enum OrderStatus {
-  PENDING = "PENDING",
-  CONFIRMED = "CONFIRMED",
-  PROCESSING = "PROCESSING",
-  SHIPPED = "SHIPPED",
-  DELIVERED = "DELIVERED",
-  CANCELLED = "CANCELLED",
-}
-
-/**
- * Payment Status Enum Definition
- */
-export enum PaymentStatus {
-  PENDING = "PENDING",
-  PAID = "PAID",
-  FAILED = "FAILED",
-  REFUNDED = "REFUNDED",
-}
-
-/**
- * Payment Method Enum Definition
- */
-export enum PaymentMethod {
-  COD = "COD",
-  ONLINE = "ONLINE",
-}
-
-/**
- * Payment Method Enum Definition
- */
 export interface IShippingAddress {
   fullName: string;
-  location: string;
   phoneNumber: string;
-  emailAddress: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country?: string;
 }
 
-/**
- * Payment Method Enum Definition
- */
 export interface IOrderItem {
+  _id?: Types.ObjectId;
   product: Types.ObjectId;
-  seller: Types.ObjectId;
+  vendor: Types.ObjectId;
   name: string;
-  images: IAvatar[];
-  price: number;
+  image: string;
+  brand: string;
+  unitPrice: number;
   quantity: number;
+  size?: TProductSize;
+  itemSubtotal: number;
+  commissionRate: number;
+  adminCommission: number;
+  vendorEarning: number;
 }
 
-/**
- * Payment Method Enum Definition
- */
 export interface IOrder {
+  _id: Types.ObjectId;
   buyer: Types.ObjectId;
-  items: IOrderItem[];
+  vendor: Types.ObjectId;
+  transactionNumber: string;
+  orderType: OrderType;
   shippingAddress: IShippingAddress;
+  productItems: IOrderItem[];
+  items?: IOrderItem[];
   subtotal: number;
-  shippingFee: number;
-  discount: number;
-  total: number;
-  paymentMethod: PaymentMethod;
-  paymentStatus: PaymentStatus;
-  orderStatus: OrderStatus;
+  shippingCharge: number;
+  totalAmount: number;
+  status: OrderStatus;
+  payment?: Types.ObjectId | any;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-/**
- * Create Order Input Interface
- */
+export interface ICreateOrderResult {
+  order: IOrder;
+  payment: any;
+  checkoutUrl?: string;
+  sessionId?: string;
+}
+
 export interface ICreateOrderInput {
+  orderType?: OrderType;
   shippingAddress: IShippingAddress;
-  paymentMethod: PaymentMethod;
 }
 
-/**
- * Create Order Input Type
- */
-export interface CreateOrderInput extends ICreateOrderInput {}
-
-/**
- * Create Order Request Interface
- */
-export interface ICreateOrderRequest extends ICreateOrderInput {}
-
-/**
- * Vendor Order Buyer Interface
- */
-export interface IVendorOrderBuyer {
-  _id: Types.ObjectId | string;
-  name: string;
-  avatar: IAvatar | null;
+export interface IUpdateOrderStatusInput {
+  status: OrderStatus;
+  note?: string;
 }
 
-/**
- * Vendor Order Item Interface
- */
-export interface IVendorOrderItem {
-  productId: Types.ObjectId | string;
-  name: string;
-  price: number;
-  quantity: number;
+export interface IOrderQueryOptions {
+  page?: number;
+  limit?: number;
+  skip?: number;
+  status?: OrderStatus;
+  orderType?: OrderType;
 }
 
-/**
- * Vendor Order Response Interface
- */
-export interface IVendorOrderResponse {
-  _id: Types.ObjectId | string;
-  buyer: IVendorOrderBuyer;
-  items: IVendorOrderItem[];
-  orderStatus: OrderStatus;
-  total: number;
-  createdAt: Date | string;
+export interface IPaginatedOrdersResult {
+  data: IOrder[];
+  pagination: {
+    page: number;
+    limit: number;
+    skip: number;
+    total: number;
+    totalPages: number;
+    hasPrevPage: boolean;
+    hasNextPage: boolean;
+  };
 }
-
-export type IVendorOrder = IVendorOrderResponse;
-

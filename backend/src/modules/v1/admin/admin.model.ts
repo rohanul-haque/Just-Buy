@@ -1,33 +1,21 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Modules
- */
-import { Schema, model, models } from "mongoose";
-
-/**
- * Type
- */
+import { Schema, model } from "mongoose";
 import type { IAdmin } from "@/modules/v1/admin/admin.interface";
 
-/**
- * Admin Schema Definition
- */
 const adminSchema = new Schema<IAdmin>(
   {
-    user: {
+    admin: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
       unique: true,
     },
-
-    avatar: {
-      publicId: {
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    profile: {
+      type: {
         type: String,
         default: "",
       },
@@ -35,21 +23,10 @@ const adminSchema = new Schema<IAdmin>(
         type: String,
         default: "",
       },
-      width: {
-        type: Number,
-        default: null,
+      publicId: {
+        type: String,
+        default: "",
       },
-      height: {
-        type: Number,
-        default: null,
-      },
-    },
-
-    phoneNumber: {
-      type: String,
-      trim: true,
-      maxlength: [15, "Phone number cannot exceed 15 characters"],
-      default: "",
     },
   },
   {
@@ -58,9 +35,6 @@ const adminSchema = new Schema<IAdmin>(
   },
 );
 
-/**
- * Admin Model Definition
- */
-const Admin = models.Admin || model<IAdmin>("Admin", adminSchema);
-
+export const Admin = model<IAdmin>("Admin", adminSchema);
 export default Admin;
+

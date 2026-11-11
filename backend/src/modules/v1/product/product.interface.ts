@@ -1,146 +1,71 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
+import type { TProductSize } from "@/modules/v1/product/product.constant";
+import type { Types } from "mongoose";
 
-/**
- * Thired-party Module
- */
-import { Types } from "mongoose";
-
-/**
- * Type
- */
-import type { IAvatar } from "@/modules/v1/seller/seller.interface";
-
-/**
- * Size Enum
- */
-export enum Size {
-  S = "S",
-  M = "M",
-  L = "L",
-  XL = "XL",
-  XXL = "XXL",
+export interface IProductImage {
+  publicId: string;
+  url: string;
+  width: number | null;
+  height: number | null;
 }
 
-/**
- * Product Model Interface
- */
 export interface IProduct {
   _id: Types.ObjectId;
-  seller: Types.ObjectId;
+  vendor: Types.ObjectId;
+  category: Types.ObjectId;
   name: string;
   description: string;
-  category: Types.ObjectId;
-  brand: string;
+  brand?: string;
   price: number;
-  stockQuantity: number;
-  sellCount: number;
-  sizes?: Size[];
-  images: IAvatar[];
+  stock: number;
+  sizes: TProductSize[];
+  featureImage: IProductImage;
+  images: IProductImage[];
+  salesCount: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-/**
- * Create Product Payload
- */
-export type CreateProduct = Pick<
-  IProduct,
-  | "name"
-  | "description"
-  | "category"
-  | "brand"
-  | "price"
-  | "stockQuantity"
-  | "sizes"
-  | "images"
->;
-
-/**
- * Create Product Request Interface
- */
-export interface ICreateProductPayload {
-  sellerId: Types.ObjectId;
-  payload: CreateProduct;
-  files?: Express.Multer.File[];
+export interface ICreateProductInput {
+  category: string;
+  name: string;
+  description: string;
+  brand?: string;
+  price: number;
+  stock: number;
+  sizes?: TProductSize[];
 }
 
-/**
- * Get All Products Query Interface
- */
-export interface IGetProductsQuery {
+export interface IUpdateProductInput {
   category?: string;
   name?: string;
+  description?: string;
+  brand?: string;
+  price?: number;
+  stock?: number;
+  sizes?: TProductSize[];
+  isActive?: boolean;
+}
+
+export interface IProductQueryOptions {
+  page?: number;
+  limit?: number;
+  skip?: number;
   search?: string;
-  limit: number;
-  offset: number;
+  category?: string;
+  isActive?: boolean;
 }
 
-/**
- * Get All Products Result Interface
- */
-export interface IGetProductsResult {
-  seller: {
-    _id: Types.ObjectId;
-    fullName: string;
-    email: string;
-    role: "seller";
+export interface IPaginatedProductsResult<T = IProduct> {
+  data: T[];
+  pagination: {
+    page: number;
+    skip: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasPrevPage: boolean;
+    hasNextPage: boolean;
   };
-  name: string;
-  description: string;
-  category: { _id: Types.ObjectId; name: string };
-  brand: string;
-  price: number;
-  stockQuantity: number;
-  sellCount: number;
-  sizes?: Size[];
-  images: IAvatar[];
-}
-
-/**
- * Get All Products Response Interface
- */
-export interface IGetProductsResponse {
-  products: IGetProductsResult[];
-  total: number;
-  limit: number;
-  skip: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
-/**
- * Update Product Payload Interface
- */
-export type UpdateProductPayload = Partial<
-  Pick<
-    IProduct,
-    | "name"
-    | "description"
-    | "category"
-    | "brand"
-    | "price"
-    | "stockQuantity"
-    | "sizes"
-  >
->;
-
-/**
- * Update Product Request Interface
- */
-export interface IUpdateProductPayload {
-  id: string;
-  sellerId: Types.ObjectId;
-  payload: UpdateProductPayload;
-  files?: Express.Multer.File[];
-}
-
-/**
- * Delete Product Payload Interface
- */
-export interface IDeleteProductPayload {
-  id: string;
-  sellerId: Types.ObjectId;
 }

@@ -1,160 +1,121 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
-import { Types } from "mongoose";
+import { ProductSize } from "@/modules/v1/product/product.constant";
 import { z } from "zod";
 
-export const createProductSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(3, "Product name must be at least 3 characters")
-    .max(100, "Product name cannot exceed 100 characters"),
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
-  description: z
-    .string()
-    .trim()
-    .min(10, "Description must be at least 10 characters")
-    .max(2000, "Description cannot exceed 2000 characters"),
+const booleanPreprocessor = (val: unknown): unknown => {
+  if (typeof val === "string") {
+    const trimmed = val.trim().toLowerCase();
+    if (trimmed === "true" || trimmed === "1") return true;
+    if (trimmed === "false" || trimmed === "0") return false;
+  }
+  return val;
+};
 
-  category: z.string().refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid Category ID",
-  }),
+const jsonOrArrayPreprocessor = (val: unknown): unknown => {
+  if (typeof val === "string") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+};
 
-  brand: z
-    .string()
-    .trim()
-    .min(2, "Brand name must be at least 2 characters")
-    .max(50, "Brand name cannot exceed 50 characters"),
-
-  price: z.coerce
-    .number()
-    .positive("Price must be greater than 0")
-    .finite("Price must be a valid number"),
-
-  stockQuantity: z.coerce
-    .number()
-    .int("Stock quantity must be an integer")
-    .min(0, "Stock quantity cannot be negative")
-    .default(0),
-
-  sizes: z.preprocess(
-    (value) => {
-      if (typeof value === "string") {
-        try {
-          return JSON.parse(value);
-        } catch {
-          return value;
-        }
-      }
-
-      return value;
-    },
-    z
-      .array(
-        z.enum(["S", "M", "L", "XL", "XXL"], {
-          message: "Invalid product size",
-        }),
-      )
-      .max(5, "Maximum 5 sizes are allowed")
-      .refine(
-        (sizes) => new Set(sizes).size === sizes.length,
-        "Duplicate sizes are not allowed",
-      )
-      .default([]),
-  ),
-});
-
-/**
- * Update Product Validation Schema
- */
-export const updateProductSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(3, "Product name must be at least 3 characters")
-    .max(100, "Product name cannot exceed 100 characters")
+const sizesValidation = z.preprocess(
+  jsonOrArrayPreprocessor,
+  z
+    .array(
+      z.enum(Object.values(ProductSize) as [string, ...string[]], {
+        message: "Size must be one of S, M, L, XL, XXL",
+      }),
+    )
+    .refine((items) => new Set(items).size === items.length, {
+      message: "Duplicate size entries are prohibited",
+    })
     .optional(),
+);
 
-  description: z
-    .string()
-    .trim()
-    .min(10, "Description must be at least 10 characters")
-    .max(2000, "Description cannot exceed 2000 characters")
-    .optional(),
+export const createProductSchema = z
+  .object({
+    category: z
+      .string({ message: "Category ID is required" })
+      .regex(objectIdRegex, { message: "Invalid category ID format" }),
+    name: z
+      .string({ message: "Product name is required" })
+      .trim()
+      .min(2, { message: "Product name must be at least 2 characters" })
+      .max(200, { message: "Product name cannot exceed 200 characters" }),
+    description: z
+      .string({ message: "Product description is required" })
+      .trim()
+      .min(5, { message: "Product description must be at least 5 characters" }),
+    brand: z.string().trim().max(100).optional(),
+    price: z.coerce
+      .number({ message: "Price is required" })
+      .positive({ message: "Price must be greater than zero" }),
+    stock: z.coerce.number({ message: "Stock is required" }).int().nonnegative({
+      message: "Stock must be a non-negative integer",
+    }),
+    sizes: sizesValidation,
+  })
+  .strict();
 
-  category: z.string().trim().min(1, "Category is required").optional(),
+export const updateProductSchema = z
+  .object({
+    category: z
+      .string()
+      .regex(objectIdRegex, { message: "Invalid category ID format" })
+      .optional(),
+    name: z
+      .string()
+      .trim()
+      .min(2, { message: "Product name must be at least 2 characters" })
+      .max(200, { message: "Product name cannot exceed 200 characters" })
+      .optional(),
+    description: z
+      .string()
+      .trim()
+      .min(5, { message: "Product description must be at least 5 characters" })
+      .optional(),
+    brand: z.string().trim().max(100).optional(),
+    price: z.coerce
+      .number()
+      .positive({ message: "Price must be greater than zero" })
+      .optional(),
+    stock: z.coerce
+      .number()
+      .int()
+      .nonnegative({
+        message: "Stock must be a non-negative integer",
+      })
+      .optional(),
+    sizes: sizesValidation,
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+  })
+  .strict();
 
-  brand: z
-    .string()
-    .trim()
-    .min(2, "Brand name must be at least 2 characters")
-    .max(50, "Brand name cannot exceed 50 characters")
-    .optional(),
+export const productIdParamsSchema = z
+  .object({
+    productId: z
+      .string({ message: "Product ID is required" })
+      .regex(objectIdRegex, { message: "Invalid product ID format" }),
+  })
+  .strict();
 
-  price: z.coerce
-    .number()
-    .positive("Price must be greater than 0")
-    .finite("Price must be a valid number")
-    .optional(),
+export const productQuerySchema = z
+  .object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().default(15),
+    skip: z.coerce.number().int().nonnegative().optional(),
+    search: z.string().trim().optional(),
+    category: z.string().trim().optional(),
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+  })
+  .strict();
 
-  stockQuantity: z.coerce
-    .number()
-    .int("Stock quantity must be an integer")
-    .min(0, "Stock quantity cannot be negative")
-    .default(0)
-    .optional(),
-
-  sizes: z.preprocess(
-    (value) => {
-      if (typeof value === "string") {
-        try {
-          return JSON.parse(value);
-        } catch {
-          return value;
-        }
-      }
-
-      return value;
-    },
-    z
-      .array(
-        z
-          .enum(["S", "M", "L", "XL", "XXL"], {
-            message: "Invalid product size",
-          })
-          .optional(),
-      )
-      .max(5, "Maximum 5 sizes are allowed")
-      .refine(
-        (sizes) => new Set(sizes).size === sizes.length,
-        "Duplicate sizes are not allowed",
-      )
-      .default([]),
-  ),
-});
-
-/**
- * Get Products Query Validation Schema
- */
-export const getProductsQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(15).optional(),
-  offset: z.coerce.number().int().min(0).default(0).optional(),
-  search: z.string().trim().optional(),
-  category: z.string().trim().optional(),
-});
-
-/**
- * Product ID Schema
- */
-export const productIdSchema = z.object({
-  id: z.string().refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid Product ID",
-  }),
-});
+export type TCreateProductInput = z.infer<typeof createProductSchema>;
+export type TUpdateProductInput = z.infer<typeof updateProductSchema>;
+export type TProductIdParams = z.infer<typeof productIdParamsSchema>;
+export type TProductQuery = z.infer<typeof productQuerySchema>;

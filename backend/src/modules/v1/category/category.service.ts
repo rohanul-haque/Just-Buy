@@ -1,409 +1,313 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Thired-party Module
- */
-import { StatusCodes } from "http-status-codes";
-
-/**
- * Application Modules
- */
-import { deleteFromCloudinary, uploadToCloudinary } from "@/lib/cloudinary";
+import cloudinaryService from "@/lib/cloudinary";
 import { logger } from "@/lib/winston";
-import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE } from "@/utils/constants";
-/**
- * Application Model
- */
-import Category from "@/modules/v1/category/category.model";
-/**
- * Types
- */
+import { CATEGORY_MESSAGES } from "@/modules/v1/category/category.constant";
 import type {
   ICategory,
-  ICreateCategoryPaylod,
-  IGetCategoriesParams,
-  IGetCategoriesResult,
-  IUpdateCategoryPaylod,
+  ICategoryImage,
+  ICategoryQueryOptions,
+  ICreateCategoryInput,
+  IUpdateCategoryInput,
 } from "@/modules/v1/category/category.interface";
+import Category from "@/modules/v1/category/category.model";
+import AppError from "@/utils/AppError";
+import ERROR_CODE from "@/utils/ERROR_CODES";
+import { status } from "http-status";
+import mongoose from "mongoose";
 
-/**
- * Create Category Service
- * @param {ICreateCategoryPaylod} params - user ID, payload and optional file
- * @returns {Promise<void>} Created category
- */
-export const createCategory = async ({
-  userId,
-  payload,
-  file,
-}: ICreateCategoryPaylod): Promise<void> => {
-  const { name } = payload;
+const escapeRegex = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 
-  // Validate category image
-  if (!file) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      ERROR_CODE.CATEGORY_IMAGE_REQUIRED,
-      API_MESSAGES.CATEGORY_IMAGE_REQUIRED,
-    );
-  }
+const createCategory = async (
+  adminId: string,
+  payload: ICreateCategoryInput,
+  file?: Express.Multer.File,
+): Promise<ICategory> => {
+  const trimmedName = payload.name.trim();
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-  if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(
-      StatusCodes.REQUEST_TOO_LONG,
-      ERROR_CODE.FILE_TOO_LARGE,
-      API_MESSAGES.FILE_TOO_LARGE,
-    );
-  }
-
-  // Check whether the category already exists
-  const existingCategory = await Category.exists({ name });
+  // 1. Case-insensitive duplicate check
+  const existingCategory = await Category.findOne({
+    name: { $regex: new RegExp(`^${escapeRegex(trimmedName)}$`, "i") },
+  }).exec();
 
   if (existingCategory) {
-    logger.warn(API_MESSAGES.CATEGORY_ALREADY_EXISTS, { name });
-
     throw new AppError(
-      StatusCodes.CONFLICT,
+      status.CONFLICT,
       ERROR_CODE.CATEGORY_ALREADY_EXISTS,
-      API_MESSAGES.CATEGORY_ALREADY_EXISTS,
+      CATEGORY_MESSAGES.CATEGORY_ALREADY_EXISTS,
     );
   }
 
-  let cloudinaryData:
-    | {
-        public_id: string;
-        secure_url: string;
-        width?: number;
-        height?: number;
-      }
-    | undefined;
+  // 2. Upload image to Cloudinary if provided
+  let newImageData: ICategoryImage = {
+    publicId: "",
+    url: "",
+    width: null,
+    height: null,
+  };
 
+  if (file) {
+    const uploadRes = await cloudinaryService.uploadImage(
+      file.buffer,
+      "jus-buy/categories",
+    );
+    newImageData = {
+      publicId: uploadRes.publicId,
+      url: uploadRes.url,
+      width: uploadRes.width,
+      height: uploadRes.height,
+    };
+  }
+
+  // 3. Save category to MongoDB
   try {
-    // Upload category image
-    cloudinaryData = await uploadToCloudinary(file.buffer, "Just-Buy-API");
-
-    // Save category in the database
-    await Category.create({
-      name,
-      createdBy: userId,
-      image: {
-        publicId: cloudinaryData.public_id,
-        url: cloudinaryData.secure_url,
-        width: cloudinaryData.width ?? null,
-        height: cloudinaryData.height ?? null,
-      },
+    const category = await Category.create({
+      admin: adminId,
+      name: trimmedName,
+      image: newImageData,
+      isActive: true,
     });
-  } catch (error: unknown) {
-    // Remove the uploaded image if database creation fails
-    if (cloudinaryData?.public_id) {
-      try {
-        await deleteFromCloudinary(cloudinaryData.public_id);
-      } catch (cleanupError: unknown) {
-        logger.error("Failed to clean up category image", {
-          publicId: cloudinaryData.public_id,
-          error: cleanupError,
-        });
-      }
-    }
 
-    // Handle duplicate-name race conditions
-    if (error instanceof Error && "code" in error && error.code === 11000) {
-      throw new AppError(
-        StatusCodes.CONFLICT,
-        ERROR_CODE.CATEGORY_ALREADY_EXISTS,
-        API_MESSAGES.CATEGORY_ALREADY_EXISTS,
-      );
+    return category;
+  } catch (error) {
+    // Cleanup newly uploaded image if database insert fails
+    if (newImageData.publicId) {
+      cloudinaryService.deleteImage(newImageData.publicId).catch((err) => {
+        logger.error(
+          "Failed to cleanup newly uploaded category image on database failure:",
+          err,
+        );
+      });
     }
 
     throw error;
   }
 };
 
-/**
- * Get All Categories Service
- * @returns {Promise<IGetCategoriesResult>} Paginated category results
- */
-export const getAllCategories = async ({
-  limit,
-  offset,
-}: IGetCategoriesParams): Promise<IGetCategoriesResult> => {
-  // Fetch the total count and current page concurrently.
-  const [total, categories] = await Promise.all([
-    Category.countDocuments().exec(),
+const getAllCategories = async (
+  options: ICategoryQueryOptions,
+): Promise<ICategory[]> => {
+  const filter: Record<string, any> = {};
 
-    Category.find()
-      .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit)
-      .lean()
-      .exec(),
-  ]);
+  // Default to isActive: true unless explicitly specified
+  if (options.isActive !== undefined) {
+    filter.isActive = options.isActive;
+  } else {
+    filter.isActive = true;
+  }
 
-  // Calculate pagination metadata.
-  const totalPages = Math.ceil(total / limit);
-  const hasNextPage = offset + categories.length < total;
-  const hasPrevPage = offset > 0 && total > 0;
+  // Case-insensitive search on category name
+  if (options.search) {
+    filter.name = { $regex: new RegExp(escapeRegex(options.search), "i") };
+  }
 
-  return {
-    categories,
-    total,
-    limit,
-    skip: offset,
-    totalPages,
-    hasNextPage,
-    hasPrevPage,
-  };
+  const categories = await Category.find(filter)
+    .populate("admin", "name email")
+    .sort({ createdAt: -1 })
+    .exec();
+
+  return categories;
 };
 
-/**
- * Get Category By ID Service
- * @param {string} id - Category ID
- * @returns {Promise<ICategory>} Category document
- */
-export const getCategoryById = async (id: string): Promise<ICategory> => {
-  const category = await Category.findById(id).lean().exec();
+const getCategoryById = async (categoryId: string): Promise<ICategory> => {
+  const category = await Category.findOne({
+    _id: categoryId,
+    isActive: true,
+  })
+    .populate("admin", "name email")
+    .exec();
 
   if (!category) {
-    logger.warn(API_MESSAGES.CATEGORY_NOT_FOUND, { id });
     throw new AppError(
-      StatusCodes.NOT_FOUND,
+      status.NOT_FOUND,
       ERROR_CODE.CATEGORY_NOT_FOUND,
-      API_MESSAGES.CATEGORY_NOT_FOUND,
+      CATEGORY_MESSAGES.CATEGORY_NOT_FOUND,
     );
   }
 
   return category;
 };
 
-/**
- * Update Category Service
- * @param {IUpdateCategoryPaylod} params - category ID, payload and optional file
- * @returns {Promise<void>} Updated category document
- */
-export const updateCategory = async ({
-  id,
-  payload,
-  file,
-}: IUpdateCategoryPaylod): Promise<void> => {
-  const { name } = payload;
-
-  // Validate uploaded category image
-  if (file) {
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
-    const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-    if (file.size > MAX_FILE_SIZE) {
-      throw new AppError(
-        StatusCodes.REQUEST_TOO_LONG,
-        ERROR_CODE.FILE_TOO_LARGE,
-        API_MESSAGES.FILE_TOO_LARGE,
-      );
-    }
-
-    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        ERROR_CODE.INVALID_FILE_TYPE,
-        "Only JPEG, PNG, and WebP images are allowed",
-      );
-    }
-  }
-
-  // Find the existing category
-  const category = await Category.findById(id);
-
-  if (!category) {
-    logger.warn(API_MESSAGES.CATEGORY_NOT_FOUND, { id });
-
+const updateCategory = async (
+  categoryId: string,
+  payload: IUpdateCategoryInput,
+  file?: Express.Multer.File,
+): Promise<ICategory> => {
+  const existingCategory = await Category.findById(categoryId).exec();
+  if (!existingCategory) {
     throw new AppError(
-      StatusCodes.NOT_FOUND,
+      status.NOT_FOUND,
       ERROR_CODE.CATEGORY_NOT_FOUND,
-      API_MESSAGES.CATEGORY_NOT_FOUND,
+      CATEGORY_MESSAGES.CATEGORY_NOT_FOUND,
     );
   }
 
-  // Normalize and validate the category name
-  let normalizedName: string | undefined;
+  // 1. Check uniqueness if name is updated
+  if (
+    payload.name &&
+    payload.name.trim().toLowerCase() !== existingCategory.name.toLowerCase()
+  ) {
+    const conflict = await Category.findOne({
+      _id: { $ne: categoryId },
+      name: {
+        $regex: new RegExp(`^${escapeRegex(payload.name.trim())}$`, "i"),
+      },
+    }).exec();
 
-  if (name !== undefined) {
-    normalizedName = name.trim().toLowerCase();
-
-    // Check whether another category already uses this name
-    const existingCategory = await Category.exists({
-      name: normalizedName,
-      _id: { $ne: category._id },
-    });
-
-    if (existingCategory) {
+    if (conflict) {
       throw new AppError(
-        StatusCodes.CONFLICT,
+        status.CONFLICT,
         ERROR_CODE.CATEGORY_ALREADY_EXISTS,
-        API_MESSAGES.CATEGORY_ALREADY_EXISTS,
+        CATEGORY_MESSAGES.CATEGORY_ALREADY_EXISTS,
       );
     }
   }
 
-  // Reject empty update requests
-  if (normalizedName === undefined && !file) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      ERROR_CODE.VALIDATION_ERROR,
-      "At least one field must be provided for update",
+  const oldPublicId = existingCategory.image?.publicId;
+  let newImageData: ICategoryImage | undefined;
+
+  // 2. Upload new image to Cloudinary outside transaction if provided
+  if (file) {
+    const uploadRes = await cloudinaryService.uploadImage(
+      file.buffer,
+      "jus-buy/categories",
     );
+    newImageData = {
+      publicId: uploadRes.publicId,
+      url: uploadRes.url,
+      width: uploadRes.width,
+      height: uploadRes.height,
+    };
   }
 
-  // Keep the previous image until the update succeeds
-  const previousImagePublicId = category.image?.publicId;
-  let newImagePublicId: string | undefined;
+  // 3. Update category document in MongoDB
+  const updateFields: Record<string, any> = {};
+
+  if (payload.name !== undefined) {
+    updateFields.name = payload.name.trim();
+  }
+  if (payload.isActive !== undefined) {
+    updateFields.isActive = payload.isActive;
+  }
+  if (newImageData) {
+    updateFields.image = newImageData;
+  }
 
   try {
-    // Upload the new image before modifying the database
-    if (file) {
-      const cloudinaryData = await uploadToCloudinary(
-        file.buffer,
-        "Just-Buy-API",
-      );
+    const updatedCategory = await Category.findByIdAndUpdate(
+      categoryId,
+      { $set: updateFields },
+      { new: true, runValidators: true },
+    )
+      .populate("admin", "name email")
+      .exec();
 
-      newImagePublicId = cloudinaryData.public_id;
-
-      // Assign the new image metadata
-      category.image = {
-        publicId: cloudinaryData.public_id,
-        url: cloudinaryData.secure_url,
-        height: cloudinaryData.height ?? null,
-        width: cloudinaryData.width ?? null,
-      };
-    }
-
-    // Apply the category name if provided
-    if (normalizedName !== undefined) {
-      category.name = normalizedName;
-    }
-
-    // Persist the category update
-    await category.save();
-  } catch (error: unknown) {
-    // Handle duplicate-name race conditions
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === 11000
-    ) {
-      // Clean up the newly uploaded image
-      if (newImagePublicId) {
-        try {
-          await deleteFromCloudinary(newImagePublicId);
-        } catch (cleanupError: unknown) {
-          logger.error("Failed to clean up the new category image", {
-            id,
-            publicId: newImagePublicId,
-            error: cleanupError,
-          });
-        }
-      }
-
+    if (!updatedCategory) {
       throw new AppError(
-        StatusCodes.CONFLICT,
-        ERROR_CODE.CATEGORY_ALREADY_EXISTS,
-        API_MESSAGES.CATEGORY_ALREADY_EXISTS,
+        status.NOT_FOUND,
+        ERROR_CODE.CATEGORY_NOT_FOUND,
+        CATEGORY_MESSAGES.CATEGORY_NOT_FOUND,
       );
     }
 
-    // Best-effort cleanup if the database update fails
-    if (newImagePublicId) {
-      try {
-        await deleteFromCloudinary(newImagePublicId);
-      } catch (cleanupError: unknown) {
-        logger.error("Failed to clean up the new category image", {
-          id,
-          publicId: newImagePublicId,
-          error: cleanupError,
-        });
-      }
+    // 4. Cleanup old image after successful database update
+    if (newImageData && oldPublicId) {
+      cloudinaryService.deleteImage(oldPublicId).catch((err) => {
+        logger.error(
+          "Failed to delete old category image from Cloudinary:",
+          err,
+        );
+      });
+    }
+
+    return updatedCategory;
+  } catch (error) {
+    // 5. Cleanup newly uploaded image if database update fails
+    if (newImageData?.publicId) {
+      cloudinaryService.deleteImage(newImageData.publicId).catch((err) => {
+        logger.error(
+          "Failed to delete newly uploaded category image on failure:",
+          err,
+        );
+      });
     }
 
     throw error;
   }
-
-  // Delete the previous image only after the database update succeeds
-  if (
-    file &&
-    previousImagePublicId &&
-    previousImagePublicId !== newImagePublicId
-  ) {
-    try {
-      await deleteFromCloudinary(previousImagePublicId);
-    } catch (error: unknown) {
-      // Cleanup failure must not invalidate a successful update
-      logger.error("Failed to delete the previous category image", {
-        id,
-        publicId: previousImagePublicId,
-        error,
-      });
-    }
-  }
 };
 
-/**
- * Delete Category Service
- * @param params - Category ID
- * @returns Promise that resolves when the category is deleted
- */
-export const deleteCategory = async (categoryId: string): Promise<void> => {
-  // Find the existing category
+const deleteCategory = async (
+  categoryId: string,
+): Promise<{ message: string }> => {
   const category = await Category.findById(categoryId).exec();
-
   if (!category) {
-    logger.warn(API_MESSAGES.CATEGORY_NOT_FOUND, {
-      categoryId,
-    });
-
     throw new AppError(
-      StatusCodes.NOT_FOUND,
+      status.NOT_FOUND,
       ERROR_CODE.CATEGORY_NOT_FOUND,
-      API_MESSAGES.CATEGORY_NOT_FOUND,
+      CATEGORY_MESSAGES.CATEGORY_NOT_FOUND,
     );
   }
 
-  // Keep the image ID for cleanup after deletion
-  const imagePublicId = category.image?.publicId;
-
-  // Delete the category from the database
-  await Category.deleteOne({ _id: category._id }).exec();
-
-  // Clean up the image only after database deletion succeeds
-  if (imagePublicId) {
-    try {
-      await deleteFromCloudinary(imagePublicId);
-    } catch (error: unknown) {
-      logger.error("Failed to delete category image from Cloudinary", {
-        categoryId,
-        publicId: imagePublicId,
-        error,
-      });
+  // Check whether the category is referenced by existing products
+  if (mongoose.models.Product) {
+    const productCount = await mongoose.models.Product.countDocuments({
+      category: categoryId,
+    });
+    if (productCount > 0) {
+      throw new AppError(
+        status.CONFLICT,
+        ERROR_CODE.CATEGORY_IN_USE,
+        CATEGORY_MESSAGES.CATEGORY_IN_USE,
+      );
     }
   }
+
+  // Delete category from MongoDB
+  await Category.findByIdAndDelete(categoryId).exec();
+
+  // Delete image from Cloudinary after successful database deletion
+  if (category.image?.publicId) {
+    cloudinaryService.deleteImage(category.image.publicId).catch((err) => {
+      logger.error(
+        "Failed to delete category image from Cloudinary on deletion:",
+        err,
+      );
+    });
+  }
+
+  return { message: CATEGORY_MESSAGES.CATEGORY_DELETED };
 };
 
-/**
- * Category Service Instance
- */
+const updateCategoryStatus = async (
+  categoryId: string,
+  isActive: boolean,
+): Promise<ICategory> => {
+  const updatedCategory = await Category.findByIdAndUpdate(
+    categoryId,
+    { $set: { isActive } },
+    { new: true, runValidators: true },
+  )
+    .populate("admin", "name email")
+    .exec();
+
+  if (!updatedCategory) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.CATEGORY_NOT_FOUND,
+      CATEGORY_MESSAGES.CATEGORY_NOT_FOUND,
+    );
+  }
+
+  return updatedCategory;
+};
+
 const categoryService = {
   createCategory,
   getAllCategories,
   getCategoryById,
   updateCategory,
+  updateCategoryStatus,
   deleteCategory,
 };
 
-/**
- * Export Category Service
- */
 export default categoryService;

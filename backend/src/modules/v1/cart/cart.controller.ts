@@ -1,126 +1,74 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-party Modules
- */
-import { StatusCodes } from "http-status-codes";
-
-/**
- * Application Modules
- */
 import cartService from "@/modules/v1/cart/cart.service";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES } from "@/utils/constants";
+import MESSAGES from "@/utils/MESSAGE";
 import sendResponse from "@/utils/sendResponse";
-
-/**
- * Type
- */
-import { logger } from "@/lib/winston";
 import type { Request, Response } from "express";
+import { status } from "http-status";
 
-/**
- * Add Product to Cart Controller
- */
-export const addToCart = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const buyerId = req.userId!;
-  const { quantity } = req.body;
-
-  console.log(id);
-
-  await cartService.addToCart({
-    buyerId,
-    id: id as string,
-    quantity,
-  });
-
-  logger.info(API_MESSAGES.CART_ITEM_ADDED, {
-    buyerId,
-    productId: id,
-    quantity,
-  });
-
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: API_MESSAGES.CART_ITEM_ADDED,
-  });
-});
-
-/**
- * Get Cart Controller
- */
-export const getAllCarts = asyncHandler(
+const addToCart = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
-    const buyerId = req.userId!;
-
-    const cart = await cartService.getAllCart(buyerId);
-
-    logger.info("Cart fetched successfully", { buyerId });
+    const result = await cartService.addToCart(req.user!.userId, req.body);
 
     sendResponse(res, {
-      statusCode: StatusCodes.OK,
+      statusCode: status.OK,
       success: true,
-      data: cart,
+      message: MESSAGES.CART_ITEM_ADDED,
+      data: result,
     });
   },
 );
 
-/**
- * Update Cart Quantity Controller
- */
-export const updateCartQuantity = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const buyerId = req.userId!;
-    const { quantity } = req.body;
-
-    await cartService.updateCartQuantity({
-      buyerId,
-      id: id as string,
-      quantity,
-    });
-
-    logger.info(API_MESSAGES.CART_ITEM_UPDATED, {
-      buyerId,
-      productId: id,
-      quantity,
-    });
+const getCart = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await cartService.getCart(req.user!.userId);
 
     sendResponse(res, {
-      statusCode: StatusCodes.OK,
+      statusCode: status.OK,
       success: true,
-      message: API_MESSAGES.CART_ITEM_UPDATED,
+      message: MESSAGES.SUCCESS,
+      data: result,
     });
   },
 );
 
-/**
- * Remove Product from Cart Controller
- */
-// const removeFromCart = asyncHandler(async (req: Request, res: Response) => {
-//   const { productId } = req.params;
-//   const buyerId = req.userId!;
+const updateCartItem = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const itemId = req.params.itemId as string;
+    const result = await cartService.updateCartItemQuantity(
+      req.user!.userId,
+      itemId,
+      req.body.quantity,
+    );
 
-//   await removeFromCartService({
-//     buyerId,
-//     productId: productId as unknown as Types.ObjectId,
-//   });
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: MESSAGES.CART_ITEM_UPDATED,
+      data: result,
+    });
+  },
+);
 
-//   logger.info(API_MESSAGES.CART_ITEM_REMOVED, productId);
+const removeCartItem = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const itemId = req.params.itemId as string;
+    const result = await cartService.removeCartItem(req.user!.userId, itemId);
 
-//   sendResponse(res, {
-//     statusCode: StatusCodes.OK,
-//     success: true,
-//     message: API_MESSAGES.CART_ITEM_REMOVED,
-//   });
-// });
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: MESSAGES.CART_ITEM_REMOVED,
+      data: result,
+    });
+  },
+);
 
-const cartController = { addToCart, getAllCarts, updateCartQuantity };
+const cartController = {
+  addToCart,
+  getCart,
+  updateCartItem,
+  removeCartItem,
+};
 
 export default cartController;
+

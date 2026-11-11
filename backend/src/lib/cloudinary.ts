@@ -1,28 +1,10 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
-/**
- * Third-Party Modules
- */
-import { v2 as cloudinary } from "cloudinary";
-
-/**
- * Application Modules
- */
 import config from "@/config";
 import { logger } from "@/lib/winston";
-/**
- * Type
- */
-import type { DeleteApiResponse, UploadApiResponse } from "cloudinary";
+import AppError from "@/utils/AppError";
+import { v2 as cloudinary } from "cloudinary";
+import { status } from "http-status";
+import { Readable } from "stream";
 
-/**
- * Configure Cloudinary with environment variables
- */
 cloudinary.config({
   cloud_name: config.CLOUDINARY_CLOUD_NAME,
   api_key: config.CLOUDINARY_API_KEY,
@@ -30,59 +12,71 @@ cloudinary.config({
   secure: true,
 });
 
-/**
- * Upload a Buffer to Cloudinary.
- * @param buffer - Image buffer from Multer memoryStorage
- * @param folder - Cloudinary folder path
- * @param publicId - Optional existing public_id to overwrite
- */
-export const uploadToCloudinary = (
+export interface ICloudinaryUploadResponse {
+  publicId: string;
+  url: string;
+  width: number;
+  height: number;
+}
+
+const uploadImage = (
   buffer: Buffer,
-  folder: string,
-  publicId?: string,
-): Promise<UploadApiResponse> => {
+  folder = "jus-buy/profiles",
+): Promise<ICloudinaryUploadResponse> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        resource_type: "image",
         folder,
-        public_id: publicId,
-        allowed_formats: ["jpg", "jpeg", "png"],
-        transformation: [{ quality: "auto", fetch_format: "auto" }],
+        resource_type: "image",
       },
       (error, result) => {
-        if (error) {
-          logger.error("Cloudinary upload failed", { error });
-          reject(error);
-          return;
+        if (error || !result) {
+          return reject(
+            new AppError(
+              status.INTERNAL_SERVER_ERROR,
+              "CLOUDINARY_UPLOAD_ERROR",
+              "Failed to upload image to cloud storage.",
+            ),
+          );
         }
-        if (!result) {
-          reject(new Error("Cloudinary returned no result"));
-          return;
-        }
-        resolve(result);
+
+        resolve({
+          publicId: result.public_id,
+          url: result.secure_url,
+          width: result.width,
+          height: result.height,
+        });
       },
     );
 
-    uploadStream.end(buffer);
+    const readable = new Readable();
+    readable.push(buffer);
+    readable.push(null);
+    readable.pipe(uploadStream);
   });
 };
 
-/**
- * Delete an image from Cloudinary by its public_id.
- * @param publicId - Cloudinary public_id (includes folder prefix)
- */
-export const deleteFromCloudinary = async (
-  publicId: string,
-): Promise<DeleteApiResponse> => {
-  const result = await cloudinary.uploader.destroy(publicId, {
-    resource_type: "image",
-  });
+const deleteImage = async (publicId?: string | null): Promise<void> => {
+  if (!publicId) return;
 
-  if (result.result !== "ok" && result.result !== "not found") {
-    throw new Error(`Cloudinary delete failed: ${result.result}`);
+  try {
+    await cloudinary.uploader.destroy(publicId);
+    logger.info("Deleted asset from Cloudinary successfully", { publicId });
+  } catch (error) {
+    logger.error("Failed to delete asset from Cloudinary:", {
+      publicId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
-
-  logger.info("Blog banner deleted", { publicId, result: result.result });
-  return result;
 };
+
+const cloudinaryService = {
+  uploadImage,
+  deleteImage,
+  uploadToCloudinary: uploadImage,
+  deleteFromCloudinary: deleteImage,
+  cloudinary,
+};
+
+export default cloudinaryService;
+

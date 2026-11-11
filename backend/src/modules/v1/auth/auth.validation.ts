@@ -1,69 +1,81 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
 import { z } from "zod";
 
-/**
- * User Role
- */
-export const userRoleSchema = z
-  .enum(["buyer", "seller", "admin"], {
-    error: "Invalid role",
-  })
-  .default("buyer");
-
-/**
- * User Registar Validation Schema
- */
 export const registerSchema = z.object({
-  fullName: z
-    .string()
-    .min(2, "Full name must be at least 2 characters long")
-    .max(50, "Full name must be less than 50 characters")
-    .trim(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .max(254, "Email must be less than 254 characters")
+  name: z
+    .string({
+      message: "Name is required",
+    })
     .trim()
-    .toLowerCase(),
+    .min(2, { message: "Name must be at least 2 characters" })
+    .max(100, { message: "Name cannot exceed 100 characters" }),
+
+  email: z
+    .string({
+      message: "Email is required",
+    })
+    .trim()
+    .toLowerCase()
+    .email({ message: "Invalid email address" }),
+
   password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password must be less than 128 characters"),
+    .string({
+      message: "Password is required",
+    })
+    .min(6, { message: "Password must be at least 6 characters" })
+    .max(128, { message: "Password cannot exceed 128 characters" }),
 
-  role: userRoleSchema,
+  role: z
+    .enum(["BUYER", "VENDOR", "ADMIN"], {
+      message:
+        "Role must be either BUYER or VENDOR. Admin accounts cannot be created publicly.",
+    })
+    .optional(),
 });
 
-/**
- * User Login Validation Schema
- */
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address").trim().toLowerCase(),
-  password: z.string().min(1, "Password is Required"),
+  email: z
+    .string({
+      message: "Email is required",
+    })
+    .trim()
+    .toLowerCase()
+    .email({ message: "Invalid email address" }),
+
+  password: z
+    .string({
+      message: "Password is required",
+    })
+    .min(1, { message: "Password is required" }),
 });
 
-/**
- * User Forgot Password Validation Schema
- */
 export const forgotPasswordSchema = z.object({
-  email: z.email("Invalid email address"),
+  email: z
+    .string({
+      message: "Email is required",
+    })
+    .trim()
+    .toLowerCase()
+    .email({ message: "Invalid email address" }),
 });
 
-/**
- * User Reset Password Validation Schema
- */
 export const resetPasswordSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  otp: z.string().trim().length(6, "OTP must be 6 digits"),
+  token: z
+    .string({
+      message: "Reset token is required",
+    })
+    .trim()
+    .min(1, { message: "Reset token is required" }),
+
   newPassword: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password cannot exceed 128 characters"),
+    .string({
+      message: "New password is required",
+    })
+    .min(6, { message: "New password must be at least 6 characters" })
+    .max(128, { message: "New password cannot exceed 128 characters" }),
 });
+
+export const refreshTokenSchema = z
+  .object({
+    refreshToken: z.string().optional(),
+  })
+  .optional();
