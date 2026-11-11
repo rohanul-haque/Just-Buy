@@ -19,10 +19,11 @@ import type {
 import Buyer from "@/modules/v1/buyer/buyer.model";
 
 const getOwnProfile = async (userId: string): Promise<IBuyer> => {
+  console.log("userId",userId);
   const buyer = await Buyer.findOne({ buyer: userId })
-    .populate("buyer", "name email role status createdAt")
-    .exec();
-
+  .populate("buyer", "name email role status createdAt")
+  .exec();
+  console.log("buyer",buyer);
   if (!buyer) {
     throw new AppError(
       status.NOT_FOUND,

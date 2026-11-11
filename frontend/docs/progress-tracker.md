@@ -30,13 +30,13 @@ Status values: Not Started / In Progress / Blocked / Needs Review / Completed.
 
 | Task | Status | API verified | UI verified |
 |---|---|---|---|
-| Create account | Not Started | No | No |
-| Login | Not Started | No | No |
-| Refresh token | Not Started | No | No |
-| Change password | Not Started | No | No |
-| Verify account | Not Started | No | No |
-| Resend OTP | Not Started | No | No |
-| Logout | Not Started | No | No |
+| Create account | Completed | Yes | Yes |
+| Login | Completed | Yes | Yes |
+| Refresh token | Completed | Yes | Yes |
+| Change password | Completed | Yes | Yes |
+| Verify account | Completed | Yes | Yes |
+| Resend OTP | Completed | Yes | Yes |
+| Logout | Completed | Yes | Yes |
 
 ## Phase 3 — Buyer
 
@@ -77,6 +77,10 @@ Buyer Dashboard, Seller Dashboard and Admin Dashboard — deferred to a separate
 |---|---|---|---|
 | 2026-11-11 | Phase 1 Foundation | `pnpm run lint` | Passed (0 errors) |
 | 2026-11-11 | Phase 1 Foundation | `pnpm run build` | Passed (Turbopack compile in 2.0s, TS check in 3.8s, 4/4 pages generated) |
+| 2026-11-11 | Phase 2 Authentication | `pnpm --filter frontend lint` | Passed (0 errors, 0 warnings) |
+| 2026-11-11 | Phase 2 Authentication | `pnpm --filter frontend build` | Passed (Turbopack compile in 1.3s, TS check in 3.2s, 10/10 static pages generated) |
+| 2026-11-11 | Dynamic Header & Toasts | `pnpm --filter frontend lint` | Passed (0 errors, 0 warnings) |
+| 2026-11-11 | Dynamic Header & Toasts | `pnpm --filter frontend build` | Passed (Turbopack compile in 1.1s, TS check in 3.3s, 10/10 static pages generated) |
 
 ## Blockers / decisions
 

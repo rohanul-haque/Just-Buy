@@ -4,22 +4,23 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import {
-  Search,
-  ShoppingCart,
-  Heart,
-  User,
-  Menu,
-  X,
-} from "lucide-react";
+import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DesktopNav } from "@/components/layout/desktop-nav";
+import { MobileNav } from "@/components/layout/mobile-nav";
+import { UserDropdown } from "@/components/layout/user-dropdown";
+import { useCurrentUser } from "@/features/auth/hooks/use-auth";
+import { useIsMounted } from "@/hooks/use-is-mounted";
 
 export function Header() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const isMounted = useIsMounted();
+
+  const { data: user, isLoading } = useCurrentUser();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
       {/* Top micro-bar */}
       <div className="bg-muted/50 border-b border-border/50 py-1 text-xs text-muted-foreground text-center hidden sm:block">
         <Container>
@@ -38,7 +39,7 @@ export function Header() {
         </Container>
       </div>
 
-      <Container className="flex h-16 items-center justify-between gap-4">
+      <Container className="flex h-16 items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
@@ -51,27 +52,8 @@ export function Header() {
           />
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link
-            href="/"
-            className="text-foreground transition-colors hover:text-primary"
-          >
-            Home
-          </Link>
-          <Link
-            href="/categories"
-            className="text-muted-foreground transition-colors hover:text-primary"
-          >
-            Categories
-          </Link>
-          <Link
-            href="/products"
-            className="text-muted-foreground transition-colors hover:text-primary"
-          >
-            All Products
-          </Link>
-        </nav>
+        {/* Desktop Navigation */}
+        <DesktopNav />
 
         {/* Global Search Bar (Desktop) */}
         <form
@@ -114,25 +96,39 @@ export function Header() {
             </Button>
           </Link>
 
-          {/* Auth / Account Link */}
-          <Link href="/login">
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex gap-1.5"
-            >
-              <User className="size-4" />
-              <span>Sign In</span>
-            </Button>
-          </Link>
+          {/* Dynamic Authentication State Area */}
+          {!isMounted || isLoading ? (
+            <div
+              className="h-9 w-20 rounded-md bg-muted/40 animate-pulse hidden sm:block"
+              aria-hidden="true"
+            />
+          ) : user ? (
+            <div className="hidden sm:block">
+              <UserDropdown user={user} />
+            </div>
+          ) : (
+            <div className="hidden sm:flex items-center gap-2">
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="font-medium">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm" className="font-medium">
+                  Register
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Mobile Menu Toggle Button */}
           <Button
             variant="ghost"
             size="icon"
             className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
             aria-label="Toggle Navigation Menu"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
               <X className="size-5" />
@@ -144,64 +140,14 @@ export function Header() {
       </Container>
 
       {/* Mobile Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-background px-4 pt-2 pb-6 space-y-4">
-          <form onSubmit={handleSearchSubmit} className="pt-2">
-            <Input
-              type="search"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              leadingIcon={<Search className="text-muted-foreground" />}
-              className="h-10 w-full"
-            />
-          </form>
-
-          <nav className="flex flex-col space-y-2 text-base font-medium">
-            <Link
-              href="/"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-foreground hover:text-primary"
-            >
-              Home
-            </Link>
-            <Link
-              href="/categories"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-muted-foreground hover:text-primary"
-            >
-              Categories
-            </Link>
-            <Link
-              href="/products"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-muted-foreground hover:text-primary"
-            >
-              All Products
-            </Link>
-            <Link
-              href="/orders"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-muted-foreground hover:text-primary"
-            >
-              My Orders
-            </Link>
-            <Link
-              href="/profile"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-2 text-muted-foreground hover:text-primary"
-            >
-              My Profile
-            </Link>
-            <div className="pt-2">
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full">Sign In / Register</Button>
-              </Link>
-            </div>
-          </nav>
-        </div>
-      )}
+      <MobileNav
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        user={isMounted ? user : null}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
+      />
     </header>
   );
 }
-

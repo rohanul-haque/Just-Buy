@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { normalizeApiError } from "@/lib/api-error";
+import notify from "@/lib/toast";
 
 /**
  * Centralized Axios client for JustBuy API
@@ -77,6 +78,10 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:session-expired"));
+          notify.warning("Your session has expired. Please sign in again.");
+        }
         return Promise.reject(normalizeApiError(refreshError));
       } finally {
         isRefreshing = false;

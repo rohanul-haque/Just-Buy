@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   QueryClient,
   QueryClientProvider,
@@ -37,6 +37,21 @@ export default function QueryProvider({ children }: QueryProviderProps) {
         },
       }),
   );
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("justbuy_auth_active");
+      }
+      queryClient.setQueryData(["auth", "me"], null);
+      queryClient.removeQueries({ queryKey: ["auth", "me"] });
+    };
+
+    window.addEventListener("auth:session-expired", handleSessionExpired);
+    return () => {
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+    };
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

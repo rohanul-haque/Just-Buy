@@ -6,10 +6,13 @@ export interface InputProps
   extends React.ComponentProps<typeof InputPrimitive> {
   leadingIcon?: React.ReactNode;
   trailingIcon?: React.ReactNode;
+  hasError?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, leadingIcon, trailingIcon, ...props }, ref) => {
+  ({ className, type, leadingIcon, trailingIcon, hasError, ...props }, ref) => {
+    const isInvalid = hasError || props["aria-invalid"];
+
     if (leadingIcon || trailingIcon) {
       return (
         <div className="relative flex items-center w-full">
@@ -21,8 +24,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <InputPrimitive
             ref={ref}
             type={type}
+            aria-invalid={isInvalid}
             className={cn(
-              "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/30",
+              "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20",
               leadingIcon && "pl-9",
               trailingIcon && "pr-9",
               className,
@@ -42,8 +46,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <InputPrimitive
         ref={ref}
         type={type}
+        aria-invalid={isInvalid}
         className={cn(
-          "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/30",
+          "flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20",
           className,
         )}
         {...props}
@@ -54,4 +59,3 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export { Input };
-
