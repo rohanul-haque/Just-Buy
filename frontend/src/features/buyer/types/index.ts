@@ -92,3 +92,43 @@ export interface OrdersPagination {
   hasPrevPage: boolean;
 }
 
+export type OrderType = "COD" | "ONLINE";
+export type PaymentStatus = "UNPAID" | "PENDING" | "PAID" | "FAILED";
+
+export interface CreateOrderInput {
+  orderType: OrderType;
+  shippingAddress: OrderShippingAddress;
+}
+
+export interface CreateOrderResponse {
+  order: Order;
+  payment: {
+    _id: string;
+    order: string;
+    buyer: string;
+    paymentMethod: string;
+    provider: string;
+    amount: number;
+    currency: string;
+    status: PaymentStatus;
+    paidAt?: string | null;
+    stripeSessionId?: string;
+  };
+  checkoutUrl?: string;
+  sessionId?: string;
+}
+
+export interface VerifySessionResponse {
+  status: PaymentStatus;
+  message: string;
+  payment: {
+    _id: string;
+    status: PaymentStatus;
+    amount: number;
+    currency: string;
+    paidAt?: string | null;
+  };
+  order: Order;
+}
+
+

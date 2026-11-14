@@ -50,22 +50,22 @@ Status values: Not Started / In Progress / Blocked / Needs Review / Completed.
 
 | Task | Status | API verified | UI verified |
 |---|---|---|---|
-| Categories | Not Started | No | No |
-| New Arrivals (4) | Not Started | No | No |
-| Explore Products (8) | Not Started | No | No |
-| All Products | Not Started | No | No |
-| Product Details | Not Started | No | No |
-| Reviews | Not Started | No | No |
-| Related Products | Not Started | No | No |
+| Categories | Completed | Yes | Yes |
+| New Arrivals (4) | Completed | Yes | Yes |
+| Explore Products (8) | Completed | Yes | Yes |
+| All Products | Completed | Yes | Yes |
+| Product Details | Completed | Yes | Yes |
+| Reviews | Completed | Yes | Yes |
+| Related Products | Completed | Yes | Yes |
 
 ## Phase 5 — Shopping actions
 
 | Task | Status | API verified | UI verified |
 |---|---|---|---|
-| Wishlist retrieval | Not Started | No | No |
-| Add/remove wishlist item | Not Started | No | No |
-| Add to cart | Not Started | No | No |
-| Other cart operations, if supported | Not Started | No | No |
+| Wishlist retrieval | Completed | Yes | Yes |
+| Add/remove wishlist item | Completed | Yes | Yes |
+| Add to cart | Completed | Yes | Yes |
+| Other cart operations, if supported | Completed | Yes | Yes |
 
 ## Explicitly deferred
 
@@ -83,9 +83,17 @@ Buyer Dashboard, Seller Dashboard and Admin Dashboard — deferred to a separate
 | 2026-11-11 | Dynamic Header & Toasts | `pnpm --filter frontend build` | Passed (Turbopack compile in 1.1s, TS check in 3.3s, 10/10 static pages generated) |
 | 2026-11-11 | Phase 3 Buyer & Orders | `pnpm --filter frontend exec eslint .` | Passed (0 errors, 0 warnings) |
 | 2026-11-11 | Phase 3 Buyer & Orders | `pnpm --filter frontend build` | Passed (Turbopack compile in 2.2s, TS check in 4.2s, 13/13 pages generated) |
+| 2026-11-11 | Phase 4 Public Shopping | `pnpm --filter frontend exec eslint .` | Passed (0 errors, 0 warnings) |
+| 2026-11-11 | Phase 4 Public Shopping | `pnpm --filter frontend build` | Passed (Turbopack compile in 3.0s, TS check in 4.6s, 15/15 pages generated) |
+| 2026-11-14 | No-Demo-Data Audit & Phase 5 | `pnpm --filter frontend exec eslint .` | Passed (0 errors, 0 warnings) |
+| 2026-11-14 | No-Demo-Data Audit & Phase 5 | `pnpm --filter frontend build` | Passed (Turbopack compile in 1.3s, TS check in 5.1s, 17/17 pages generated) |
+| 2026-11-14 | Auth, Cookie & Protected Routes Fix | Verification Suite (`scratch/test-auth-flow.js`) | Passed (All 8 tests: Login, Cookie, Header, Nav, Reload, Refresh, Logout, Bad Creds) |
+| 2026-11-14 | Auth, Cookie & Protected Routes Fix | `pnpm --prefix frontend exec eslint .` | Passed (0 errors, 0 warnings) |
+| 2026-11-14 | Auth, Cookie & Protected Routes Fix | `pnpm --prefix frontend run build` | Passed (Turbopack compile in 1.5s, TS check in 2.9s, 17/17 pages generated) |
 
 ## Blockers / decisions
 
 | Topic | Decision needed | Status |
 |---|---|---|
-| | | |
+| In-app change password endpoint | Backend only supports `/auth/forgot-password` & `/auth/reset-password` | Documented & handled via email verification link |
+| Product-level rating aggregate | Backend `IProduct` schema does not store ratings/review count | Computed from live `/reviews/:productId` API data |

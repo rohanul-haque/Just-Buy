@@ -26,8 +26,6 @@ export function LoginForm() {
     null,
   );
 
-  const redirectParam = searchParams.get("redirect") || "/";
-
   const {
     register,
     handleSubmit,
@@ -45,9 +43,13 @@ export function LoginForm() {
     setUnverifiedEmail(null);
 
     loginMutation.mutate(values, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         notify.success("Login successful. Welcome back!");
-        router.push(redirectParam);
+        const destination =
+          searchParams.get("redirect") ||
+          response?.data?.redirectUrl ||
+          "/profile";
+        router.push(destination);
       },
       onError: (err: ApiErrorResponse) => {
         if (

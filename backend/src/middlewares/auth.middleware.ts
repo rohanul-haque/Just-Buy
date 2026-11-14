@@ -108,6 +108,40 @@ export const authenticate = asyncHandler(
   },
 );
 
+export const optionalAuthenticate = asyncHandler(
+  async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    let token = req.cookies?.accessToken;
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+
+    if (!token) {
+      return next();
+    }
+
+    try {
+      const decoded = verifyAccessToken(token);
+      const user = await User.findById(decoded.userId).exec();
+      if (user && user.status !== AccountStatus.BLOCKED) {
+        req.user = {
+          userId: user._id.toString(),
+          _id: user._id,
+          role: user.role,
+          email: user.email,
+          name: user.name,
+          status: user.status,
+        };
+      }
+    } catch {
+      // Ignore token errors for optional authentication
+    }
+
+    next();
+  },
+);
+
 export const authorize = (...roles: TUserRole[]) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {

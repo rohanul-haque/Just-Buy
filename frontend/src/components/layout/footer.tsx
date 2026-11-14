@@ -1,106 +1,102 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Mail, Phone } from "lucide-react";
 import { Container } from "@/components/layout/container";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30 text-muted-foreground mt-auto">
+    <footer className="bg-primary text-primary-foreground mt-auto">
       <Container className="py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
-          {/* Brand Col */}
-          <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="inline-block">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* Brand Col - Figma Column 1 */}
+          <div className="space-y-4 md:col-span-5 lg:col-span-6">
+            <Link href="/" className="inline-block brightness-0 invert">
               <Image
                 src="/logo.svg"
                 alt="JustBuy Logo"
-                width={120}
-                height={36}
-                className="h-8 w-auto dark:invert"
+                width={130}
+                height={40}
+                className="h-9 w-auto"
               />
             </Link>
-            <p className="text-sm leading-relaxed">
-              Your premier multi-vendor marketplace. Buy anything you want from
-              anywhere at your fingertips.
+            <p className="text-xs sm:text-sm text-primary-foreground/90 leading-relaxed max-w-md">
+              Shop The Latest Trends At Our E-Commerce Store. Enjoy Fast Shipping,
+              Secure Payments, And 24/7 Customer Support. Discover Unbeatable
+              Deals On Fashion, Electronics, Home Essentials, And More. Shop Now!
             </p>
           </div>
 
-          {/* Shop Categories Col */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Shop Categories
+          {/* Information Col - Figma Column 2 */}
+          <div className="space-y-3 md:col-span-3 lg:col-span-3">
+            <h4 className="text-base font-bold text-white tracking-wide">
+              Information
             </h4>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-xs sm:text-sm text-primary-foreground/85">
               <li>
-                <Link href="/products" className="hover:text-primary transition-colors">
-                  All Products
+                <Link
+                  href="/about"
+                  className="hover:text-white hover:underline transition-colors"
+                >
+                  About Us
                 </Link>
               </li>
               <li>
-                <Link href="/products?sort=newest" className="hover:text-primary transition-colors">
-                  New Arrivals
+                <Link
+                  href="/contact"
+                  className="hover:text-white hover:underline transition-colors"
+                >
+                  Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/categories" className="hover:text-primary transition-colors">
-                  Browse Categories
+                <Link
+                  href="/privacy-policy"
+                  className="hover:text-white hover:underline transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="hover:text-white hover:underline transition-colors"
+                >
+                  terms &amp; condition
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Customer Support Col */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Customer Support
+          {/* Help & Support Col - Figma Column 3 */}
+          <div className="space-y-3 md:col-span-4 lg:col-span-3">
+            <h4 className="text-base font-bold text-white tracking-wide">
+              Help &amp; Support
             </h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/orders" className="hover:text-primary transition-colors">
-                  Order Tracking
-                </Link>
-              </li>
-              <li>
-                <Link href="/wishlist" className="hover:text-primary transition-colors">
-                  Wishlist
-                </Link>
-              </li>
-              <li>
-                <Link href="/cart" className="hover:text-primary transition-colors">
-                  Shopping Cart
-                </Link>
-              </li>
-              <li>
-                <Link href="/profile" className="hover:text-primary transition-colors">
-                  My Profile
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <div className="space-y-3 text-xs sm:text-sm text-primary-foreground/85">
+              <div className="flex items-start gap-2.5">
+                <Mail className="size-4 shrink-0 mt-0.5 text-white/90" />
+                <div className="flex flex-col">
+                  <span>Email: youremail@gmail.com</span>
+                  <span>letstalk@gmail.com</span>
+                </div>
+              </div>
 
-          {/* Guarantee & Secure Shopping */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">
-              Security & Guarantee
-            </h4>
-            <p className="text-sm leading-relaxed">
-              100% verified vendors, end-to-end buyer protection, and secure payment processing.
-            </p>
-            <div className="pt-2 text-xs text-muted-foreground/80">
-              Need assistance? Email us at support@jusbuy.com
+              <div className="flex items-start gap-2.5">
+                <Phone className="size-4 shrink-0 mt-0.5 text-white/90" />
+                <div className="flex flex-col">
+                  <span>Phone: (+1) (888) 785-5555</span>
+                  <span>(+1) (888) 785-3333</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-border/80 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground gap-4">
+        {/* Micro-bar copyright */}
+        <div className="border-t border-white/20 mt-10 pt-6 text-center text-xs text-primary-foreground/70">
           <p>© {new Date().getFullYear()} JustBuy Storefront. All rights reserved.</p>
-          <div className="flex gap-6">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Security</span>
-          </div>
         </div>
       </Container>
     </footer>
   );
 }
-

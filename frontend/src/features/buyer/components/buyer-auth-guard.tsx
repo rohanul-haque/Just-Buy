@@ -15,15 +15,17 @@ export function BuyerAuthGuard({ children }: BuyerAuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isMounted = useIsMounted();
-  const { data: user, isLoading } = useCurrentUser();
+  const { data: user, isLoading, isPending } = useCurrentUser();
+
+  const isCheckingAuth = !isMounted || isLoading || (isPending && user === undefined);
 
   React.useEffect(() => {
-    if (isMounted && !isLoading && !user) {
+    if (!isCheckingAuth && !user) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
-  }, [isMounted, isLoading, user, router, pathname]);
+  }, [isCheckingAuth, user, router, pathname]);
 
-  if (!isMounted || isLoading) {
+  if (isCheckingAuth) {
     return (
       <Container className="py-10">
         <div className="flex flex-col md:flex-row gap-8">

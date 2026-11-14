@@ -5,6 +5,9 @@ import type {
   UpdateBuyerProfileInput,
   Order,
   OrdersPagination,
+  CreateOrderInput,
+  CreateOrderResponse,
+  VerifySessionResponse,
 } from "@/features/buyer/types";
 
 export interface PaginatedOrdersResponse extends ApiResponse<Order[]> {
@@ -101,6 +104,33 @@ export const buyerService = {
     );
     if (!response.data.data) {
       throw new Error("Failed to cancel order");
+    }
+    return response.data.data;
+  },
+
+  /**
+   * Create a new order (COD or Online via Stripe)
+   */
+  async createOrder(payload: CreateOrderInput): Promise<CreateOrderResponse> {
+    const response = await api.post<ApiResponse<CreateOrderResponse>>(
+      "/orders",
+      payload,
+    );
+    if (!response.data.data) {
+      throw new Error(response.data.message || "Failed to create order");
+    }
+    return response.data.data;
+  },
+
+  /**
+   * Verify Stripe checkout session status from backend
+   */
+  async verifySession(sessionId: string): Promise<VerifySessionResponse> {
+    const response = await api.get<ApiResponse<VerifySessionResponse>>(
+      `/payments/verify-session?session_id=${encodeURIComponent(sessionId)}`,
+    );
+    if (!response.data.data) {
+      throw new Error(response.data.message || "Failed to verify session");
     }
     return response.data.data;
   },

@@ -183,6 +183,14 @@ export function OrderList() {
                     ${order.totalAmount.toFixed(2)}
                   </strong>
                 </span>
+                <span className="text-muted-foreground">
+                  Payment:{" "}
+                  <strong className="text-foreground font-semibold">
+                    {order.orderType === "ONLINE" || order.payment?.paymentMethod === "ONLINE"
+                      ? "Stripe"
+                      : "COD"}
+                  </strong>
+                </span>
                 <span className="col-span-2 sm:col-span-1 text-muted-foreground">
                   Date: {formattedDate}
                 </span>

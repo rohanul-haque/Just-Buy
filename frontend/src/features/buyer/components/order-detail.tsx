@@ -187,6 +187,28 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
               .filter(Boolean)
               .join(", ") || "N/A"}
           </p>
+          <p>
+            <strong className="text-foreground font-medium">Payment Method:</strong>{" "}
+            {order.orderType === "ONLINE" || order.payment?.paymentMethod === "ONLINE"
+              ? "Online Payment (Stripe)"
+              : "Cash on Delivery (COD)"}
+          </p>
+          <p>
+            <strong className="text-foreground font-medium">Payment Status:</strong>{" "}
+            <span
+              className={
+                order.payment?.status === "PAID"
+                  ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                  : "text-amber-600 dark:text-amber-400 font-medium"
+              }
+            >
+              {order.payment?.status === "PAID"
+                ? "Paid"
+                : order.orderType === "COD" || order.payment?.paymentMethod === "COD"
+                  ? "Unpaid / Pending (Collect on Delivery)"
+                  : order.payment?.status || "Pending"}
+            </span>
+          </p>
         </div>
 
         {/* Status Badge + Cancel Action */}

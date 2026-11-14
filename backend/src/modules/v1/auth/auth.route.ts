@@ -1,4 +1,7 @@
-import { authenticate } from "@/middlewares/auth.middleware";
+import {
+  authenticate,
+  optionalAuthenticate,
+} from "@/middlewares/auth.middleware";
 import {
   loginRateLimiter,
   registrationRateLimiter,
@@ -30,7 +33,9 @@ router.post(
   authController.login,
 );
 
-router.post("/logout", authenticate, authController.logout);
+router.get("/me", authenticate, authController.getMe);
+
+router.post("/logout", optionalAuthenticate, authController.logout);
 
 router.post(
   "/refresh-token",

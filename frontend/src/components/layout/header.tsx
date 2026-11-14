@@ -12,6 +12,8 @@ import { DesktopNav } from "@/components/layout/desktop-nav";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { UserDropdown } from "@/components/layout/user-dropdown";
 import { useCurrentUser } from "@/features/auth/hooks/use-auth";
+import { useCart } from "@/features/cart/hooks/use-cart";
+import { useWishlist } from "@/features/wishlist/hooks/use-wishlist";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 
 export function Header() {
@@ -21,6 +23,16 @@ export function Header() {
   const isMounted = useIsMounted();
 
   const { data: user, isLoading } = useCurrentUser();
+  const { data: cart } = useCart();
+  const { data: wishlist } = useWishlist();
+
+  const cartCount =
+    user && cart?.productItems
+      ? cart.productItems.reduce((acc, item) => acc + (item.quantity || 1), 0)
+      : 0;
+
+  const wishlistCount =
+    user && wishlist?.products ? wishlist.products.length : 0;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +93,11 @@ export function Header() {
               aria-label="Wishlist"
             >
               <Heart className="size-5" />
+              {isMounted && wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-2xs">
+                  {wishlistCount}
+                </span>
+              )}
             </Button>
           </Link>
 
@@ -93,6 +110,11 @@ export function Header() {
               aria-label="Cart"
             >
               <ShoppingCart className="size-5" />
+              {isMounted && cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-2xs">
+                  {cartCount}
+                </span>
+              )}
             </Button>
           </Link>
 

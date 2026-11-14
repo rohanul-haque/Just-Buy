@@ -105,6 +105,16 @@ export const authService = {
    */
   async getMe(): Promise<User | null> {
     try {
+      const response = await api.get<ApiResponse<User>>("/auth/me");
+      if (response.data?.data) {
+        return response.data.data;
+      }
+    } catch {
+      // Continue to fallback
+    }
+
+    // Fallback to /buyers/me if needed
+    try {
       const response = await api.get<{
         success: boolean;
         data: {

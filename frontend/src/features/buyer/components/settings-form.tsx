@@ -132,7 +132,11 @@ export function SettingsForm() {
         </div>
 
         {/* Centered Save Changes Button matching Figma */}
-        <div className="pt-4 flex justify-center">
+        <div className="pt-2 text-center text-xs text-muted-foreground">
+          Password updates are verified via a secure link sent to your registered email address ({user?.email || "loading..."}).
+        </div>
+
+        <div className="pt-2 flex justify-center">
           <Button
             type="submit"
             disabled={isPending}

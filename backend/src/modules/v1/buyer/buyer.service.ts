@@ -3,6 +3,7 @@ import { logger } from "@/lib/winston";
 import { revokeRefreshToken } from "@/modules/v1/auth/redis/redis.service";
 import {
   AccountStatus,
+  UserRole,
   type TAccountStatus,
 } from "@/modules/v1/user/user.constant";
 import User from "@/modules/v1/user/user.model";
@@ -19,11 +20,35 @@ import type {
 import Buyer from "@/modules/v1/buyer/buyer.model";
 
 const getOwnProfile = async (userId: string): Promise<IBuyer> => {
-  console.log("userId",userId);
-  const buyer = await Buyer.findOne({ buyer: userId })
-  .populate("buyer", "name email role status createdAt")
-  .exec();
-  console.log("buyer",buyer);
+  let buyer = await Buyer.findOne({ buyer: userId })
+    .populate("buyer", "name email role status createdAt")
+    .exec();
+
+  if (!buyer) {
+    const user = await User.findById(userId).exec();
+    if (user && user.role === UserRole.BUYER) {
+      buyer = await Buyer.findOneAndUpdate(
+        { buyer: userId },
+        {
+          $setOnInsert: {
+            buyer: userId,
+            phoneNumber: "",
+            address: "",
+            profile: {
+              publicId: "",
+              url: "",
+              width: null,
+              height: null,
+            },
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      )
+        .populate("buyer", "name email role status createdAt")
+        .exec();
+    }
+  }
+
   if (!buyer) {
     throw new AppError(
       status.NOT_FOUND,
@@ -40,13 +65,28 @@ const updateOwnProfile = async (
   payload: IUpdateBuyerProfileInput,
   file?: Express.Multer.File,
 ): Promise<IBuyer> => {
-  const existingBuyer = await Buyer.findOne({ buyer: userId }).exec();
+  let existingBuyer = await Buyer.findOne({ buyer: userId }).exec();
   if (!existingBuyer) {
-    throw new AppError(
-      status.NOT_FOUND,
-      ERROR_CODE.NOT_FOUND,
-      BUYER_MESSAGES.BUYER_NOT_FOUND,
-    );
+    const user = await User.findById(userId).exec();
+    if (user && user.role === UserRole.BUYER) {
+      existingBuyer = await Buyer.create({
+        buyer: userId,
+        phoneNumber: "",
+        address: "",
+        profile: {
+          publicId: "",
+          url: "",
+          width: null,
+          height: null,
+        },
+      });
+    } else {
+      throw new AppError(
+        status.NOT_FOUND,
+        ERROR_CODE.NOT_FOUND,
+        BUYER_MESSAGES.BUYER_NOT_FOUND,
+      );
+    }
   }
 
   let newProfileData:

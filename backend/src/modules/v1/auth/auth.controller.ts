@@ -1,4 +1,5 @@
 import { getClientIp } from "@/middlewares/rate-limiter.middleware";
+import Buyer from "@/modules/v1/buyer/buyer.model";
 import authService from "@/modules/v1/auth/auth.service";
 import AppError from "@/utils/AppError";
 import ERROR_CODE from "@/utils/ERROR_CODES";
@@ -45,7 +46,24 @@ const logout = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const userId = req.user?.userId;
 
-    if (!userId) {
+    if (userId) {
+      await authService.logout(userId).catch(() => {});
+    }
+    clearAuthCookies(res);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: MESSAGES.LOGOUT_SUCCESS,
+    });
+  },
+);
+
+const getMe = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const authUser = req.user;
+
+    if (!authUser) {
       throw new AppError(
         status.UNAUTHORIZED,
         ERROR_CODE.UNAUTHORIZED,
@@ -53,13 +71,31 @@ const logout = asyncHandler(
       );
     }
 
-    await authService.logout(userId);
-    clearAuthCookies(res);
+    let avatar = "";
+    try {
+      const buyerProfile = await Buyer.findOne({ buyer: authUser._id })
+        .select("profile")
+        .lean()
+        .exec();
+      if (buyerProfile?.profile?.url) {
+        avatar = buyerProfile.profile.url;
+      }
+    } catch {
+      // Non-critical if profile document does not exist yet
+    }
 
     sendResponse(res, {
       statusCode: status.OK,
       success: true,
-      message: MESSAGES.LOGOUT_SUCCESS,
+      message: "Current user retrieved successfully",
+      data: {
+        id: authUser.userId,
+        name: authUser.name,
+        email: authUser.email,
+        role: authUser.role,
+        isEmailVerified: true,
+        avatar,
+      },
     });
   },
 );
@@ -115,6 +151,7 @@ const authController = {
   register,
   login,
   logout,
+  getMe,
   refreshToken,
   forgotPassword,
   resetPassword,

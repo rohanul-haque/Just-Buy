@@ -20,15 +20,12 @@ export const AUTH_QUERY_KEY = ["auth", "me"] as const;
  * Hook to retrieve the currently authenticated user
  */
 export function useCurrentUser() {
-  const isClient = typeof window !== "undefined";
-  const hasAuthHint = isClient && Boolean(localStorage.getItem("justbuy_auth_active"));
-
   return useQuery({
     queryKey: AUTH_QUERY_KEY,
     queryFn: () => authService.getMe(),
-    enabled: hasAuthHint,
     staleTime: 5 * 60 * 1000,
     retry: false,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -50,11 +47,9 @@ export function useLogin() {
   return useMutation<ApiResponse<LoginResponseData>, ApiErrorResponse, LoginInput>({
     mutationFn: (data) => authService.login(data),
     onSuccess: (response) => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("justbuy_auth_active", "true");
-      }
-      if (response?.data?.user) {
-        queryClient.setQueryData(AUTH_QUERY_KEY, response.data.user);
+      const user = response?.data?.user;
+      if (user) {
+        queryClient.setQueryData(AUTH_QUERY_KEY, user);
       }
       queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
     },

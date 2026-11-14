@@ -4,10 +4,17 @@ import ms from "ms";
 
 const getBaseCookieOptions = (): CookieOptions => {
   const isProduction = config.NODE_ENV === "production";
+  const isSecure = process.env.COOKIE_SECURE
+    ? process.env.COOKIE_SECURE === "true"
+    : isProduction;
+  const sameSite =
+    (process.env.COOKIE_SAME_SITE as CookieOptions["sameSite"]) ||
+    (isSecure ? "none" : "lax");
+
   return {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    secure: isSecure,
+    sameSite,
     path: "/",
   };
 };
