@@ -51,6 +51,78 @@ npm start
 
 ---
 
+## Admin Seeder CLI
+
+### Purpose
+The Jus Buy public registration endpoint (`/api/v1/auth/register`) strictly permits only two public roles:
+- `buyer`
+- `vendor`
+
+To maintain platform security, Admin accounts **cannot** be created through public registration. The Admin Seeder provides a secure, dedicated CLI command to provision an initial Admin user and its corresponding Admin Profile directly in the database.
+
+### Command
+Run the seeder from the `backend/` directory:
+```bash
+npm run seed:admin
+```
+
+### Providing Admin Credentials
+The seeder supports three secure methods for supplying admin credentials:
+
+1. **Interactive CLI Prompts (Default & Recommended)**:
+   When running `npm run seed:admin` in an interactive terminal, the CLI will securely prompt for:
+   - **Name**: Full name (2–100 characters)
+   - **Email**: Valid email address
+   - **Password**: Secure password (minimum 6 characters, masked in terminal without plain-text echo)
+   - **Phone**: Optional contact phone number
+
+2. **CLI Flags**:
+   Useful for automated scripts or command-line shortcuts:
+   ```bash
+   npm run seed:admin -- --name "Platform Admin" --email "admin@example.com" --password "SecureAdminPassword123!" --phone "+1234567890"
+   ```
+
+3. **Environment Variables**:
+   Optional environment variables can be provided in `.env` or passed inline:
+   - `ADMIN_NAME`: Full name of the admin
+   - `ADMIN_EMAIL`: Email address of the admin
+   - `ADMIN_PASSWORD`: Plain password (will be hashed with bcrypt; never stored or logged)
+   - `ADMIN_PHONE`: Optional phone number
+
+### Database Creation Flow & Atomic Transactions
+1. Connects to MongoDB using the existing configuration (`db.connectToMongoDB()`).
+2. Checks whether an Admin already exists in either the `Admin` or `User` collection.
+3. Collects and validates inputs with Zod against existing platform validation constraints.
+4. Starts a MongoDB session and transaction.
+5. Creates a pre-verified `Verification` record with `isEmailVerified: true` so the admin can log in immediately.
+6. Hashes the password using `bcrypt` (with `BCRYPT_SALT_ROUNDS`).
+7. Creates the `User` record with role `ADMIN` and status `ACTIVE`.
+8. Creates the `Admin` profile record linked to the newly created User's `ObjectId`.
+9. Commits the transaction atomically. If any error occurs, the transaction is automatically aborted, leaving no partial or orphaned records.
+10. Closes the database connection cleanly.
+
+### Duplicate Prevention
+The seeder enforces strict duplicate prevention:
+- Prior to creating an account, the seeder checks for existing Admin records in `Admin` and `User` collections.
+- If an Admin already exists, the seeder outputs:
+  ```bash
+  Admin already exists.
+  No new Admin account was created.
+  ```
+  and safely exits with code `0`.
+- If the supplied email is already registered to an existing buyer or vendor, the seeder aborts with a descriptive error message and exits with code `1`.
+
+### Common Errors & Troubleshooting
+| Scenario | Cause | Resolution |
+| :--- | :--- | :--- |
+| `Admin already exists.` | An admin account already exists in the database. | No action needed; duplicate admins are prevented by design. |
+| `Failed to connect to the database.` | MongoDB connection URI is invalid or database is unreachable. | Check `MONGO_URI` in `.env` and verify network/database connectivity. |
+| `Validation failed: - password: Password must be at least 6 characters` | Provided password is shorter than 6 characters. | Provide a password between 6 and 128 characters. |
+| `Error: A user with email "..." already exists.` | The email is already registered to another user role. | Choose a unique email address for the admin account. |
+| `Transaction aborted.` | MongoDB transaction failed during creation. | Verify MongoDB deployment supports transactions (replica set or Atlas cluster). |
+
+---
+
 ## Testing Payment APIs
 
 For a full step-by-step walkthrough of testing Cash on Delivery (COD) and Stripe Online Payment flows with sample payloads and cURL commands, see:
