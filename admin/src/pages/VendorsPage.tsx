@@ -50,50 +50,50 @@ export const VendorsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Page Heading */}
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-          Vendor
-        </h2>
-      </div>
-
-      {/* 2. Tabs Component */}
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
-        className="w-full space-y-4"
+        className="w-full space-y-6"
       >
-        {/* Horizontal Row: Tabs, Search Input, and Status Filter */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <TabsList className="bg-[#F8FAFC] p-1 rounded-md border border-[#E5E7EB] h-10 shrink-0">
-            <TabsTrigger
-              value="requests"
-              className="rounded-md px-4 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
-            >
-              Vendor Requests
-            </TabsTrigger>
-            <TabsTrigger
-              value="list"
-              className="rounded-md px-4 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
-            >
-              Vendor List
-            </TabsTrigger>
-          </TabsList>
+      {/* Single Horizontal Row on Desktop: Vendors Heading → Tabs → Search Input → Status Select */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+        {/* 1. Page Heading */}
+        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] shrink-0 whitespace-nowrap">
+          Vendors
+        </h2>
 
-          <div className="flex-1 min-w-0">
-            <VendorSearch
-              placeholder={
-                activeTab === "requests"
-                  ? "Search vendor requests..."
-                  : "Search approved vendors..."
-              }
-            />
-          </div>
+        {/* 2. Tabs Component */}
+        <TabsList className="bg-[#F8FAFC] p-1 rounded-md border border-[#E5E7EB] h-10 shrink-0">
+          <TabsTrigger
+            value="requests"
+            className="rounded-md px-3.5 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
+          >
+            Vendor Requests
+          </TabsTrigger>
+          <TabsTrigger
+            value="list"
+            className="rounded-md px-3.5 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
+          >
+            Vendor List
+          </TabsTrigger>
+        </TabsList>
 
-          <div className="w-full sm:w-44 shrink-0">
-            <VendorStatusFilter activeTab={activeTab} />
-          </div>
+        {/* 3. Search Input */}
+        <div className="flex-1 min-w-0">
+          <VendorSearch
+            placeholder={
+              activeTab === "requests"
+                ? "Search vendor requests..."
+                : "Search approved vendors..."
+            }
+          />
         </div>
+
+        {/* 4. Status Select Dropdown */}
+        <div className="w-full sm:w-44 shrink-0">
+          <VendorStatusFilter activeTab={activeTab} />
+        </div>
+      </div>
 
         {/* 5. Main Vendor Data Table */}
         {isLoading ? (
