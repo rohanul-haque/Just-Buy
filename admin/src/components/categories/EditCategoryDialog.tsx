@@ -1,5 +1,3 @@
-import { getApiErrorMessage } from "@/api/client";
-import categoryService from "@/api/services/category.service";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,9 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { CategoryActionResult } from "@/routes/actions/category.action";
 import type { ICategory } from "@/types/category";
 import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useFetcher } from "react-router";
 import { toast } from "sonner";
 
 interface EditCategoryDialogProps {
@@ -29,14 +29,31 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
+  const fetcher = useFetcher<CategoryActionResult>();
   const [name, setName] = useState("");
   const [status, setStatus] = useState<"active" | "inactive">("active");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isSubmitting =
+    fetcher.state === "submitting" || fetcher.state === "loading";
+
+  const handleRemoveImage = useCallback(() => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setSelectedFile(null);
+    setValidationError(null);
+    onOpenChange(false);
+  }, [onOpenChange]);
 
   useEffect(() => {
     if (category) {
@@ -47,6 +64,19 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
       setValidationError(null);
     }
   }, [category]);
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.data.intent === "update") {
+      if (fetcher.data.success) {
+        toast.success(fetcher.data.message || "Category updated successfully!");
+        handleClose();
+        onSuccess?.();
+      } else if (fetcher.data.error) {
+        setValidationError(fetcher.data.error);
+        toast.error(fetcher.data.error);
+      }
+    }
+  }, [fetcher.data, handleClose, onSuccess]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,15 +91,7 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
     }
   };
 
-  const handleRemoveImage = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!category) return;
 
@@ -84,33 +106,21 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
     }
 
     setValidationError(null);
-    setIsSubmitting(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("name", trimmed);
-      formData.append("isActive", String(status === "active"));
-      if (selectedFile) {
-        formData.append("image", selectedFile);
-      }
-
-      await categoryService.updateCategory(category._id, formData);
-      toast.success("Category updated successfully!");
-      handleClose();
-      onSuccess?.();
-    } catch (error) {
-      const message = getApiErrorMessage(error);
-      setValidationError(message);
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
+    const formData = new FormData();
+    formData.append("intent", "update");
+    formData.append("categoryId", category._id);
+    formData.append("name", trimmed);
+    formData.append("isActive", String(status === "active"));
+    if (selectedFile) {
+      formData.append("image", selectedFile);
     }
-  };
 
-  const handleClose = () => {
-    setSelectedFile(null);
-    setValidationError(null);
-    onOpenChange(false);
+    fetcher.submit(formData, {
+      method: "post",
+      action: "/categories",
+      encType: "multipart/form-data",
+    });
   };
 
   return (

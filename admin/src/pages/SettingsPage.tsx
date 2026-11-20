@@ -1,26 +1,27 @@
-import { getApiErrorMessage } from "@/api/client";
-import authService from "@/api/services/auth.service";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import type { ProfileActionResult } from "@/routes/actions/profile.action";
 import type { ProfileLoaderData } from "@/routes/loaders/profile.loader";
 import { Camera, Loader2, Mail, Phone, Save, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useLoaderData, useRevalidator } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { toast } from "sonner";
 
 export const SettingsPage: React.FC = () => {
   const loaderData = useLoaderData() as ProfileLoaderData | undefined;
   const { user, adminProfile, refreshProfile } = useAuth();
-  const revalidator = useRevalidator();
+  const fetcher = useFetcher<ProfileActionResult>();
 
   const currentUser = loaderData?.user || user;
   const currentProfile = loaderData?.adminProfile || adminProfile;
 
-  const initialName = currentProfile?.admin?.name || currentUser?.name || "";
-  const initialEmail = currentProfile?.admin?.email || currentUser?.email || "";
+  const initialName =
+    currentProfile?.admin?.name || currentUser?.name || "";
+  const initialEmail =
+    currentProfile?.admin?.email || currentUser?.email || "";
   const initialPhone = currentProfile?.phoneNumber || "";
   const initialAvatarUrl = currentProfile?.profile?.url || null;
 
@@ -28,9 +29,11 @@ export const SettingsPage: React.FC = () => {
   const [phone, setPhone] = useState(initialPhone);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialAvatarUrl);
-  const [isSaving, setIsSaving] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isSaving =
+    fetcher.state === "submitting" || fetcher.state === "loading";
 
   useEffect(() => {
     setName(currentProfile?.admin?.name || currentUser?.name || "");
@@ -39,6 +42,20 @@ export const SettingsPage: React.FC = () => {
       setPreviewUrl(currentProfile?.profile?.url || null);
     }
   }, [currentProfile, currentUser, selectedFile]);
+
+  useEffect(() => {
+    if (fetcher.data) {
+      if (fetcher.data.success) {
+        toast.success(
+          fetcher.data.message || "Admin profile updated successfully!",
+        );
+        refreshProfile();
+        setSelectedFile(null);
+      } else if (fetcher.data.error) {
+        toast.error(fetcher.data.error);
+      }
+    }
+  }, [fetcher.data, refreshProfile]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,48 +69,40 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
 
-    try {
-      const formData = new FormData();
-      let hasChanges = false;
+    const formData = new FormData();
+    let hasChanges = false;
 
-      // Partial updates: only append fields that the admin actually provided/changed
-      const trimmedName = name.trim();
-      if (trimmedName && trimmedName !== initialName) {
-        formData.append("name", trimmedName);
-        hasChanges = true;
-      }
-
-      const trimmedPhone = phone.trim();
-      if (trimmedPhone !== initialPhone) {
-        formData.append("phoneNumber", trimmedPhone);
-        hasChanges = true;
-      }
-
-      if (selectedFile) {
-        formData.append("profile", selectedFile);
-        hasChanges = true;
-      }
-
-      if (!hasChanges) {
-        toast.info("No profile changes detected.");
-        setIsSaving(false);
-        return;
-      }
-
-      await authService.updateAdminProfile(formData);
-      await refreshProfile();
-      revalidator.revalidate();
-      toast.success("Admin profile updated successfully!");
-      setSelectedFile(null);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err));
-    } finally {
-      setIsSaving(false);
+    // Partial updates: only append fields that the admin actually provided/changed
+    const trimmedName = name.trim();
+    if (trimmedName && trimmedName !== initialName) {
+      formData.append("name", trimmedName);
+      hasChanges = true;
     }
+
+    const trimmedPhone = phone.trim();
+    if (trimmedPhone !== initialPhone) {
+      formData.append("phoneNumber", trimmedPhone);
+      hasChanges = true;
+    }
+
+    if (selectedFile) {
+      formData.append("profile", selectedFile);
+      hasChanges = true;
+    }
+
+    if (!hasChanges) {
+      toast.info("No profile changes detected.");
+      return;
+    }
+
+    fetcher.submit(formData, {
+      method: "post",
+      action: "/settings",
+      encType: "multipart/form-data",
+    });
   };
 
   const displayName = name || initialName || "Administrator";
@@ -156,9 +165,7 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="text-center sm:text-left space-y-1">
-              <h4 className="text-lg font-bold text-[#0F172A]">
-                {displayName}
-              </h4>
+              <h4 className="text-lg font-bold text-[#0F172A]">{displayName}</h4>
               <p className="text-sm text-[#4B5563]">{displayEmail}</p>
             </div>
           </div>

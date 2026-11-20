@@ -1,10 +1,10 @@
-import { getApiErrorMessage } from "@/api/client";
-import categoryService from "@/api/services/category.service";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import type { CategoryActionResult } from "@/routes/actions/category.action";
 import type { ICategory } from "@/types/category";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
+import { useFetcher } from "react-router";
 import { toast } from "sonner";
 
 interface DeleteCategoryDialogProps {
@@ -20,23 +20,35 @@ export const DeleteCategoryDialog: React.FC<DeleteCategoryDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const fetcher = useFetcher<CategoryActionResult>();
+  const isDeleting =
+    fetcher.state === "submitting" || fetcher.state === "loading";
 
-  const handleDelete = async () => {
-    if (!category) return;
-    setIsDeleting(true);
-
-    try {
-      await categoryService.deleteCategory(category._id);
-      toast.success(`Category "${category.name}" deleted successfully!`);
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      const message = getApiErrorMessage(error);
-      toast.error(message);
-    } finally {
-      setIsDeleting(false);
+  useEffect(() => {
+    if (fetcher.data && fetcher.data.intent === "delete") {
+      if (fetcher.data.success) {
+        toast.success(
+          fetcher.data.message ||
+            `Category "${category?.name || ""}" deleted successfully!`,
+        );
+        onOpenChange(false);
+        onSuccess?.();
+      } else if (fetcher.data.error) {
+        toast.error(fetcher.data.error);
+      }
     }
+  }, [fetcher.data, category?.name, onOpenChange, onSuccess]);
+
+  const handleDelete = () => {
+    if (!category) return;
+    const formData = new FormData();
+    formData.append("intent", "delete");
+    formData.append("categoryId", category._id);
+
+    fetcher.submit(formData, {
+      method: "post",
+      action: "/categories",
+    });
   };
 
   return (

@@ -1,25 +1,26 @@
-import { getApiErrorMessage } from "@/api/client";
-import categoryService from "@/api/services/category.service";
 import AddCategoryDialog from "@/components/categories/AddCategoryDialog";
 import CategoryCard from "@/components/categories/CategoryCard";
+import CategorySkeletonGrid from "@/components/categories/CategorySkeletonGrid";
 import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
 import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import type { CategoryActionResult } from "@/routes/actions/category.action";
 import type { CategoryLoaderData } from "@/routes/loaders/category.loader";
 import type { ICategory } from "@/types/category";
 import { Plus, Tags } from "lucide-react";
-import React, { useState } from "react";
-import { useLoaderData, useRevalidator } from "react-router";
+import React, { useEffect, useState } from "react";
+import { useFetcher, useLoaderData, useNavigation } from "react-router";
 import { toast } from "sonner";
 
 export const CategoriesPage: React.FC = () => {
   const loaderData = useLoaderData() as CategoryLoaderData | undefined;
-  const revalidator = useRevalidator();
+  const navigation = useNavigation();
+  const statusFetcher = useFetcher<CategoryActionResult>();
 
   const categories = loaderData?.categories ?? [];
-  const isLoading = revalidator.state === "loading";
+  const isLoading =
+    navigation.state === "loading" || statusFetcher.state === "submitting";
 
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -30,21 +31,29 @@ export const CategoriesPage: React.FC = () => {
     null,
   );
 
-  const handleSuccess = () => {
-    revalidator.revalidate();
-  };
-
-  const handleToggleStatus = async (cat: ICategory) => {
-    try {
-      const nextStatus = !cat.isActive;
-      await categoryService.updateCategoryStatus(cat._id, nextStatus);
-      toast.success(
-        `Category "${cat.name}" is now ${nextStatus ? "Active" : "Inactive"}`,
-      );
-      revalidator.revalidate();
-    } catch (err) {
-      toast.error(getApiErrorMessage(err));
+  useEffect(() => {
+    if (statusFetcher.data && statusFetcher.data.intent === "updateStatus") {
+      if (statusFetcher.data.success) {
+        toast.success(
+          statusFetcher.data.message || "Category status updated successfully!",
+        );
+      } else if (statusFetcher.data.error) {
+        toast.error(statusFetcher.data.error);
+      }
     }
+  }, [statusFetcher.data]);
+
+  const handleToggleStatus = (cat: ICategory) => {
+    const nextStatus = !cat.isActive;
+    const formData = new FormData();
+    formData.append("intent", "updateStatus");
+    formData.append("categoryId", cat._id);
+    formData.append("isActive", String(nextStatus));
+
+    statusFetcher.submit(formData, {
+      method: "post",
+      action: "/categories",
+    });
   };
 
   return (
@@ -66,23 +75,9 @@ export const CategoriesPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Loading Skeletons when revalidating initially or during reload */}
+      {/* Loading Skeletons via dedicated CategorySkeletonGrid component */}
       {isLoading && categories.length === 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <Card
-              key={idx}
-              className="bg-white rounded-md p-5 border-[#E5E7EB] space-y-4"
-            >
-              <Skeleton className="w-24 h-24 sm:w-28 sm:h-28 rounded-md mx-auto" />
-              <Skeleton className="h-4 rounded-md w-3/4 mx-auto" />
-              <div className="flex gap-2 pt-1">
-                <Skeleton className="h-9 rounded-md flex-1" />
-                <Skeleton className="h-9 rounded-md flex-1" />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <CategorySkeletonGrid count={8} />
       )}
 
       {/* Empty State */}
@@ -125,7 +120,6 @@ export const CategoriesPage: React.FC = () => {
       <AddCategoryDialog
         open={isAddOpen}
         onOpenChange={setIsAddOpen}
-        onSuccess={handleSuccess}
       />
 
       {/* Edit Dialog */}
@@ -135,7 +129,6 @@ export const CategoriesPage: React.FC = () => {
         onOpenChange={(open) => {
           if (!open) setEditingCategory(null);
         }}
-        onSuccess={handleSuccess}
       />
 
       {/* Delete Dialog */}
@@ -145,7 +138,6 @@ export const CategoriesPage: React.FC = () => {
         onOpenChange={(open) => {
           if (!open) setDeletingCategory(null);
         }}
-        onSuccess={handleSuccess}
       />
     </div>
   );

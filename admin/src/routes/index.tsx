@@ -6,6 +6,8 @@ import LoginPage from "@/pages/LoginPage";
 import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
 import VendorsPage from "@/pages/VendorsPage";
+import categoryAction from "@/routes/actions/category.action";
+import profileAction from "@/routes/actions/profile.action";
 import categoriesLoader from "@/routes/loaders/category.loader";
 import profileLoader from "@/routes/loaders/profile.loader";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -47,11 +49,13 @@ const router = createBrowserRouter([
       {
         path: "categories",
         loader: categoriesLoader,
+        action: categoryAction,
         Component: CategoriesPage,
       },
       {
         path: "settings",
         loader: profileLoader,
+        action: profileAction,
         Component: SettingsPage,
       },
     ],
