@@ -8,7 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { IVendor, IVendorPagination, VendorStatus } from "@/types/vendor";
+import type {
+  IVendor,
+  IVendorPagination,
+  TVendorCategory,
+  VendorStatus,
+} from "@/types/vendor";
 import {
   Ban,
   Check,
@@ -25,7 +30,8 @@ import { useSearchParams } from "react-router";
 interface VendorsTableProps {
   vendors: IVendor[];
   pagination: IVendorPagination | null;
-  activeTab: "requests" | "list";
+  category?: TVendorCategory;
+  activeTab?: "requests" | "list";
   currentPage: number;
   onViewDetails: (vendor: IVendor) => void;
   onApprove?: (vendor: IVendor) => void;
@@ -36,6 +42,7 @@ interface VendorsTableProps {
 export const VendorsTable: React.FC<VendorsTableProps> = ({
   vendors,
   pagination,
+  category,
   activeTab,
   currentPage,
   onViewDetails,
@@ -44,6 +51,8 @@ export const VendorsTable: React.FC<VendorsTableProps> = ({
   onSuspend,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const currentCategory: TVendorCategory =
+    category || (activeTab === "requests" ? "requests" : "list");
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
@@ -60,7 +69,6 @@ export const VendorsTable: React.FC<VendorsTableProps> = ({
     : currentPage < totalPages;
 
   const activeSearch = searchParams.get("search");
-  const activeStatus = searchParams.get("status");
 
   const getStatusBadge = (status: VendorStatus) => {
     switch (status) {
@@ -98,22 +106,40 @@ export const VendorsTable: React.FC<VendorsTableProps> = ({
   };
 
   if (vendors.length === 0) {
+    let emptyHeading = "No approved vendors found";
+    let emptyDescription =
+      "No approved merchant accounts registered on the platform.";
+
+    if (currentCategory === "requests") {
+      emptyHeading = "No vendor requests found";
+      emptyDescription =
+        "There are currently no new vendor applications or requests.";
+    } else if (currentCategory === "pending") {
+      emptyHeading = "No pending requests found";
+      emptyDescription =
+        "There are currently no vendor requests waiting for review.";
+    } else if (currentCategory === "rejected") {
+      emptyHeading = "No rejected vendors found";
+      emptyDescription = "No vendor requests or accounts have been rejected.";
+    } else if (currentCategory === "suspended") {
+      emptyHeading = "No suspended vendors found";
+      emptyDescription = "No vendor accounts are currently suspended.";
+    }
+
+    if (activeSearch) {
+      emptyDescription = `No vendors match "${activeSearch}" in this category. Try adjusting your search term.`;
+    }
+
     return (
       <div className="rounded-md border border-[#E5E7EB] bg-white p-12 text-center">
         <div className="w-12 h-12 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] flex items-center justify-center mx-auto mb-3">
           <Store className="w-6 h-6" />
         </div>
         <h3 className="text-base font-semibold text-[#0F172A]">
-          {activeTab === "requests"
-            ? "No vendor requests found"
-            : "No approved vendors found"}
+          {emptyHeading}
         </h3>
         <p className="text-sm text-[#4B5563] mt-1 max-w-sm mx-auto">
-          {activeSearch || activeStatus
-            ? "No vendors match your search and filter criteria. Try adjusting your search term or status filter."
-            : activeTab === "requests"
-              ? "There are currently no new vendor applications or requests."
-              : "No approved merchant accounts registered on the platform."}
+          {emptyDescription}
         </p>
       </div>
     );
@@ -172,8 +198,20 @@ export const VendorsTable: React.FC<VendorsTableProps> = ({
                 .toUpperCase();
 
               const canApprove =
-                activeTab === "requests" && vendor.status !== "APPROVED";
+                vendor.status !== "APPROVED" &&
+                (currentCategory === "requests" ||
+                  currentCategory === "pending" ||
+                  currentCategory === "rejected");
               const isSuspended = vendor.status === "SUSPENDED";
+              const canDelete =
+                vendor.status === "PENDING" ||
+                currentCategory === "requests" ||
+                currentCategory === "pending";
+              const canSuspendOrUnsuspend =
+                currentCategory === "list" ||
+                currentCategory === "suspended" ||
+                vendor.status === "APPROVED" ||
+                vendor.status === "SUSPENDED";
 
               return (
                 <TableRow
@@ -224,93 +262,78 @@ export const VendorsTable: React.FC<VendorsTableProps> = ({
                   {/* 5. Actions */}
                   <TableCell className="py-3 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      {activeTab === "requests" ? (
-                        <>
-                          {/* 1. Accept Icon (Approve Request) */}
-                          {canApprove && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onApprove?.(vendor)}
-                              className="w-8 h-8 rounded-md text-[#10B981] hover:text-[#059669] hover:bg-[#10B981]/10 transition-colors"
-                              title="Approve vendor request"
-                              aria-label="Approve vendor request"
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
+                      {/* 1. Accept Icon (Approve Request) */}
+                      {canApprove && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onApprove?.(vendor)}
+                          className="w-8 h-8 rounded-md text-[#10B981] hover:text-[#059669] hover:bg-[#10B981]/10 transition-colors"
+                          title="Approve vendor request"
+                          aria-label="Approve vendor request"
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                      )}
+
+                      {/* 2. Information Icon */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewDetails(vendor)}
+                        className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
+                        title="View vendor details"
+                        aria-label="View vendor details"
+                      >
+                        <Info className="w-4 h-4" />
+                      </Button>
+
+                      {/* 3. Delete/Reject Icon */}
+                      {canDelete && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDeleteRequest?.(vendor)}
+                          className="w-8 h-8 rounded-md text-[#EF4444] hover:text-[#DC2626] hover:bg-[#EF4444]/10 transition-colors"
+                          title="Reject / Delete vendor request"
+                          aria-label="Reject / Delete vendor request"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+
+                      {/* 4. Suspend / Unsuspend Icon */}
+                      {canSuspendOrUnsuspend && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onSuspend?.(vendor)}
+                          className={`w-8 h-8 rounded-md transition-colors ${
+                            isSuspended
+                              ? "text-[#10B981] hover:text-[#059669] hover:bg-[#10B981]/10"
+                              : "text-[#D97706] hover:text-[#B45309] hover:bg-[#F59E0B]/10"
+                          }`}
+                          title={
+                            isSuspended
+                              ? "Re-activate vendor shop"
+                              : "Suspend vendor shop"
+                          }
+                          aria-label={
+                            isSuspended
+                              ? "Re-activate vendor shop"
+                              : "Suspend vendor shop"
+                          }
+                        >
+                          {isSuspended ? (
+                            <ShieldCheck className="w-4 h-4" />
+                          ) : (
+                            <Ban className="w-4 h-4" />
                           )}
-
-                          {/* 2. Information Icon */}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onViewDetails(vendor)}
-                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
-                            title="View vendor details"
-                            aria-label="View vendor details"
-                          >
-                            <Info className="w-4 h-4" />
-                          </Button>
-
-                          {/* 3. Delete/Reject Icon */}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onDeleteRequest?.(vendor)}
-                            className="w-8 h-8 rounded-md text-[#EF4444] hover:text-[#DC2626] hover:bg-[#EF4444]/10 transition-colors"
-                            title="Reject / Delete vendor request"
-                            aria-label="Reject / Delete vendor request"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          {/* Vendor List Actions: 1. Information Icon */}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onViewDetails(vendor)}
-                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
-                            title="View vendor details"
-                            aria-label="View vendor details"
-                          >
-                            <Info className="w-4 h-4" />
-                          </Button>
-
-                          {/* 2. Suspend / Unsuspend Icon */}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onSuspend?.(vendor)}
-                            className={`w-8 h-8 rounded-md transition-colors ${
-                              isSuspended
-                                ? "text-[#10B981] hover:text-[#059669] hover:bg-[#10B981]/10"
-                                : "text-[#D97706] hover:text-[#B45309] hover:bg-[#F59E0B]/10"
-                            }`}
-                            title={
-                              isSuspended
-                                ? "Re-activate vendor shop"
-                                : "Suspend vendor shop"
-                            }
-                            aria-label={
-                              isSuspended
-                                ? "Re-activate vendor shop"
-                                : "Suspend vendor shop"
-                            }
-                          >
-                            {isSuspended ? (
-                              <ShieldCheck className="w-4 h-4" />
-                            ) : (
-                              <Ban className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </>
+                        </Button>
                       )}
                     </div>
                   </TableCell>

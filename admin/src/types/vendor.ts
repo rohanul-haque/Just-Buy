@@ -48,9 +48,17 @@ export interface IVendorPagination {
   hasPrevPage: boolean;
 }
 
+export type TVendorCategory =
+  | "list"
+  | "requests"
+  | "rejected"
+  | "suspended"
+  | "pending";
+
 export interface VendorLoaderData {
   vendors: IVendor[];
   pagination: IVendorPagination | null;
+  category: TVendorCategory;
   tab: "requests" | "list";
   search: string;
   status: string;

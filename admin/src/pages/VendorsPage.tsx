@@ -1,24 +1,22 @@
 import VendorApproveDialog from "@/components/vendors/VendorApproveDialog";
+import VendorCategorySelect from "@/components/vendors/VendorCategorySelect";
 import VendorDeleteDialog from "@/components/vendors/VendorDeleteDialog";
 import VendorDetailsDialog from "@/components/vendors/VendorDetailsDialog";
 import VendorSearch from "@/components/vendors/VendorSearch";
-import VendorStatusFilter from "@/components/vendors/VendorStatusFilter";
 import VendorSuspendDialog from "@/components/vendors/VendorSuspendDialog";
 import VendorsTable from "@/components/vendors/VendorsTable";
 import VendorTableSkeleton from "@/components/vendors/VendorTableSkeleton";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { IVendor, VendorLoaderData } from "@/types/vendor";
 import React, { useState } from "react";
-import { useLoaderData, useNavigation, useSearchParams } from "react-router";
+import { useLoaderData, useNavigation } from "react-router";
 
 export const VendorsPage: React.FC = () => {
   const loaderData = useLoaderData() as VendorLoaderData | undefined;
   const navigation = useNavigation();
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const vendors = loaderData?.vendors ?? [];
   const pagination = loaderData?.pagination ?? null;
-  const activeTab = loaderData?.tab ?? "list";
+  const category = loaderData?.category ?? "list";
   const currentPage = loaderData?.page ?? 1;
 
   // Track page transitions / loading state
@@ -34,83 +32,51 @@ export const VendorsPage: React.FC = () => {
   const [selectedVendorForSuspend, setSelectedVendorForSuspend] =
     useState<IVendor | null>(null);
 
-  const handleTabChange = (nextTab: string) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (nextTab === "requests") {
-      newParams.set("tab", "requests");
-    } else {
-      newParams.delete("tab");
-    }
-    // Reset search, status and pagination when switching tabs
-    newParams.delete("status");
-    newParams.delete("search");
-    newParams.delete("page");
-    setSearchParams(newParams);
-  };
-
   return (
     <div className="space-y-6">
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full space-y-6"
-      >
-      {/* Single Horizontal Row on Desktop: Vendors Heading → Tabs → Search Input → Status Select */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
-        {/* 1. Page Heading */}
+      {/* Page Header and Controls: Vendors → Search Input → Select Dropdown */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* 1. Page Heading: Vendors */}
         <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] shrink-0 whitespace-nowrap">
           Vendors
         </h2>
 
-        {/* 2. Tabs Component */}
-        <TabsList className="bg-[#F8FAFC] p-1 rounded-md border border-[#E5E7EB] h-10 shrink-0">
-          <TabsTrigger
-            value="requests"
-            className="rounded-md px-3.5 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
-          >
-            Vendor Requests
-          </TabsTrigger>
-          <TabsTrigger
-            value="list"
-            className="rounded-md px-3.5 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
-          >
-            Vendor List
-          </TabsTrigger>
-        </TabsList>
-
-        {/* 3. Search Input */}
+        {/* 2. Search Input (expands and occupies available remaining space) */}
         <div className="flex-1 min-w-0">
           <VendorSearch
             placeholder={
-              activeTab === "requests"
+              category === "requests"
                 ? "Search vendor requests..."
-                : "Search approved vendors..."
+                : category === "pending"
+                  ? "Search pending requests..."
+                  : category === "rejected"
+                    ? "Search rejected vendors..."
+                    : category === "suspended"
+                      ? "Search suspended vendors..."
+                      : "Search vendors..."
             }
           />
         </div>
 
-        {/* 4. Status Select Dropdown */}
-        <div className="w-full sm:w-44 shrink-0">
-          <VendorStatusFilter activeTab={activeTab} />
-        </div>
+        {/* 3. Category Select Dropdown (consistent width) */}
+        <VendorCategorySelect category={category} />
       </div>
 
-        {/* 5. Main Vendor Data Table */}
-        {isLoading ? (
-          <VendorTableSkeleton rows={pagination?.limit || 8} />
-        ) : (
-          <VendorsTable
-            vendors={vendors}
-            pagination={pagination}
-            activeTab={activeTab}
-            currentPage={currentPage}
-            onViewDetails={(v) => setSelectedVendorForDetails(v)}
-            onApprove={(v) => setSelectedVendorForApprove(v)}
-            onDeleteRequest={(v) => setSelectedVendorForDelete(v)}
-            onSuspend={(v) => setSelectedVendorForSuspend(v)}
-          />
-        )}
-      </Tabs>
+      {/* Main Vendor Data Table */}
+      {isLoading ? (
+        <VendorTableSkeleton rows={pagination?.limit || 8} />
+      ) : (
+        <VendorsTable
+          vendors={vendors}
+          pagination={pagination}
+          category={category}
+          currentPage={currentPage}
+          onViewDetails={(v) => setSelectedVendorForDetails(v)}
+          onApprove={(v) => setSelectedVendorForApprove(v)}
+          onDeleteRequest={(v) => setSelectedVendorForDelete(v)}
+          onSuspend={(v) => setSelectedVendorForSuspend(v)}
+        />
+      )}
 
       {/* Vendor Details Modal */}
       <VendorDetailsDialog

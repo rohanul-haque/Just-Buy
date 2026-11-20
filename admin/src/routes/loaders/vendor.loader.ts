@@ -1,15 +1,36 @@
 import vendorService from "@/api/services/vendor.service";
-import type { VendorLoaderData, VendorStatus } from "@/types/vendor";
+import type {
+  TVendorCategory,
+  VendorLoaderData,
+  VendorStatus,
+} from "@/types/vendor";
 import type { LoaderFunctionArgs } from "react-router";
 
 export const vendorsLoader = async ({
   request,
 }: LoaderFunctionArgs): Promise<VendorLoaderData> => {
   const url = new URL(request.url);
-  const rawTab = url.searchParams.get("tab");
-  const tab: "requests" | "list" = rawTab === "requests" ? "requests" : "list";
+  const rawCategory = (
+    url.searchParams.get("category") ||
+    url.searchParams.get("tab") ||
+    url.searchParams.get("status") ||
+    ""
+  ).toLowerCase();
+
+  let category: TVendorCategory;
+  if (rawCategory === "requests") {
+    category = "requests";
+  } else if (rawCategory === "rejected") {
+    category = "rejected";
+  } else if (rawCategory === "suspended") {
+    category = "suspended";
+  } else if (rawCategory === "pending") {
+    category = "pending";
+  } else {
+    category = "list";
+  }
+
   const search = url.searchParams.get("search") || "";
-  const rawStatus = url.searchParams.get("status") || "";
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
   const limit = Math.min(
     100,
@@ -17,24 +38,30 @@ export const vendorsLoader = async ({
   );
 
   let statusParam: VendorStatus | "ALL" | undefined;
-  const tabParam: "requests" | "approved" =
-    tab === "list" ? "approved" : "requests";
+  let tabParam: "requests" | "approved" | undefined;
 
-  if (tab === "requests") {
-    // In Vendor Requests tab, default view is PENDING unless another supported request status is chosen
-    if (
-      rawStatus === "REJECTED" ||
-      rawStatus === "SUSPENDED" ||
-      rawStatus === "PENDING" ||
-      rawStatus === "ALL"
-    ) {
-      statusParam = rawStatus as VendorStatus | "ALL";
-    } else {
+  switch (category) {
+    case "list":
+      // Vendor List: only approved vendors
+      statusParam = "APPROVED";
+      tabParam = "approved";
+      break;
+    case "requests":
+      // Vendor Requests: submitted vendor requests
+      tabParam = "requests";
+      break;
+    case "rejected":
+      // Rejected: vendors whose status is Rejected
+      statusParam = "REJECTED";
+      break;
+    case "suspended":
+      // Suspended: vendors whose status is Suspended
+      statusParam = "SUSPENDED";
+      break;
+    case "pending":
+      // Pending: vendors whose status is Pending
       statusParam = "PENDING";
-    }
-  } else {
-    // In Vendor List tab, only APPROVED vendors are displayed
-    statusParam = "APPROVED";
+      break;
   }
 
   try {
@@ -49,18 +76,20 @@ export const vendorsLoader = async ({
     return {
       vendors: response.data || [],
       pagination: response.pagination || null,
-      tab,
+      category,
+      tab: category === "requests" ? "requests" : "list",
       search,
-      status: rawStatus,
+      status: statusParam || "",
       page,
     };
   } catch {
     return {
       vendors: [],
       pagination: null,
-      tab,
+      category,
+      tab: category === "requests" ? "requests" : "list",
       search,
-      status: rawStatus,
+      status: statusParam || "",
       page,
     };
   }
