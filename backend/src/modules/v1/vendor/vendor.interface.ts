@@ -33,5 +33,6 @@ export interface IVendorQueryOptions {
   limit?: number;
   skip?: number;
   search?: string;
-  status?: TVendorStatus;
+  status?: TVendorStatus | "ALL";
+  tab?: "requests" | "approved" | "all";
 }

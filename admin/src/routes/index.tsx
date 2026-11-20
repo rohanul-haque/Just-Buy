@@ -9,9 +9,11 @@ import VendorsPage from "@/pages/VendorsPage";
 import buyerAction from "@/routes/actions/buyer.action";
 import categoryAction from "@/routes/actions/category.action";
 import profileAction from "@/routes/actions/profile.action";
+import vendorAction from "@/routes/actions/vendor.action";
 import buyersLoader from "@/routes/loaders/buyer.loader";
 import categoriesLoader from "@/routes/loaders/category.loader";
 import profileLoader from "@/routes/loaders/profile.loader";
+import vendorsLoader from "@/routes/loaders/vendor.loader";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { createBrowserRouter, Navigate } from "react-router";
 
@@ -52,6 +54,8 @@ const router = createBrowserRouter([
       },
       {
         path: "vendors",
+        loader: vendorsLoader,
+        action: vendorAction,
         Component: VendorsPage,
       },
       {

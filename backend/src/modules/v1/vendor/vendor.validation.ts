@@ -40,10 +40,17 @@ export const vendorQuerySchema = z.object({
   skip: z.coerce.number().int().nonnegative().optional(),
   search: z.string().trim().optional(),
   status: z
-    .enum(Object.values(VendorStatus) as [string, ...string[]], {
-      message: "Invalid vendor status",
-    })
-    .default(VendorStatus.APPROVED),
+    .enum(
+      [...Object.values(VendorStatus), "ALL"] as unknown as [
+        string,
+        ...string[],
+      ],
+      {
+        message: "Invalid vendor status",
+      },
+    )
+    .optional(),
+  tab: z.enum(["requests", "approved", "all"]).optional(),
 });
 
 export type TUpdateVendorProfileInput = z.infer<

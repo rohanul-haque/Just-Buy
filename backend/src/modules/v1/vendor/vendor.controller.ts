@@ -84,12 +84,30 @@ const updateVendorStatus = asyncHandler(
   },
 );
 
+const deleteVendorRequest = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const vendorId = req.params.vendorId as string;
+    const result = await vendorService.deleteVendorRequest(
+      vendorId,
+      req.user!.userId,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Vendor request rejected/deleted successfully",
+      data: result,
+    });
+  },
+);
+
 const vendorController = {
   getOwnProfile,
   updateOwnProfile,
   getAllVendors,
   getVendorById,
   updateVendorStatus,
+  deleteVendorRequest,
 };
 
 export default vendorController;

@@ -1,10 +1,18 @@
 import apiClient from "@/api/client";
-import type { ApiResponse, PaginationParams } from "@/types/api";
+import type { ApiResponse } from "@/types/api";
 import type { IVendor, VendorStatus } from "@/types/vendor";
+
+export interface GetVendorsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: VendorStatus | "ALL" | string;
+  tab?: "requests" | "approved" | "all" | string;
+}
 
 export const vendorService = {
   getAllVendors: async (
-    params?: PaginationParams,
+    params?: GetVendorsParams,
   ): Promise<ApiResponse<IVendor[]>> => {
     const response = await apiClient.get<ApiResponse<IVendor[]>>("/vendors", {
       params,
@@ -26,6 +34,13 @@ export const vendorService = {
     const response = await apiClient.patch<ApiResponse<IVendor>>(
       `/vendors/${id}/status`,
       { status },
+    );
+    return response.data;
+  },
+
+  deleteVendorRequest: async (id: string): Promise<ApiResponse<IVendor>> => {
+    const response = await apiClient.delete<ApiResponse<IVendor>>(
+      `/vendors/${id}`,
     );
     return response.data;
   },

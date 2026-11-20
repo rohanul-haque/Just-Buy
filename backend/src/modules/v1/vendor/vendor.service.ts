@@ -1,5 +1,6 @@
 import cloudinaryService from "@/lib/cloudinary";
 import { logger } from "@/lib/winston";
+import { UserRole } from "@/modules/v1/user/user.constant";
 import User from "@/modules/v1/user/user.model";
 import AppError from "@/utils/AppError";
 import ERROR_CODE from "@/utils/ERROR_CODES";
@@ -221,6 +222,10 @@ const updateOwnProfile = async (
   }
 };
 
+const escapeRegex = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
 const getAllVendors = async (
   options: IVendorQueryOptions,
 ): Promise<{
@@ -244,11 +249,26 @@ const getAllVendors = async (
 
   const filter: Record<string, any> = {};
 
-  filter.status = options.status || VendorStatus.APPROVED;
+  if (options.tab === "requests") {
+    if (options.status && options.status !== "ALL") {
+      filter.status = options.status;
+    } else {
+      filter.status = { $ne: VendorStatus.APPROVED };
+    }
+  } else if (options.tab === "approved") {
+    filter.status = VendorStatus.APPROVED;
+  } else if (options.status && options.status !== "ALL") {
+    filter.status = options.status;
+  } else if (options.status === "ALL") {
+    // No status filter
+  } else {
+    filter.status = VendorStatus.APPROVED;
+  }
 
-  if (options.search) {
-    const searchRegex = new RegExp(options.search, "i");
+  if (options.search && options.search.trim()) {
+    const searchRegex = new RegExp(escapeRegex(options.search.trim()), "i");
     const matchedUsers = await User.find({
+      role: UserRole.VENDOR,
       $or: [{ name: searchRegex }, { email: searchRegex }],
     }).select("_id");
 
@@ -264,7 +284,11 @@ const getAllVendors = async (
 
   const [vendors, total] = await Promise.all([
     Vendor.find(filter)
-      .populate("vendor", "name email role status createdAt")
+      .populate({
+        path: "vendor",
+        select: "name email role status createdAt verification",
+        populate: { path: "verification", select: "isEmailVerified" },
+      })
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 })
@@ -295,7 +319,11 @@ const getVendorById = async (vendorId: string): Promise<IVendor> => {
     vendor = await Vendor.findOne({
       $or: [{ _id: vendorId }, { vendor: vendorId }],
     })
-      .populate("vendor", "name email role status createdAt")
+      .populate({
+        path: "vendor",
+        select: "name email role status createdAt verification",
+        populate: { path: "verification", select: "isEmailVerified" },
+      })
       .exec();
   }
 
@@ -339,7 +367,11 @@ const updateVendorStatus = async (
   // Do not send an update when the status is unchanged
   if (vendor.status === newStatus) {
     const currentVendor = await Vendor.findById(vendor._id)
-      .populate("vendor", "name email role status createdAt")
+      .populate({
+        path: "vendor",
+        select: "name email role status createdAt verification",
+        populate: { path: "verification", select: "isEmailVerified" },
+      })
       .exec();
     return currentVendor!;
   }
@@ -348,10 +380,21 @@ const updateVendorStatus = async (
   await vendor.save();
 
   const updatedVendor = await Vendor.findById(vendor._id)
-    .populate("vendor", "name email role status createdAt")
+    .populate({
+      path: "vendor",
+      select: "name email role status createdAt verification",
+      populate: { path: "verification", select: "isEmailVerified" },
+    })
     .exec();
 
   return updatedVendor!;
+};
+
+const deleteVendorRequest = async (
+  vendorId: string,
+  adminUserId: string,
+): Promise<IVendor> => {
+  return await updateVendorStatus(vendorId, VendorStatus.REJECTED, adminUserId);
 };
 
 const vendorService = {
@@ -361,6 +404,7 @@ const vendorService = {
   getAllVendors,
   getVendorById,
   updateVendorStatus,
+  deleteVendorRequest,
 };
 
 export default vendorService;

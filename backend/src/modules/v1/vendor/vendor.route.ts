@@ -56,4 +56,12 @@ router.patch(
   vendorController.updateVendorStatus,
 );
 
+router.delete(
+  "/:vendorId",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validateRequest(vendorIdParamsSchema, "params"),
+  vendorController.deleteVendorRequest,
+);
+
 export default router;
