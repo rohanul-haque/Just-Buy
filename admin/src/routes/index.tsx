@@ -7,6 +7,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
 import VendorsPage from "@/pages/VendorsPage";
 import categoriesLoader from "@/routes/loaders/category.loader";
+import ProtectedRoute from "@/routes/ProtectedRoute";
 import { createBrowserRouter, Navigate } from "react-router";
 
 const router = createBrowserRouter([
@@ -16,7 +17,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    Component: AdminLayout,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,

@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 import {
   LayoutDashboard,
   Wallet,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import JusBuyLogo from "./JusBuyLogo";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface AdminSidebarProps {
   isCollapsed?: boolean;
@@ -37,10 +39,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   onItemClick,
 }) => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     if (onItemClick) onItemClick();
     await logout();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -61,7 +65,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           )}
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items (Standardized with MD rounded corners) */}
         <nav className="space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -71,11 +75,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 to={item.to}
                 onClick={onItemClick}
                 className={({ isActive }) =>
-                  `flex items-center gap-3.5 px-4 py-3 rounded-full text-sm font-medium transition-colors duration-150 ${
+                  cn(
+                    "flex items-center gap-3.5 px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150",
                     isActive
                       ? "bg-[#E0E7FF] text-[#4F46E5] font-semibold"
-                      : "text-[#1F2937] hover:bg-[#F8FAFC] hover:text-[#0F172A]"
-                  } ${isCollapsed ? "justify-center px-0" : ""}`
+                      : "text-[#1F2937] hover:bg-[#F8FAFC] hover:text-[#0F172A]",
+                    isCollapsed && "justify-center px-0"
+                  )
                 }
                 title={isCollapsed ? item.label : undefined}
               >
@@ -97,17 +103,18 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       {/* Bottom Log Out Section */}
       <div className="pt-4 border-t border-[#E5E7EB]">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
           onClick={handleLogout}
-          className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-full text-sm font-medium text-[#4B5563] hover:text-[#EF4444] hover:bg-[#F8FAFC] transition-colors cursor-pointer ${
-            isCollapsed ? "justify-center px-0" : ""
-          }`}
+          className={cn(
+            "w-full flex items-center gap-3.5 px-4 py-2.5 rounded-md text-sm font-medium text-[#4B5563] hover:text-[#EF4444] hover:bg-[#F8FAFC] transition-colors cursor-pointer justify-start",
+            isCollapsed && "justify-center px-0"
+          )}
           title={isCollapsed ? "Log Out" : undefined}
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
           {!isCollapsed && <span>Log Out</span>}
-        </button>
+        </Button>
       </div>
     </aside>
   );

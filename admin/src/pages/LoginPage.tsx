@@ -1,22 +1,37 @@
-import React, { useState } from "react";
-import { useNavigate, Navigate } from "react-router";
-import { Lock, Mail, Loader2, ArrowRight } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import JusBuyLogo from "@/components/layout/JusBuyLogo";
 import { getApiErrorMessage } from "@/api/client";
+import JusBuyLogo from "@/components/layout/JusBuyLogo";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { ArrowRight, Loader2, Lock, Mail } from "lucide-react";
+import React, { useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 export const LoginPage: React.FC = () => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, isLoading, login, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  // Determine originally requested route if redirected by ProtectedRoute
+  const fromLocation = (
+    location.state as { from?: { pathname: string; search?: string } }
+  )?.from;
+  const redirectPath =
+    fromLocation && fromLocation.pathname !== "/login"
+      ? `${fromLocation.pathname}${fromLocation.search || ""}`
+      : "/dashboard";
+
+  // If already authenticated with ADMIN role, redirect to originally intended page
+  if (!isLoading && isAuthenticated && user?.role === "ADMIN") {
+    return <Navigate to={redirectPath} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,7 +48,7 @@ export const LoginPage: React.FC = () => {
     try {
       await login({ email: trimmedEmail, password });
       toast.success("Welcome back to Jus Buy Admin!");
-      navigate("/dashboard", { replace: true });
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       const msg = getApiErrorMessage(err);
       setErrorMessage(msg);
@@ -45,15 +60,15 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] p-4 font-sans">
-      <div className="w-full max-w-md bg-white rounded-[16px] p-8 md:p-[28px] border border-[#E5E7EB]">
+      <Card className="w-full max-w-md bg-white rounded-md p-8 md:p-10 border border-[#E5E7EB] shadow-xs">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="mb-4">
             <JusBuyLogo />
           </div>
-          <div className="inline-block px-3 py-1 bg-[#E0E7FF] text-[#4F46E5] text-xs font-semibold rounded-full uppercase tracking-wider mb-2">
+          <Badge className="bg-[#E0E7FF] text-[#4F46E5] hover:bg-[#E0E7FF] border-none text-xs font-semibold rounded-md uppercase tracking-wider mb-2 px-3 py-1">
             Admin Portal
-          </div>
+          </Badge>
           <p className="text-sm text-[#4B5563]">
             Sign in to manage vendors, categories, orders & platform earnings
           </p>
@@ -61,12 +76,12 @@ export const LoginPage: React.FC = () => {
 
         {/* Error message */}
         {errorMessage && (
-          <div className="mb-6 p-3 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-xs text-center font-medium">
+          <div className="mb-6 p-3 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-xs text-center font-medium">
             {errorMessage}
           </div>
         )}
 
-        {/* Login Form */}
+        {/* Login Form (shadcn Input & Button) */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label
@@ -76,16 +91,16 @@ export const LoginPage: React.FC = () => {
               Admin Email
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-[#4B5563] absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
+              <Mail className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
                 id="email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@jusbuy.com"
-                disabled={isSubmitting}
-                className="w-full pl-11 pr-4 py-2 rounded-full border border-[#E5E7EB] text-base text-[#0F172A] placeholder:text-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] transition"
+                disabled={isSubmitting || isLoading}
+                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
               />
             </div>
           </div>
@@ -98,43 +113,44 @@ export const LoginPage: React.FC = () => {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-[#4B5563] absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
+              <Lock className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                disabled={isSubmitting}
-                className="w-full pl-11 pr-4 py-2 rounded-full border border-[#E5E7EB] text-base text-[#0F172A] placeholder:text-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] transition"
+                disabled={isSubmitting || isLoading}
+                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
               />
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full h-10 py-2 px-5 rounded-full bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+            disabled={isSubmitting || isLoading}
+            className="w-full h-10 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 <span>Signing in...</span>
               </>
             ) : (
               <>
                 <span>Sign In to Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 ml-1" />
               </>
             )}
-          </button>
+          </Button>
         </form>
 
         <p className="mt-8 text-center text-xs text-[#4B5563]">
-          Jus Buy Multi-Vendor Platform © {new Date().getFullYear()} • Secure Admin Zone
+          Jus Buy Multi-Vendor Platform © {new Date().getFullYear()} • Secure
+          Admin Zone
         </p>
-      </div>
+      </Card>
     </div>
   );
 };
