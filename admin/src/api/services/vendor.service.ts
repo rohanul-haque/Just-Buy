@@ -21,9 +21,7 @@ export const vendorService = {
   },
 
   getVendorById: async (id: string): Promise<ApiResponse<IVendor>> => {
-    const response = await apiClient.get<ApiResponse<IVendor>>(
-      `/vendors/${id}`,
-    );
+    const response = await apiClient.get<ApiResponse<IVendor>>(`/vendors/${id}`);
     return response.data;
   },
 

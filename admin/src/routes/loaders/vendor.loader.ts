@@ -7,7 +7,7 @@ export const vendorsLoader = async ({
 }: LoaderFunctionArgs): Promise<VendorLoaderData> => {
   const url = new URL(request.url);
   const rawTab = url.searchParams.get("tab");
-  const tab: "requests" | "list" = rawTab === "list" ? "list" : "requests";
+  const tab: "requests" | "list" = rawTab === "requests" ? "requests" : "list";
   const search = url.searchParams.get("search") || "";
   const rawStatus = url.searchParams.get("status") || "";
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);

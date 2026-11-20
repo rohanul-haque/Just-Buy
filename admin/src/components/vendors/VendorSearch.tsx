@@ -55,7 +55,7 @@ export const VendorSearch: React.FC<VendorSearchProps> = ({
   };
 
   return (
-    <div className={`relative w-full sm:w-72 md:w-80 ${className}`}>
+    <div className={`relative w-full ${className}`}>
       <Search className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <Input
         type="text"

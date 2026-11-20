@@ -18,7 +18,7 @@ export const VendorsPage: React.FC = () => {
 
   const vendors = loaderData?.vendors ?? [];
   const pagination = loaderData?.pagination ?? null;
-  const activeTab = loaderData?.tab ?? "requests";
+  const activeTab = loaderData?.tab ?? "list";
   const currentPage = loaderData?.page ?? 1;
 
   // Track page transitions / loading state
@@ -37,9 +37,9 @@ export const VendorsPage: React.FC = () => {
   const handleTabChange = (nextTab: string) => {
     const newParams = new URLSearchParams(searchParams);
     if (nextTab === "requests") {
-      newParams.delete("tab");
+      newParams.set("tab", "requests");
     } else {
-      newParams.set("tab", nextTab);
+      newParams.delete("tab");
     }
     // Reset search, status and pagination when switching tabs
     newParams.delete("status");
@@ -55,9 +55,6 @@ export const VendorsPage: React.FC = () => {
         <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
           Vendor
         </h2>
-        <p className="text-sm text-[#4B5563] mt-1 font-normal">
-          Manage vendor requests and monitor all registered vendors.
-        </p>
       </div>
 
       {/* 2. Tabs Component */}
@@ -66,8 +63,9 @@ export const VendorsPage: React.FC = () => {
         onValueChange={handleTabChange}
         className="w-full space-y-4"
       >
-        <div className="border-b border-[#E5E7EB]">
-          <TabsList className="bg-[#F8FAFC] p-1 rounded-md border border-[#E5E7EB] h-10">
+        {/* Horizontal Row: Tabs, Search Input, and Status Filter */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <TabsList className="bg-[#F8FAFC] p-1 rounded-md border border-[#E5E7EB] h-10 shrink-0">
             <TabsTrigger
               value="requests"
               className="rounded-md px-4 py-1.5 text-xs font-semibold data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white data-[state=active]:shadow-xs transition-colors"
@@ -81,11 +79,8 @@ export const VendorsPage: React.FC = () => {
               Vendor List
             </TabsTrigger>
           </TabsList>
-        </div>
 
-        {/* 3 & 4. Search Input and Status Filter Controls below Tabs */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex-1 min-w-0">
             <VendorSearch
               placeholder={
                 activeTab === "requests"
@@ -93,6 +88,9 @@ export const VendorsPage: React.FC = () => {
                   : "Search approved vendors..."
               }
             />
+          </div>
+
+          <div className="w-full sm:w-44 shrink-0">
             <VendorStatusFilter activeTab={activeTab} />
           </div>
         </div>
