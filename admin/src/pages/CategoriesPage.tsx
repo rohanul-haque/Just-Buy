@@ -1,25 +1,30 @@
-import React, { useState } from "react";
-import { Plus, Tags } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { categoriesQueryOptions } from "@/api/queries/category.queries";
-import CategoryCard from "@/components/categories/CategoryCard";
-import AddCategoryDialog from "@/components/categories/AddCategoryDialog";
-import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
-import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
-import type { ICategory } from "@/types/category";
 import { getApiErrorMessage } from "@/api/client";
+import { categoriesQueryOptions } from "@/api/queries/category.queries";
+import AddCategoryDialog from "@/components/categories/AddCategoryDialog";
+import CategoryCard from "@/components/categories/CategoryCard";
+import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
+import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { ICategory } from "@/types/category";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, Tags } from "lucide-react";
+import React, { useState } from "react";
+import { useLoaderData } from "react-router";
 
 export const CategoriesPage: React.FC = () => {
+  const initialData = useLoaderData() as ICategory[] | undefined;
   const {
-    data: categories = [],
+    data: categories = initialData ?? [],
     isLoading,
     isError,
     error,
     refetch,
-  } = useQuery(categoriesQueryOptions());
+  } = useQuery({
+    ...categoriesQueryOptions(),
+    initialData,
+  });
 
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false);

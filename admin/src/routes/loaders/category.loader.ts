@@ -1,6 +1,6 @@
-import type { LoaderFunction } from "react-router";
-import { queryClient } from "@/lib/queryClient";
 import { categoriesQueryOptions } from "@/api/queries/category.queries";
+import { queryClient } from "@/lib/queryClient";
+import type { LoaderFunction } from "react-router";
 
 export const categoriesLoader: LoaderFunction = async () => {
   return await queryClient.ensureQueryData(categoriesQueryOptions());

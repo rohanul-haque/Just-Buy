@@ -1,6 +1,6 @@
-import { queryOptions } from "@tanstack/react-query";
 import categoryService from "@/api/services/category.service";
-import type { ICategoryQuery, ICategory } from "@/types/category";
+import type { ICategory, ICategoryQuery } from "@/types/category";
+import { queryOptions } from "@tanstack/react-query";
 
 export const categoryKeys = {
   all: ["categories"] as const,
