@@ -6,6 +6,7 @@ import LoginPage from "@/pages/LoginPage";
 import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
 import VendorsPage from "@/pages/VendorsPage";
+import categoriesLoader from "@/routes/loaders/category.loader";
 import { createBrowserRouter, Navigate } from "react-router";
 
 const router = createBrowserRouter([
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
       },
       {
         path: "categories",
+        loader: categoriesLoader,
         Component: CategoriesPage,
       },
       {

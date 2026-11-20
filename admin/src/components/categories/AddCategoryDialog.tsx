@@ -1,14 +1,19 @@
-import React, { useRef, useState } from "react";
-import { ArrowLeft, Upload, Loader2, X } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import categoryService from "@/api/services/category.service";
 import { getApiErrorMessage } from "@/api/client";
+import { categoryKeys } from "@/api/queries/category.queries";
+import categoryService from "@/api/services/category.service";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
@@ -16,19 +21,36 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const createMutation = useMutation({
+    mutationFn: (data: FormData) => categoryService.createCategory(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
+      toast.success("Category created successfully!");
+      handleClose();
+      onSuccess?.();
+    },
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setValidationError(message);
+      toast.error(message);
+    },
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        setValidationError("Please select a valid image file (JPEG, PNG, WEBP).");
+        setValidationError(
+          "Please select a valid image file (JPEG, PNG, WEBP).",
+        );
         return;
       }
       setSelectedFile(file);
@@ -48,7 +70,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
 
@@ -62,65 +84,55 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
     }
 
     setValidationError(null);
-    setIsSubmitting(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("name", trimmed);
-      if (selectedFile) {
-        formData.append("image", selectedFile);
-      }
-
-      await categoryService.createCategory(formData);
-      toast.success("Category created successfully!");
-      handleClose();
-      onSuccess();
-    } catch (error) {
-      const message = getApiErrorMessage(error);
-      setValidationError(message);
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
+    const formData = new FormData();
+    formData.append("name", trimmed);
+    if (selectedFile) {
+      formData.append("image", selectedFile);
     }
+
+    createMutation.mutate(formData);
   };
 
   const handleClose = () => {
     setName("");
     handleRemoveImage();
     setValidationError(null);
+    createMutation.reset();
     onOpenChange(false);
   };
 
+  const isSubmitting = createMutation.isPending;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-7 bg-white rounded-[16px] border border-[#E5E7EB] shadow-lg overflow-hidden font-sans">
+      <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg overflow-hidden font-sans">
         <DialogTitle className="sr-only">Add new category</DialogTitle>
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 mb-6">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleClose}
-            className="p-1.5 rounded-full text-[#1F2937] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
             aria-label="Back"
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h2 className="text-lg font-bold text-[#0F172A]">
-            Add new category
-          </h2>
+          </Button>
+          <h2 className="text-lg font-bold text-[#0F172A]">Add new category</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Category Name */}
           <div className="space-y-2">
-            <label
+            <Label
               htmlFor="category-name"
               className="text-sm font-medium text-[#111827] block"
             >
               Category name
-            </label>
-            <input
+            </Label>
+            <Input
               id="category-name"
               type="text"
               value={name}
@@ -130,15 +142,15 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
               }}
               placeholder="Enter category name"
               disabled={isSubmitting}
-              className="w-full px-4 py-2 rounded-full border border-[#E5E7EB] bg-white text-[#0F172A] placeholder:text-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5] transition text-base"
+              className="w-full h-10 px-3 rounded-md border-[#E5E7EB] bg-white text-[#0F172A] text-sm"
             />
           </div>
 
           {/* Upload Category Image */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-[#111827] block">
+            <Label className="text-sm font-medium text-[#111827] block">
               Upload category Image
-            </label>
+            </Label>
 
             <input
               type="file"
@@ -151,9 +163,9 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
             {!previewUrl ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-[#E5E7EB] bg-[#F8FAFC] rounded-[16px] p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#F1F5F9] transition-colors"
+                className="w-full border-2 border-dashed border-[#E5E7EB] bg-[#F8FAFC] rounded-md p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#F1F5F9] transition-colors"
               >
-                <div className="p-2.5 rounded-full bg-white border border-[#E5E7EB] text-[#4F46E5]">
+                <div className="p-2.5 rounded-md bg-white border border-[#E5E7EB] text-[#4F46E5]">
                   <Upload className="w-5 h-5" />
                 </div>
                 <span className="text-sm font-medium text-[#111827]">
@@ -164,61 +176,66 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
                 </span>
               </div>
             ) : (
-              <div className="relative border border-[#E5E7EB] rounded-[16px] p-2 bg-white flex items-center gap-3">
+              <div className="relative border border-[#E5E7EB] rounded-md p-2 bg-white flex items-center gap-3">
                 <img
                   src={previewUrl}
                   alt="Preview"
-                  className="w-16 h-16 object-cover rounded-[8px] flex-shrink-0"
+                  className="w-16 h-16 object-cover rounded-md flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-[#0F172A] truncate">
                     {selectedFile?.name}
                   </p>
                   <p className="text-[11px] text-[#4B5563]">
-                    {selectedFile ? `${(selectedFile.size / 1024).toFixed(1)} KB` : ""}
+                    {selectedFile
+                      ? `${(selectedFile.size / 1024).toFixed(1)} KB`
+                      : ""}
                   </p>
-                  <button
+                  <Button
+                    variant="link"
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-[#4F46E5] hover:underline font-medium mt-1 cursor-pointer"
+                    className="p-0 h-auto text-xs text-[#4F46E5] hover:underline font-medium mt-1"
                   >
                     Change image
-                  </button>
+                  </Button>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   type="button"
                   onClick={handleRemoveImage}
-                  className="p-1 rounded-full text-[#4B5563] hover:text-[#EF4444] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                  className="w-7 h-7 rounded-md text-[#4B5563] hover:text-[#EF4444]"
                   title="Remove image"
                 >
                   <X className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             )}
           </div>
 
           {/* Error Message */}
           {validationError && (
-            <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 p-2.5 rounded-full border border-[#EF4444]/20">
+            <p className="text-xs text-[#EF4444] bg-[#EF4444]/10 p-2.5 rounded-md border border-[#EF4444]/20">
               {validationError}
             </p>
           )}
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-10 py-2 px-5 rounded-full bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-10 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition-colors"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 <span>Creating...</span>
               </>
             ) : (
               "Add Category"
             )}
-          </button>
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
