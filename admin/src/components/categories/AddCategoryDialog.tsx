@@ -1,11 +1,9 @@
 import { getApiErrorMessage } from "@/api/client";
-import { categoryKeys } from "@/api/queries/category.queries";
 import categoryService from "@/api/services/category.service";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -21,28 +19,13 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
-  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const createMutation = useMutation({
-    mutationFn: (data: FormData) => categoryService.createCategory(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success("Category created successfully!");
-      handleClose();
-      onSuccess?.();
-    },
-    onError: (error) => {
-      const message = getApiErrorMessage(error);
-      setValidationError(message);
-      toast.error(message);
-    },
-  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,7 +53,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
 
@@ -84,25 +67,34 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
     }
 
     setValidationError(null);
+    setIsSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("name", trimmed);
-    if (selectedFile) {
-      formData.append("image", selectedFile);
+    try {
+      const formData = new FormData();
+      formData.append("name", trimmed);
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      await categoryService.createCategory(formData);
+      toast.success("Category created successfully!");
+      handleClose();
+      onSuccess?.();
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      setValidationError(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    createMutation.mutate(formData);
   };
 
   const handleClose = () => {
     setName("");
     handleRemoveImage();
     setValidationError(null);
-    createMutation.reset();
     onOpenChange(false);
   };
-
-  const isSubmitting = createMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

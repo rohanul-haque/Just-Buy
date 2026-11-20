@@ -1,9 +1,15 @@
-import { categoriesQueryOptions } from "@/api/queries/category.queries";
-import { queryClient } from "@/lib/queryClient";
-import type { LoaderFunction } from "react-router";
+import categoryService from "@/api/services/category.service";
+import type { ICategory } from "@/types/category";
 
-export const categoriesLoader: LoaderFunction = async () => {
-  return await queryClient.ensureQueryData(categoriesQueryOptions());
+export interface CategoryLoaderData {
+  categories: ICategory[];
+}
+
+export const categoriesLoader = async (): Promise<CategoryLoaderData> => {
+  const response = await categoryService.getAllCategories();
+  return {
+    categories: response.data || [],
+  };
 };
 
 export default categoriesLoader;

@@ -1,12 +1,10 @@
 import { getApiErrorMessage } from "@/api/client";
-import { categoryKeys } from "@/api/queries/category.queries";
 import categoryService from "@/api/services/category.service";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { ICategory } from "@/types/category";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 interface DeleteCategoryDialogProps {
@@ -22,28 +20,24 @@ export const DeleteCategoryDialog: React.FC<DeleteCategoryDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
-  const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => categoryService.deleteCategory(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success(`Category "${category?.name}" deleted successfully!`);
+  const handleDelete = async () => {
+    if (!category) return;
+    setIsDeleting(true);
+
+    try {
+      await categoryService.deleteCategory(category._id);
+      toast.success(`Category "${category.name}" deleted successfully!`);
       onOpenChange(false);
       onSuccess?.();
-    },
-    onError: (error) => {
+    } catch (error) {
       const message = getApiErrorMessage(error);
       toast.error(message);
-    },
-  });
-
-  const handleDelete = () => {
-    if (!category) return;
-    deleteMutation.mutate(category._id);
+    } finally {
+      setIsDeleting(false);
+    }
   };
-
-  const isDeleting = deleteMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

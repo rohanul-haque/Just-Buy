@@ -1,5 +1,3 @@
-import { getApiErrorMessage } from "@/api/client";
-import { categoriesQueryOptions } from "@/api/queries/category.queries";
 import AddCategoryDialog from "@/components/categories/AddCategoryDialog";
 import CategoryCard from "@/components/categories/CategoryCard";
 import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
@@ -7,24 +5,18 @@ import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { CategoryLoaderData } from "@/routes/loaders/category.loader";
 import type { ICategory } from "@/types/category";
-import { useQuery } from "@tanstack/react-query";
 import { Plus, Tags } from "lucide-react";
 import React, { useState } from "react";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useRevalidator } from "react-router";
 
 export const CategoriesPage: React.FC = () => {
-  const initialData = useLoaderData() as ICategory[] | undefined;
-  const {
-    data: categories = initialData ?? [],
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
-    ...categoriesQueryOptions(),
-    initialData,
-  });
+  const loaderData = useLoaderData() as CategoryLoaderData | undefined;
+  const revalidator = useRevalidator();
+
+  const categories = loaderData?.categories ?? [];
+  const isLoading = revalidator.state === "loading";
 
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -35,7 +27,9 @@ export const CategoriesPage: React.FC = () => {
     null,
   );
 
-  const errorMessage = isError ? getApiErrorMessage(error) : null;
+  const handleSuccess = () => {
+    revalidator.revalidate();
+  };
 
   return (
     <div className="space-y-6">
@@ -56,22 +50,8 @@ export const CategoriesPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Error state */}
-      {errorMessage && !isLoading && (
-        <div className="p-4 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] flex items-center justify-between">
-          <p className="text-sm font-medium">{errorMessage}</p>
-          <Button
-            variant="link"
-            onClick={() => refetch()}
-            className="text-xs font-semibold text-[#EF4444] p-0 h-auto underline"
-          >
-            Try Again
-          </Button>
-        </div>
-      )}
-
-      {/* Loading Skeletons (4 cards per row on desktop with shadcn Skeleton) */}
-      {isLoading && (
+      {/* Loading Skeletons when revalidating initially or during reload */}
+      {isLoading && categories.length === 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, idx) => (
             <Card
@@ -90,7 +70,7 @@ export const CategoriesPage: React.FC = () => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !errorMessage && categories.length === 0 && (
+      {categories.length === 0 && !isLoading && (
         <Card className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-md border-[#E5E7EB] p-8">
           <Tags className="w-12 h-12 text-[#4F46E5] mb-3" />
           <h3 className="text-base font-semibold text-[#0F172A] mb-1">
@@ -111,7 +91,7 @@ export const CategoriesPage: React.FC = () => {
       )}
 
       {/* Category Card Grid (Exactly 4 cards in each row on desktop) */}
-      {!isLoading && !errorMessage && categories.length > 0 && (
+      {categories.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
             <CategoryCard
@@ -125,7 +105,11 @@ export const CategoriesPage: React.FC = () => {
       )}
 
       {/* Add Dialog */}
-      <AddCategoryDialog open={isAddOpen} onOpenChange={setIsAddOpen} />
+      <AddCategoryDialog
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        onSuccess={handleSuccess}
+      />
 
       {/* Edit Dialog */}
       <EditCategoryDialog
@@ -134,6 +118,7 @@ export const CategoriesPage: React.FC = () => {
         onOpenChange={(open) => {
           if (!open) setEditingCategory(null);
         }}
+        onSuccess={handleSuccess}
       />
 
       {/* Delete Dialog */}
@@ -143,6 +128,7 @@ export const CategoriesPage: React.FC = () => {
         onOpenChange={(open) => {
           if (!open) setDeletingCategory(null);
         }}
+        onSuccess={handleSuccess}
       />
     </div>
   );

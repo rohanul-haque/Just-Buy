@@ -1,12 +1,10 @@
 import { getApiErrorMessage } from "@/api/client";
-import { categoryKeys } from "@/api/queries/category.queries";
 import categoryService from "@/api/services/category.service";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ICategory } from "@/types/category";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -24,31 +22,13 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
-  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const updateMutation = useMutation({
-    mutationFn: (data: FormData) => {
-      if (!category) throw new Error("Category is required");
-      return categoryService.updateCategory(category._id, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: categoryKeys.all });
-      toast.success("Category updated successfully!");
-      handleClose();
-      onSuccess?.();
-    },
-    onError: (error) => {
-      const message = getApiErrorMessage(error);
-      setValidationError(message);
-      toast.error(message);
-    },
-  });
 
   useEffect(() => {
     if (category) {
@@ -56,9 +36,7 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
       setPreviewUrl(category.image?.url || null);
       setSelectedFile(null);
       setValidationError(null);
-      updateMutation.reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +60,7 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!category) return;
 
@@ -97,24 +75,33 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
     }
 
     setValidationError(null);
+    setIsSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("name", trimmed);
-    if (selectedFile) {
-      formData.append("image", selectedFile);
+    try {
+      const formData = new FormData();
+      formData.append("name", trimmed);
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      await categoryService.updateCategory(category._id, formData);
+      toast.success("Category updated successfully!");
+      handleClose();
+      onSuccess?.();
+    } catch (error) {
+      const message = getApiErrorMessage(error);
+      setValidationError(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    updateMutation.mutate(formData);
   };
 
   const handleClose = () => {
     setSelectedFile(null);
     setValidationError(null);
-    updateMutation.reset();
     onOpenChange(false);
   };
-
-  const isSubmitting = updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
