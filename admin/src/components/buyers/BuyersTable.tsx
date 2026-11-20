@@ -78,27 +78,23 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
         <Table>
           <TableHeader className="bg-[#F8FAFC]">
             <TableRow className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC]">
-              {/* 1. Buyer Image */}
-              <TableHead className="w-24 text-xs font-semibold text-[#4B5563] uppercase">
-                Buyer Image
-              </TableHead>
-              {/* 2. Buyer Name */}
+              {/* 1. Buyer Name (Profile Image + Name) */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Buyer Name
               </TableHead>
-              {/* 3. Email */}
+              {/* 2. Email */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Email
               </TableHead>
-              {/* 4. Role (immediately after Email) */}
+              {/* 3. Role (immediately after Email) */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Role
               </TableHead>
-              {/* 5. Join Date */}
+              {/* 4. Join Date */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Join Date
               </TableHead>
-              {/* 6. Actions */}
+              {/* 5. Actions */}
               <TableHead className="w-28 text-xs font-semibold text-[#4B5563] uppercase text-right">
                 Actions
               </TableHead>
@@ -134,48 +130,46 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
                   key={buyer._id}
                   className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
                 >
-                  {/* 1. Buyer Image */}
+                  {/* 1. Buyer Name (Profile Image + Name together) */}
                   <TableCell className="py-3">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt={name}
-                        className="w-10 h-10 rounded-md object-cover border border-[#E5E7EB] shadow-xs"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-xs flex items-center justify-center border border-[#C7D2FE] shadow-xs">
-                        {initials}
-                      </div>
-                    )}
-                  </TableCell>
-
-                  {/* 2. Buyer Name */}
-                  <TableCell className="py-3">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm text-[#0F172A] leading-tight">
-                          {name}
-                        </p>
-                        {isBlocked && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EF4444]/10 text-[#EF4444]">
-                            Blocked
-                          </span>
+                    <div className="flex items-center gap-3">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={name}
+                          className="w-10 h-10 rounded-md object-cover border border-[#E5E7EB] shadow-xs flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-xs flex items-center justify-center border border-[#C7D2FE] shadow-xs flex-shrink-0">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-sm text-[#0F172A] leading-tight truncate">
+                            {name}
+                          </p>
+                          {isBlocked && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EF4444]/10 text-[#EF4444] flex-shrink-0">
+                              Blocked
+                            </span>
+                          )}
+                        </div>
+                        {buyer.phoneNumber && (
+                          <p className="text-xs text-[#6B7280] truncate mt-0.5">
+                            {buyer.phoneNumber}
+                          </p>
                         )}
                       </div>
-                      {buyer.phoneNumber && (
-                        <p className="text-xs text-[#6B7280]">
-                          {buyer.phoneNumber}
-                        </p>
-                      )}
                     </div>
                   </TableCell>
 
-                  {/* 3. Email */}
+                  {/* 2. Email */}
                   <TableCell className="py-3 text-sm text-[#374151]">
                     <span className="truncate block max-w-xs">{email}</span>
                   </TableCell>
 
-                  {/* 4. Role (immediately after Email) */}
+                  {/* 3. Role (immediately after Email) */}
                   <TableCell className="py-3">
                     <Badge
                       variant="outline"
@@ -185,15 +179,28 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
                     </Badge>
                   </TableCell>
 
-                  {/* 5. Join Date */}
+                  {/* 4. Join Date */}
                   <TableCell className="py-3 text-sm text-[#4B5563]">
                     {formattedDate}
                   </TableCell>
 
-                  {/* 6. Actions (Exactly two icon-only actions) */}
+                  {/* 5. Actions (Exactly two icon-only actions: Info first, then Delete/Block) */}
                   <TableCell className="py-3 text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      {/* Action 1: Soft Delete / Block */}
+                      {/* Action 1: Information Icon (First) */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onViewDetails(buyer)}
+                        className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
+                        title="View buyer details"
+                        aria-label="View buyer details"
+                      >
+                        <Info className="w-4 h-4" />
+                      </Button>
+
+                      {/* Action 2: Soft Delete / Block Icon (After Information Icon) */}
                       <Button
                         type="button"
                         variant="ghost"
@@ -220,19 +227,6 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
                         ) : (
                           <Trash2 className="w-4 h-4" />
                         )}
-                      </Button>
-
-                      {/* Action 2: Buyer Information */}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewDetails(buyer)}
-                        className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
-                        title="View buyer details"
-                        aria-label="View buyer details"
-                      >
-                        <Info className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>

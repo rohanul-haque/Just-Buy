@@ -27,14 +27,14 @@ export const BuyersPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header (Consistent with Categories layout) */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+      {/* Page Header and Controls in One Row on the Same Horizontal Line */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
             Buyers
           </h2>
         </div>
-        <div className="flex flex-col items-stretch sm:items-end gap-2.5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <BuyerSearch />
           <BuyerStatusFilter />
         </div>
