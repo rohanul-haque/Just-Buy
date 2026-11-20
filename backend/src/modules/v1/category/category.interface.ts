@@ -21,6 +21,7 @@ export type ICategoryDocument = ICategory & Document;
 
 export interface ICreateCategoryInput {
   name: string;
+  isActive?: boolean;
 }
 
 export interface IUpdateCategoryInput {

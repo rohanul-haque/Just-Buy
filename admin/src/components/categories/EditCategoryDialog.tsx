@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ICategory } from "@/types/category";
 import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -23,6 +30,7 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
   onSuccess,
 }) => {
   const [name, setName] = useState("");
+  const [status, setStatus] = useState<"active" | "inactive">("active");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,6 +41,7 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
   useEffect(() => {
     if (category) {
       setName(category.name || "");
+      setStatus(category.isActive !== false ? "active" : "inactive");
       setPreviewUrl(category.image?.url || null);
       setSelectedFile(null);
       setValidationError(null);
@@ -80,6 +89,7 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
     try {
       const formData = new FormData();
       formData.append("name", trimmed);
+      formData.append("isActive", String(status === "active"));
       if (selectedFile) {
         formData.append("image", selectedFile);
       }
@@ -143,6 +153,42 @@ export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
               disabled={isSubmitting}
               className="w-full h-10 px-3 rounded-md border-[#E5E7EB] bg-white text-[#0F172A] text-sm"
             />
+          </div>
+
+          {/* Status Selection (Active / Inactive) */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="edit-category-status"
+              className="text-sm font-medium text-[#111827] block"
+            >
+              Status
+            </Label>
+            <Select
+              value={status}
+              onValueChange={(val: "active" | "inactive") => setStatus(val)}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger
+                id="edit-category-status"
+                className="w-full h-10 px-3 rounded-md border-[#E5E7EB] bg-white text-[#0F172A] text-sm"
+              >
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-md border-[#E5E7EB] bg-white shadow-md">
+                <SelectItem value="active" className="text-sm">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
+                </SelectItem>
+                <SelectItem value="inactive" className="text-sm">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-400" />
+                    Inactive
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Update Category Image */}

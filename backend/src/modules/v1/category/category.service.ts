@@ -65,7 +65,7 @@ const createCategory = async (
       admin: adminId,
       name: trimmedName,
       image: newImageData,
-      isActive: true,
+      isActive: payload.isActive !== undefined ? payload.isActive : true,
     });
 
     return category;
@@ -89,9 +89,11 @@ const getAllCategories = async (
 ): Promise<ICategory[]> => {
   const filter: Record<string, any> = {};
 
-  // Default to isActive: true unless explicitly specified
+  // Default to isActive: true unless explicitly specified (supports 'all' for admin oversight)
   if (options.isActive !== undefined) {
-    filter.isActive = options.isActive;
+    if (options.isActive !== "all") {
+      filter.isActive = options.isActive;
+    }
   } else {
     filter.isActive = true;
   }

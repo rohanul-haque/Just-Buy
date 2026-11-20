@@ -1,3 +1,5 @@
+import { getApiErrorMessage } from "@/api/client";
+import categoryService from "@/api/services/category.service";
 import AddCategoryDialog from "@/components/categories/AddCategoryDialog";
 import CategoryCard from "@/components/categories/CategoryCard";
 import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
@@ -10,6 +12,7 @@ import type { ICategory } from "@/types/category";
 import { Plus, Tags } from "lucide-react";
 import React, { useState } from "react";
 import { useLoaderData, useRevalidator } from "react-router";
+import { toast } from "sonner";
 
 export const CategoriesPage: React.FC = () => {
   const loaderData = useLoaderData() as CategoryLoaderData | undefined;
@@ -29,6 +32,19 @@ export const CategoriesPage: React.FC = () => {
 
   const handleSuccess = () => {
     revalidator.revalidate();
+  };
+
+  const handleToggleStatus = async (cat: ICategory) => {
+    try {
+      const nextStatus = !cat.isActive;
+      await categoryService.updateCategoryStatus(cat._id, nextStatus);
+      toast.success(
+        `Category "${cat.name}" is now ${nextStatus ? "Active" : "Inactive"}`,
+      );
+      revalidator.revalidate();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
   };
 
   return (
@@ -99,6 +115,7 @@ export const CategoriesPage: React.FC = () => {
               category={category}
               onEdit={(cat) => setEditingCategory(cat)}
               onDelete={(cat) => setDeletingCategory(cat)}
+              onToggleStatus={handleToggleStatus}
             />
           ))}
         </div>

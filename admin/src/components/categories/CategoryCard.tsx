@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import type { ICategory } from "@/types/category";
 import React from "react";
 
@@ -8,12 +9,14 @@ interface CategoryCardProps {
   category: ICategory;
   onEdit: (category: ICategory) => void;
   onDelete: (category: ICategory) => void;
+  onToggleStatus?: (category: ICategory) => void;
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   category,
   onEdit,
   onDelete,
+  onToggleStatus,
 }) => {
   const fallbackImage =
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&auto=format&fit=crop&q=80";
@@ -33,14 +36,28 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
             }}
           />
         </div>
-        {!category.isActive && (
-          <Badge
-            variant="secondary"
-            className="absolute top-0 right-1 bg-[#1F2937]/80 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md"
-          >
-            Inactive
-          </Badge>
-        )}
+
+        {/* Clear Active / Inactive Status Badge (shadcn/ui Badge) */}
+        <Badge
+          variant="outline"
+          onClick={() => onToggleStatus?.(category)}
+          className={cn(
+            "absolute top-0 right-1 text-[11px] font-medium px-2 py-0.5 rounded-md border flex items-center gap-1.5 transition-colors",
+            onToggleStatus ? "cursor-pointer hover:opacity-80" : "",
+            category.isActive
+              ? "bg-[#E0E7FF] text-[#4F46E5] border-[#C7D2FE]"
+              : "bg-[#F1F5F9] text-[#64748B] border-[#E2E8F0]",
+          )}
+          title={onToggleStatus ? `Status: ${category.isActive ? "Active" : "Inactive"} (Click to switch)` : `Status: ${category.isActive ? "Active" : "Inactive"}`}
+        >
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full inline-block",
+              category.isActive ? "bg-[#4F46E5]" : "bg-[#94A3B8]",
+            )}
+          />
+          {category.isActive ? "Active" : "Inactive"}
+        </Badge>
       </div>
 
       {/* Category Name */}

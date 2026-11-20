@@ -11,6 +11,16 @@ const booleanPreprocessor = (val: unknown): unknown => {
   return val;
 };
 
+const booleanOrAllPreprocessor = (val: unknown): unknown => {
+  if (typeof val === "string") {
+    const trimmed = val.trim().toLowerCase();
+    if (trimmed === "true" || trimmed === "1") return true;
+    if (trimmed === "false" || trimmed === "0") return false;
+    if (trimmed === "all") return "all";
+  }
+  return val;
+};
+
 export const createCategorySchema = z
   .object({
     name: z
@@ -18,6 +28,7 @@ export const createCategorySchema = z
       .trim()
       .min(1, { message: "Category name is required" })
       .max(100, { message: "Category name cannot exceed 100 characters" }),
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
   })
   .strict();
 
@@ -55,7 +66,10 @@ export const categoryIdParamsSchema = z
 export const categoryQuerySchema = z
   .object({
     search: z.string().trim().optional(),
-    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+    isActive: z.preprocess(
+      booleanOrAllPreprocessor,
+      z.union([z.boolean(), z.literal("all")]).optional(),
+    ),
     sort: z.string().trim().optional(),
   })
   .strict();

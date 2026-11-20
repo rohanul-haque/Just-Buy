@@ -7,11 +7,13 @@ export interface ICategoryImage {
 
 export interface ICategory {
   _id: string;
-  admin: {
-    _id?: string;
-    name?: string;
-    email?: string;
-  } | string;
+  admin:
+    | {
+        _id?: string;
+        name?: string;
+        email?: string;
+      }
+    | string;
   name: string;
   image: ICategoryImage;
   isActive: boolean;
@@ -21,6 +23,6 @@ export interface ICategory {
 
 export interface ICategoryQuery {
   search?: string;
-  isActive?: boolean;
+  isActive?: boolean | "all";
   sort?: string;
 }

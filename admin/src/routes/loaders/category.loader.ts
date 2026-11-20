@@ -6,7 +6,7 @@ export interface CategoryLoaderData {
 }
 
 export const categoriesLoader = async (): Promise<CategoryLoaderData> => {
-  const response = await categoryService.getAllCategories();
+  const response = await categoryService.getAllCategories({ isActive: "all" });
   return {
     categories: response.data || [],
   };
