@@ -1,4 +1,3 @@
-import EarningsSearch from "@/components/earnings/EarningsSearch";
 import EarningsSummaryCards from "@/components/earnings/EarningsSummaryCards";
 import EarningsTableSkeleton from "@/components/earnings/EarningsTableSkeleton";
 import EarningsTransactionsTable from "@/components/earnings/EarningsTransactionsTable";
@@ -40,14 +39,7 @@ export const EarningsPage: React.FC = () => {
           {/* 2. Earnings Summary Cards */}
           <EarningsSummaryCards summary={summary} />
 
-          {/* 3. Search Bar & Controls */}
-          <div className="flex items-center justify-end">
-            <div className="w-full sm:w-80">
-              <EarningsSearch placeholder="Search by transaction ID or buyer name..." />
-            </div>
-          </div>
-
-          {/* 4. Earnings Transactions Table */}
+          {/* 3. Earnings Transactions Table (All Orders, Search removed) */}
           <EarningsTransactionsTable
             transactions={transactions}
             pagination={pagination}
@@ -57,7 +49,7 @@ export const EarningsPage: React.FC = () => {
         </>
       )}
 
-      {/* 5. Order Details Dialog */}
+      {/* 4. Order Details Dialog */}
       <OrderDetailsDialog
         open={!!selectedOrderId}
         orderId={selectedOrderId}

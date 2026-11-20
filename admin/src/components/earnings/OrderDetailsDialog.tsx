@@ -10,7 +10,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IEarningsTransactionDetails } from "@/types/earnings";
 import {
-  CheckCircle2,
   CreditCard,
   MapPin,
   Package,
@@ -56,8 +55,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
       .catch((err) => {
         if (isMounted) {
           toast.error(
-            err.response?.data?.message ||
-              "Failed to load delivered order details",
+            err.response?.data?.message || "Failed to load order details",
           );
         }
       })
@@ -79,7 +77,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
     })}`;
   };
 
-  const formatDate = (val?: string | Date) => {
+  const formatDate = (val?: string | Date | null) => {
     if (!val) return "N/A";
     return new Date(val).toLocaleDateString("en-US", {
       year: "numeric",
@@ -90,13 +88,63 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
     });
   };
 
+  const getStatusBadge = (status?: string) => {
+    switch (status?.toUpperCase()) {
+      case "DELIVERED":
+        return (
+          <Badge className="bg-[#10B981]/10 text-[#10B981] border-transparent font-semibold">
+            Delivered
+          </Badge>
+        );
+      case "PENDING":
+        return (
+          <Badge className="bg-[#F59E0B]/10 text-[#D97706] border-transparent font-semibold">
+            Pending
+          </Badge>
+        );
+      case "PROCESSING":
+        return (
+          <Badge className="bg-[#0284C7]/10 text-[#0284C7] border-transparent font-semibold">
+            Processing
+          </Badge>
+        );
+      case "CONFIRMED":
+        return (
+          <Badge className="bg-[#4F46E5]/10 text-[#4F46E5] border-transparent font-semibold">
+            Confirmed
+          </Badge>
+        );
+      case "SHIPPED":
+        return (
+          <Badge className="bg-[#8B5CF6]/10 text-[#7C3AED] border-transparent font-semibold">
+            Shipped
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-transparent font-semibold">
+            Cancelled
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-[#6B7280]/10 text-[#4B5563] border-transparent font-semibold">
+            {status || "Unknown"}
+          </Badge>
+        );
+    }
+  };
+
+  const isDelivered =
+    details?.transaction?.orderStatus?.toUpperCase() === "DELIVERED";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-md border border-[#E5E7EB] bg-white p-6 shadow-xl">
         <DialogHeader className="border-b border-[#E5E7EB] pb-4">
           <DialogTitle className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
             <Receipt className="w-5 h-5 text-[#4F46E5]" />
-            Delivered Order & Commission Details
+            Order & Commission Details
           </DialogTitle>
           <DialogDescription className="text-sm text-[#4B5563]">
             Complete breakdown of transaction information, buyer credentials, product items, and commission distribution.
@@ -140,10 +188,9 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   <span className="text-xs text-[#6B7280] block">
                     Order Status
                   </span>
-                  <Badge className="bg-[#10B981]/10 text-[#10B981] border-transparent font-semibold text-xs mt-0.5">
-                    <CheckCircle2 className="w-3 h-3 mr-1 inline" />
-                    {details.transaction.orderStatus}
-                  </Badge>
+                  <div className="mt-0.5">
+                    {getStatusBadge(details.transaction.orderStatus)}
+                  </div>
                 </div>
                 <div>
                   <span className="text-xs text-[#6B7280] block">
@@ -163,10 +210,12 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                 </div>
                 <div>
                   <span className="text-xs text-[#6B7280] block">
-                    Delivered Date
+                    {isDelivered ? "Delivered Date" : "Order Date"}
                   </span>
                   <span className="font-medium text-[#0F172A] text-xs">
-                    {formatDate(details.transaction.deliveredDate)}
+                    {isDelivered
+                      ? formatDate(details.transaction.deliveredDate)
+                      : formatDate(details.transaction.orderDate)}
                   </span>
                 </div>
               </div>
@@ -222,7 +271,10 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
               <div className="border border-[#E5E7EB] rounded-md overflow-hidden divide-y divide-[#E5E7EB]">
                 {details.items.map((item, idx) => (
-                  <div key={idx} className="p-4 bg-white hover:bg-[#F8FAFC] transition-colors space-y-3">
+                  <div
+                    key={idx}
+                    className="p-4 bg-white hover:bg-[#F8FAFC] transition-colors space-y-3"
+                  >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         {item.productImage ? (
@@ -266,6 +318,11 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                       <div className="bg-[#ECFDF5] border border-[#D1FAE5] rounded-md p-2">
                         <span className="text-[#059669] font-medium block">
                           Admin Commission ({item.commissionRate}%)
+                          {!isDelivered && (
+                            <span className="text-xs font-normal text-[#D97706] ml-1">
+                              (Pending)
+                            </span>
+                          )}
                         </span>
                         <span className="font-bold text-sm text-[#047857]">
                           {formatCurrency(item.adminCommission)}
@@ -275,6 +332,11 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                       <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-md p-2">
                         <span className="text-[#1D4ED8] font-medium block">
                           Vendor Earnings ({item.vendorCommissionRate}%)
+                          {!isDelivered && (
+                            <span className="text-xs font-normal text-[#D97706] ml-1">
+                              (Pending)
+                            </span>
+                          )}
                         </span>
                         <span className="font-bold text-sm text-[#1E40AF]">
                           {formatCurrency(item.vendorEarnings)}
@@ -301,14 +363,30 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                 </div>
 
                 <div className="flex justify-between text-[#059669] bg-[#ECFDF5] px-2 py-1 rounded-md font-medium">
-                  <span>Total Admin Commission (15%):</span>
+                  <span>
+                    Total Admin Commission (15%):
+                    {!isDelivered && (
+                      <span className="text-xs font-normal text-[#D97706] ml-1">
+                        (Unrealized — Pending Delivery)
+                      </span>
+                    )}
+                  </span>
                   <span className="font-bold text-[#047857]">
-                    {formatCurrency(details.summary.totalAdminCommission)}
+                    {isDelivered
+                      ? formatCurrency(details.summary.totalAdminCommission)
+                      : `৳0.00 (${formatCurrency(details.summary.totalAdminCommission)} on delivery)`}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-[#1D4ED8] px-2 py-0.5">
-                  <span>Total Vendor Earnings (85%):</span>
+                  <span>
+                    Total Vendor Earnings (85%):
+                    {!isDelivered && (
+                      <span className="text-xs font-normal text-[#D97706] ml-1">
+                        (Pending)
+                      </span>
+                    )}
+                  </span>
                   <span className="font-medium">
                     {formatCurrency(details.summary.totalVendorEarnings)}
                   </span>

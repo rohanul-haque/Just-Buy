@@ -6,7 +6,6 @@ export const earningsLoader = async ({
   request,
 }: LoaderFunctionArgs): Promise<EarningsLoaderData> => {
   const url = new URL(request.url);
-  const search = url.searchParams.get("search") || "";
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
   const limit = Math.min(
     100,
@@ -19,7 +18,6 @@ export const earningsLoader = async ({
       earningsService.getEarningsTransactions({
         page,
         limit,
-        search: search.trim() ? search.trim() : undefined,
       }),
     ]);
 
@@ -27,7 +25,7 @@ export const earningsLoader = async ({
       summary: summaryRes.data || { todayIncome: 0, totalIncome: 0 },
       transactions: transactionsRes.data || [],
       pagination: transactionsRes.pagination || null,
-      search,
+      search: "",
       page,
     };
   } catch {
@@ -35,7 +33,7 @@ export const earningsLoader = async ({
       summary: { todayIncome: 0, totalIncome: 0 },
       transactions: [],
       pagination: null,
-      search,
+      search: "",
       page,
     };
   }

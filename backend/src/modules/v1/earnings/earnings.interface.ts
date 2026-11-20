@@ -38,7 +38,7 @@ export interface IEarningsTransactionDetails {
     paymentStatus: string;
     paymentMethod: string;
     orderDate: Date | string;
-    deliveredDate: Date | string;
+    deliveredDate?: Date | string | null;
   };
   buyer: {
     name: string;

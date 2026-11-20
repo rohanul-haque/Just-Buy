@@ -103,9 +103,7 @@ export const earningsService = {
         ? Math.max(0, Number(options.skip))
         : (page - 1) * limit;
 
-    const filter: Record<string, any> = {
-      status: OrderStatus.DELIVERED,
-    };
+    const filter: Record<string, any> = {};
 
     if (options.search && options.search.trim()) {
       const sanitized = options.search.trim();
@@ -127,7 +125,7 @@ export const earningsService = {
       Order.find(filter)
         .populate("buyer", "name email phoneNumber")
         .populate("payment", "stripePaymentIntentId paymentMethod status")
-        .sort({ deliveredAt: -1, updatedAt: -1 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -141,11 +139,21 @@ export const earningsService = {
           .reduce((sum, it) => sum + (Number(it.itemSubtotal) || 0), 0)
           .toFixed(2),
       );
-      const commission = Number(
-        items
-          .reduce((sum, it) => sum + (Number(it.adminCommission) || 0), 0)
-          .toFixed(2),
-      );
+
+      const isDelivered = order.status === OrderStatus.DELIVERED;
+
+      // Only Delivered orders contribute to recognized Admin earnings
+      const commission = isDelivered
+        ? Number(
+            items
+              .reduce((sum, it) => sum + (Number(it.adminCommission) || 0), 0)
+              .toFixed(2),
+          )
+        : 0;
+
+      const date = isDelivered
+        ? order.deliveredAt || order.updatedAt
+        : order.createdAt;
 
       const buyerName =
         (order.buyer as any)?.name ||
@@ -163,7 +171,7 @@ export const earningsService = {
         buyerName,
         amount,
         commission,
-        date: order.deliveredAt || order.updatedAt,
+        date,
         status: order.status,
       };
     });
@@ -195,10 +203,7 @@ export const earningsService = {
       );
     }
 
-    const order = await Order.findOne({
-      _id: orderId,
-      status: OrderStatus.DELIVERED,
-    })
+    const order = await Order.findById(orderId)
       .populate("buyer", "name email phoneNumber")
       .populate("payment", "paymentMethod provider status amount paidAt stripePaymentIntentId")
       .populate("vendor", "shopName location")
@@ -295,7 +300,10 @@ export const earningsService = {
         paymentStatus,
         paymentMethod,
         orderDate: order.createdAt,
-        deliveredDate: order.deliveredAt || order.updatedAt,
+        deliveredDate:
+          order.status === OrderStatus.DELIVERED
+            ? order.deliveredAt || order.updatedAt
+            : null,
       },
       buyer: {
         name: buyerName,
