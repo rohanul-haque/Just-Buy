@@ -15,12 +15,12 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#F8FAFC] font-sans">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar — Always visible on the left side */}
       <div className="hidden md:flex flex-shrink-0 h-full">
         <AdminSidebar isCollapsed={isCollapsed} />
       </div>
 
-      {/* Mobile Drawer (Sheet) */}
+      {/* Mobile Drawer Navigation (Sheet) */}
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetContent side="left" className="p-0 w-64 bg-white border-r border-[#E5E7EB]">
           <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
@@ -31,17 +31,17 @@ export const AdminLayout: React.FC = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Main App Content Area */}
+      {/* Main Content Area on the right */}
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
-        {/* Header */}
+        {/* Top Header */}
         <AdminHeader
           onToggleSidebar={toggleSidebar}
           onOpenMobileSidebar={() => setIsMobileOpen(true)}
         />
 
-        {/* Content Area with Surface Muted Background */}
+        {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#F8FAFC]">
-          <div className="max-w-7xl mx-auto space-y-6">
+          <div className="space-y-6">
             <Outlet />
           </div>
         </main>

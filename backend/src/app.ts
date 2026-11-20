@@ -1,6 +1,5 @@
 import config from "@/config";
 import corsOptions from "@/lib/corsOptions";
-import limiter from "@/lib/expressRateLimit";
 import globalErrorHandler from "@/middlewares/globalErrorHandler";
 import notFoundRoute from "@/middlewares/notFoundRoute";
 import compression from "compression";
@@ -46,7 +45,7 @@ app.use(
   }),
 );
 app.use(cookieParser());
-app.use(limiter);
+// app.use(limiter);
 
 app.get("/", (_, res) => {
   return res.status(status.OK).json({

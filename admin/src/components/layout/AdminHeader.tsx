@@ -2,6 +2,8 @@ import React from "react";
 import { Menu, Bell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -37,24 +39,26 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       {/* Left: Sidebar Toggle + Greeting */}
       <div className="flex items-center gap-4">
         {/* Desktop Collapse Toggle */}
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onToggleSidebar}
-          className="hidden md:flex p-2 rounded-full text-[#1F2937] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+          className="hidden md:flex rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
           aria-label="Toggle sidebar"
         >
           <Menu className="w-5 h-5" />
-        </button>
+        </Button>
 
         {/* Mobile Drawer Open Button */}
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onOpenMobileSidebar}
-          className="flex md:hidden p-2 rounded-full text-[#1F2937] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+          className="flex md:hidden rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
           aria-label="Open mobile menu"
         >
           <Menu className="w-5 h-5" />
-        </button>
+        </Button>
 
         {/* Welcome message */}
         <div className="flex flex-col">
@@ -70,22 +74,25 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       {/* Right: Notifications + Admin Profile */}
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
-        <button
-          type="button"
-          className="relative p-2.5 rounded-full bg-[#F8FAFC] border border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#E0E7FF] transition-all cursor-pointer"
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+        <div className="relative">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-md bg-[#F8FAFC] border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#E0E7FF]"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+          </Button>
+          <Badge className="absolute -top-1.5 -right-1.5 bg-[#EF4444] text-white text-[10px] font-bold h-4 min-w-4 px-1 rounded-md flex items-center justify-center border-none">
             2
-          </span>
-        </button>
+          </Badge>
+        </div>
 
         {/* Admin Avatar + Info */}
         <div className="flex items-center gap-3 pl-2 border-l border-[#E5E7EB]">
-          <Avatar className="w-10 h-10 border border-[#E5E7EB]">
-            <AvatarImage src={avatarUrl} alt={adminName} />
-            <AvatarFallback className="bg-[#E0E7FF] text-[#4F46E5] text-sm font-semibold">
+          <Avatar className="w-10 h-10 rounded-md border border-[#E5E7EB]">
+            <AvatarImage src={avatarUrl} alt={adminName} className="rounded-md" />
+            <AvatarFallback className="bg-[#E0E7FF] text-[#4F46E5] text-sm font-semibold rounded-md">
               {getInitials(adminName)}
             </AvatarFallback>
           </Avatar>

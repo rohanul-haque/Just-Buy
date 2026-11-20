@@ -16,6 +16,19 @@ import type { IVendor, VendorStatus } from "@/types/vendor";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const VendorsPage: React.FC = () => {
   const [vendors, setVendors] = useState<IVendor[]>([]);
@@ -76,27 +89,27 @@ export const VendorsPage: React.FC = () => {
     switch (status) {
       case "APPROVED":
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#E0E7FF] text-[#4F46E5]">
+          <Badge className="bg-[#E0E7FF] text-[#4F46E5] hover:bg-[#E0E7FF] rounded-md border-none font-semibold">
             Approved
-          </span>
+          </Badge>
         );
       case "REJECTED":
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#EF4444]/10 text-[#EF4444]">
+          <Badge className="bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/10 rounded-md border-none font-semibold">
             Rejected
-          </span>
+          </Badge>
         );
       case "SUSPENDED":
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#F8FAFC] text-[#1F2937] border border-[#E5E7EB]">
+          <Badge variant="outline" className="bg-[#F8FAFC] text-[#1F2937] border-[#E5E7EB] rounded-md font-semibold">
             Suspended
-          </span>
+          </Badge>
         );
       default:
         return (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#F8FAFC] text-[#4B5563] border border-[#E5E7EB]">
+          <Badge variant="outline" className="bg-[#F8FAFC] text-[#4B5563] border-[#E5E7EB] rounded-md font-semibold">
             {status || "Pending"}
-          </span>
+          </Badge>
         );
     }
   };
@@ -130,59 +143,63 @@ export const VendorsPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="icon"
             onClick={fetchVendors}
             disabled={isLoading}
-            className="p-2.5 rounded-full bg-white border border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#F8FAFC] transition cursor-pointer disabled:opacity-50"
+            className="rounded-md border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#F8FAFC]"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-[#4B5563] absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by store name, owner, city..."
-            className="w-full pl-11 pr-4 py-2 rounded-full bg-white border border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-          />
-        </div>
+      {/* Filter and Search Bar (shadcn Input & Button) */}
+      <Card className="rounded-md p-3 border-[#E5E7EB] bg-white">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by store name, owner, city..."
+              className="pl-9 h-9 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
+            />
+          </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {(["ALL", "APPROVED", "PENDING", "SUSPENDED", "REJECTED"] as const).map(
-            (status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setStatusFilter(status)}
-                className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer ${
-                  statusFilter === status
-                    ? "bg-[#6366F1] text-white"
-                    : "bg-white text-[#1F2937] hover:bg-[#F8FAFC] border border-[#E5E7EB]"
-                }`}
-              >
-                {status}
-              </button>
-            ),
-          )}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {(["ALL", "APPROVED", "PENDING", "SUSPENDED", "REJECTED"] as const).map(
+              (status) => (
+                <Button
+                  key={status}
+                  variant={statusFilter === status ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter(status)}
+                  className={`h-8 px-3 rounded-md text-xs font-medium ${
+                    statusFilter === status
+                      ? "bg-[#6366F1] hover:bg-[#4F46E5] text-white"
+                      : "bg-white text-[#1F2937] hover:bg-[#F8FAFC] border-[#E5E7EB]"
+                  }`}
+                >
+                  {status}
+                </Button>
+              ),
+            )}
+          </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Vendors Table */}
-      <div className="bg-white rounded-[16px] border border-[#E5E7EB] overflow-hidden">
+      {/* Vendors Table (shadcn Table) */}
+      <Card className="rounded-md border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
         {error ? (
           <div className="p-6 text-center text-[#EF4444] text-sm">{error}</div>
         ) : isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-12 bg-[#F8FAFC] rounded-[8px] animate-pulse" />
+              <Skeleton key={i} className="h-12 w-full rounded-md" />
             ))}
           </div>
         ) : filteredVendors.length === 0 ? (
@@ -191,134 +208,135 @@ export const VendorsPage: React.FC = () => {
             No vendor stores match your selected criteria.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#E5E7EB] text-xs font-semibold text-[#4B5563] uppercase tracking-wider bg-[#F8FAFC]">
-                  <th className="py-3.5 px-4">Store</th>
-                  <th className="py-3.5 px-4">Merchant Contact</th>
-                  <th className="py-3.5 px-4">Location</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E7EB]">
-                {filteredVendors.map((vendor) => (
-                  <tr
-                    key={vendor._id}
-                    className="hover:bg-[#F8FAFC] transition-colors"
-                  >
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        {getVendorProfileUrl(vendor) ? (
-                          <img
-                            src={getVendorProfileUrl(vendor)!}
-                            alt={vendor.shopName}
-                            className="w-10 h-10 rounded-full object-cover border border-[#E5E7EB]"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center font-bold text-sm">
-                            {(vendor.shopName || "S")[0].toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-semibold text-[#0F172A] text-sm">
-                            {vendor.shopName || "Unnamed Store"}
-                          </p>
-                          <p className="text-xs text-[#4B5563]">
-                            License: {vendor.licenceNumber || "N/A"}
-                          </p>
+          <Table>
+            <TableHeader className="bg-[#F8FAFC]">
+              <TableRow className="border-b border-[#E5E7EB]">
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Store</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Merchant Contact</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Location</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Status</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredVendors.map((vendor) => (
+                <TableRow
+                  key={vendor._id}
+                  className="hover:bg-[#F8FAFC] transition-colors border-b border-[#E5E7EB]"
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {getVendorProfileUrl(vendor) ? (
+                        <img
+                          src={getVendorProfileUrl(vendor)!}
+                          alt={vendor.shopName}
+                          className="w-10 h-10 rounded-md object-cover border border-[#E5E7EB]"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center font-bold text-sm">
+                          {(vendor.shopName || "S")[0].toUpperCase()}
                         </div>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-1 text-xs">
-                        <p className="font-medium text-[#0F172A]">
-                          {getVendorName(vendor)}
+                      )}
+                      <div>
+                        <p className="font-semibold text-[#0F172A] text-sm">
+                          {vendor.shopName || "Unnamed Store"}
                         </p>
+                        <p className="text-xs text-[#4B5563]">
+                          License: {vendor.licenceNumber || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="space-y-1 text-xs">
+                      <p className="font-medium text-[#0F172A]">
+                        {getVendorName(vendor)}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[#4B5563]">
+                        <Mail className="w-3.5 h-3.5 text-[#4B5563]" />
+                        <span>{getVendorEmail(vendor)}</span>
+                      </div>
+                      {(vendor as any).contactPhone && (
                         <div className="flex items-center gap-1.5 text-[#4B5563]">
-                          <Mail className="w-3.5 h-3.5 text-[#4B5563]" />
-                          <span>{getVendorEmail(vendor)}</span>
+                          <Phone className="w-3.5 h-3.5 text-[#4B5563]" />
+                          <span>{(vendor as any).contactPhone}</span>
                         </div>
-                        {(vendor as any).contactPhone && (
-                          <div className="flex items-center gap-1.5 text-[#4B5563]">
-                            <Phone className="w-3.5 h-3.5 text-[#4B5563]" />
-                            <span>{(vendor as any).contactPhone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
+                      )}
+                    </div>
+                  </TableCell>
 
-                    <td className="py-3.5 px-4 text-xs text-[#111827]">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#4B5563] flex-shrink-0" />
-                        <span>{getVendorLocation(vendor)}</span>
-                      </div>
-                    </td>
+                  <TableCell className="text-xs text-[#111827]">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#4B5563] flex-shrink-0" />
+                      <span>{getVendorLocation(vendor)}</span>
+                    </div>
+                  </TableCell>
 
-                    <td className="py-3.5 px-4">
-                      {getStatusBadge(vendor.status)}
-                    </td>
+                  <TableCell>
+                    {getStatusBadge(vendor.status)}
+                  </TableCell>
 
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="inline-flex items-center gap-1.5">
-                        {vendor.status !== "APPROVED" && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedVendor(vendor);
-                              setTargetStatus("APPROVED");
-                            }}
-                            className="h-8 px-3 rounded-full text-xs font-medium bg-white text-[#4F46E5] border border-[#E5E7EB] hover:bg-[#E0E7FF] transition cursor-pointer"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {vendor.status !== "SUSPENDED" && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedVendor(vendor);
-                              setTargetStatus("SUSPENDED");
-                            }}
-                            className="h-8 px-3 rounded-full text-xs font-medium bg-white text-[#1F2937] border border-[#E5E7EB] hover:bg-[#F8FAFC] transition cursor-pointer"
-                          >
-                            Suspend
-                          </button>
-                        )}
-                        {vendor.status !== "REJECTED" && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedVendor(vendor);
-                              setTargetStatus("REJECTED");
-                            }}
-                            className="h-8 px-3 rounded-full text-xs font-medium bg-white text-[#EF4444] border border-[#EF4444]/30 hover:bg-[#EF4444]/10 transition cursor-pointer"
-                          >
-                            Reject
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  <TableCell className="text-right">
+                    <div className="inline-flex items-center gap-1.5">
+                      {vendor.status !== "APPROVED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedVendor(vendor);
+                            setTargetStatus("APPROVED");
+                          }}
+                          className="h-8 px-3 rounded-md text-xs font-medium bg-white text-[#4F46E5] border-[#E5E7EB] hover:bg-[#E0E7FF]"
+                        >
+                          Approve
+                        </Button>
+                      )}
+                      {vendor.status !== "SUSPENDED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedVendor(vendor);
+                            setTargetStatus("SUSPENDED");
+                          }}
+                          className="h-8 px-3 rounded-md text-xs font-medium bg-white text-[#1F2937] border-[#E5E7EB] hover:bg-[#F8FAFC]"
+                        >
+                          Suspend
+                        </Button>
+                      )}
+                      {vendor.status !== "REJECTED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedVendor(vendor);
+                            setTargetStatus("REJECTED");
+                          }}
+                          className="h-8 px-3 rounded-md text-xs font-medium bg-white text-[#EF4444] border-[#EF4444]/30 hover:bg-[#EF4444]/10"
+                        >
+                          Reject
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </Card>
 
-      {/* Status Confirmation Modal */}
+      {/* Status Confirmation Modal (shadcn Dialog with MD rounded buttons) */}
       <Dialog
         open={!!selectedVendor}
         onOpenChange={() => setSelectedVendor(null)}
       >
-        <DialogContent className="sm:max-w-md p-7 bg-white rounded-[16px] border border-[#E5E7EB] shadow-lg font-sans">
+        <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
           <DialogTitle className="sr-only">Change Vendor Status</DialogTitle>
           <div className="space-y-4 text-center">
             <div
-              className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center ${
+              className={`w-12 h-12 rounded-md mx-auto flex items-center justify-center ${
                 targetStatus === "APPROVED"
                   ? "bg-[#E0E7FF] text-[#4F46E5]"
                   : targetStatus === "SUSPENDED"
@@ -349,19 +367,18 @@ export const VendorsPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
+              <Button
+                variant="outline"
                 disabled={isUpdatingStatus}
                 onClick={() => setSelectedVendor(null)}
-                className="flex-1 h-10 py-2 px-5 rounded-full bg-white hover:bg-[#F8FAFC] text-[#0F172A] border border-[#E5E7EB] text-sm font-medium transition cursor-pointer"
+                className="flex-1 h-10 rounded-md border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC]"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 disabled={isUpdatingStatus}
                 onClick={handleConfirmStatusChange}
-                className={`flex-1 h-10 py-2 px-5 rounded-full text-white text-sm font-semibold transition cursor-pointer flex items-center justify-center gap-2 ${
+                className={`flex-1 h-10 rounded-md text-white font-semibold ${
                   targetStatus === "REJECTED"
                     ? "bg-[#EF4444] hover:bg-[#DC2626]"
                     : "bg-[#6366F1] hover:bg-[#4F46E5]"
@@ -369,13 +386,13 @@ export const VendorsPage: React.FC = () => {
               >
                 {isUpdatingStatus ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     <span>Updating...</span>
                   </>
                 ) : (
                   `Confirm ${targetStatus}`
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </DialogContent>

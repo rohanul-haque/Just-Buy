@@ -15,6 +15,19 @@ import type { IBuyer } from "@/types/user";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const UsersPage: React.FC = () => {
   const [buyers, setBuyers] = useState<IBuyer[]>([]);
@@ -100,57 +113,61 @@ export const UsersPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="icon"
             onClick={fetchBuyers}
             disabled={isLoading}
-            className="p-2.5 rounded-full bg-white border border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#F8FAFC] transition cursor-pointer disabled:opacity-50"
+            className="rounded-md border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#F8FAFC]"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-[#4B5563] absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, email or phone..."
-            className="w-full pl-11 pr-4 py-2 rounded-full bg-white border border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-          />
-        </div>
+      {/* Filter and Search Bar (shadcn Input & Button) */}
+      <Card className="rounded-md p-3 border-[#E5E7EB] bg-white">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name, email or phone..."
+              className="pl-9 h-9 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          {(["ALL", "ACTIVE", "BLOCKED"] as const).map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setStatusFilter(status)}
-              className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer ${
-                statusFilter === status
-                  ? "bg-[#6366F1] text-white"
-                  : "bg-white text-[#1F2937] hover:bg-[#F8FAFC] border border-[#E5E7EB]"
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+          <div className="flex items-center gap-1.5">
+            {(["ALL", "ACTIVE", "BLOCKED"] as const).map((status) => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(status)}
+                className={`h-8 px-3 rounded-md text-xs font-medium ${
+                  statusFilter === status
+                    ? "bg-[#6366F1] hover:bg-[#4F46E5] text-white"
+                    : "bg-white text-[#1F2937] hover:bg-[#F8FAFC] border-[#E5E7EB]"
+                }`}
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-[16px] border border-[#E5E7EB] overflow-hidden">
+      {/* Users Table (shadcn Table) */}
+      <Card className="rounded-md border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
         {error ? (
           <div className="p-6 text-center text-[#EF4444] text-sm">{error}</div>
         ) : isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-12 bg-[#F8FAFC] rounded-[8px] animate-pulse" />
+              <Skeleton key={i} className="h-12 w-full rounded-md" />
             ))}
           </div>
         ) : filteredBuyers.length === 0 ? (
@@ -159,129 +176,130 @@ export const UsersPage: React.FC = () => {
             No user accounts found matching your query.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#E5E7EB] text-xs font-semibold text-[#4B5563] uppercase tracking-wider bg-[#F8FAFC]">
-                  <th className="py-3.5 px-4">User</th>
-                  <th className="py-3.5 px-4">Contact</th>
-                  <th className="py-3.5 px-4">Joined Date</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E7EB]">
-                {filteredBuyers.map((buyer) => {
-                  const bName = getBuyerName(buyer);
-                  const bEmail = getBuyerEmail(buyer);
-                  const bPhone = getBuyerPhone(buyer);
-                  const isBlocked =
-                    (buyer as any).isBlocked ||
-                    buyer.buyer?.status === "BLOCKED" ||
-                    (buyer as any).status === "BLOCKED";
+          <Table>
+            <TableHeader className="bg-[#F8FAFC]">
+              <TableRow className="border-b border-[#E5E7EB]">
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">User</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Contact</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Joined Date</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Status</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredBuyers.map((buyer) => {
+                const bName = getBuyerName(buyer);
+                const bEmail = getBuyerEmail(buyer);
+                const bPhone = getBuyerPhone(buyer);
+                const isBlocked =
+                  (buyer as any).isBlocked ||
+                  buyer.buyer?.status === "BLOCKED" ||
+                  (buyer as any).status === "BLOCKED";
 
-                  return (
-                    <tr
-                      key={buyer._id}
-                      className="hover:bg-[#F8FAFC] transition-colors"
-                    >
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4F46E5] font-bold text-sm flex items-center justify-center flex-shrink-0">
-                            {(bName || bEmail || "U")[0].toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-[#0F172A] text-sm leading-tight">
-                              {bName}
-                            </p>
-                            <p className="text-xs text-[#4B5563]">
-                              ID: {buyer._id.slice(-6).toUpperCase()}
-                            </p>
-                          </div>
+                return (
+                  <TableRow
+                    key={buyer._id}
+                    className="hover:bg-[#F8FAFC] transition-colors border-b border-[#E5E7EB]"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-sm flex items-center justify-center flex-shrink-0">
+                          {(bName || bEmail || "U")[0].toUpperCase()}
                         </div>
-                      </td>
+                        <div>
+                          <p className="font-semibold text-[#0F172A] text-sm leading-tight">
+                            {bName}
+                          </p>
+                          <p className="text-xs text-[#4B5563]">
+                            ID: {buyer._id.slice(-6).toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
 
-                      <td className="py-3.5 px-4">
-                        <div className="space-y-1 text-xs">
-                          <div className="flex items-center gap-1.5 text-[#111827]">
-                            <Mail className="w-3.5 h-3.5 text-[#4B5563]" />
-                            <span>{bEmail}</span>
+                    <TableCell>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center gap-1.5 text-[#111827]">
+                          <Mail className="w-3.5 h-3.5 text-[#4B5563]" />
+                          <span>{bEmail}</span>
+                        </div>
+                        {bPhone && (
+                          <div className="flex items-center gap-1.5 text-[#4B5563]">
+                            <Phone className="w-3.5 h-3.5 text-[#4B5563]" />
+                            <span>{bPhone}</span>
                           </div>
-                          {bPhone && (
-                            <div className="flex items-center gap-1.5 text-[#4B5563]">
-                              <Phone className="w-3.5 h-3.5 text-[#4B5563]" />
-                              <span>{bPhone}</span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-xs text-[#4B5563]">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-[#4B5563]" />
-                          <span>
-                            {buyer.createdAt
-                              ? new Date(buyer.createdAt).toLocaleDateString()
-                              : "N/A"}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            isBlocked
-                              ? "bg-[#EF4444]/10 text-[#EF4444]"
-                              : "bg-[#E0E7FF] text-[#4F46E5]"
-                          }`}
-                        >
-                          {isBlocked ? "Blocked" : "Active"}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        {isBlocked ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedBuyer(buyer);
-                              setTargetStatus("ACTIVE");
-                            }}
-                            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold bg-white text-[#4F46E5] border border-[#E5E7EB] hover:bg-[#E0E7FF] transition cursor-pointer"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span>Unblock</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedBuyer(buyer);
-                              setTargetStatus("BLOCKED");
-                            }}
-                            className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-xs font-semibold bg-white text-[#EF4444] border border-[#EF4444]/30 hover:bg-[#EF4444]/10 transition cursor-pointer"
-                          >
-                            <UserX className="w-3.5 h-3.5" />
-                            <span>Block</span>
-                          </button>
                         )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                      </div>
+                    </TableCell>
 
-      {/* Confirmation Modal */}
+                    <TableCell className="text-xs text-[#4B5563]">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-[#4B5563]" />
+                        <span>
+                          {buyer.createdAt
+                            ? new Date(buyer.createdAt).toLocaleDateString()
+                            : "N/A"}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={`rounded-md text-xs font-semibold ${
+                          isBlocked
+                            ? "bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/10"
+                            : "bg-[#E0E7FF] text-[#4F46E5] hover:bg-[#E0E7FF]"
+                        }`}
+                      >
+                        {isBlocked ? "Blocked" : "Active"}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      {isBlocked ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedBuyer(buyer);
+                            setTargetStatus("ACTIVE");
+                          }}
+                          className="h-8 px-3 rounded-md text-xs font-semibold bg-white text-[#4F46E5] border-[#E5E7EB] hover:bg-[#E0E7FF]"
+                        >
+                          <UserCheck className="w-3.5 h-3.5 mr-1" />
+                          <span>Unblock</span>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedBuyer(buyer);
+                            setTargetStatus("BLOCKED");
+                          }}
+                          className="h-8 px-3 rounded-md text-xs font-semibold bg-white text-[#EF4444] border-[#EF4444]/30 hover:bg-[#EF4444]/10"
+                        >
+                          <UserX className="w-3.5 h-3.5 mr-1" />
+                          <span>Block</span>
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      {/* Confirmation Modal (shadcn Dialog with MD rounded buttons) */}
       <Dialog open={!!selectedBuyer} onOpenChange={() => setSelectedBuyer(null)}>
-        <DialogContent className="sm:max-w-md p-7 bg-white rounded-[16px] border border-[#E5E7EB] shadow-lg font-sans">
+        <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
           <DialogTitle className="sr-only">Update User Status</DialogTitle>
           <div className="space-y-4 text-center">
             <div
-              className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center ${
+              className={`w-12 h-12 rounded-md mx-auto flex items-center justify-center ${
                 targetStatus === "BLOCKED"
                   ? "bg-[#EF4444]/10 text-[#EF4444]"
                   : "bg-[#E0E7FF] text-[#4F46E5]"
@@ -308,19 +326,18 @@ export const UsersPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
+              <Button
+                variant="outline"
                 disabled={isUpdatingStatus}
                 onClick={() => setSelectedBuyer(null)}
-                className="flex-1 h-10 py-2 px-5 rounded-full bg-white hover:bg-[#F8FAFC] text-[#0F172A] border border-[#E5E7EB] text-sm font-medium transition cursor-pointer"
+                className="flex-1 h-10 rounded-md border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC]"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 disabled={isUpdatingStatus}
                 onClick={handleConfirmStatusChange}
-                className={`flex-1 h-10 py-2 px-5 rounded-full text-white text-sm font-semibold transition cursor-pointer flex items-center justify-center gap-2 ${
+                className={`flex-1 h-10 rounded-md text-white font-semibold ${
                   targetStatus === "BLOCKED"
                     ? "bg-[#EF4444] hover:bg-[#DC2626]"
                     : "bg-[#6366F1] hover:bg-[#4F46E5]"
@@ -328,13 +345,13 @@ export const UsersPage: React.FC = () => {
               >
                 {isUpdatingStatus ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     <span>Updating...</span>
                   </>
                 ) : (
                   `Yes, ${targetStatus === "BLOCKED" ? "Block" : "Unblock"}`
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </DialogContent>

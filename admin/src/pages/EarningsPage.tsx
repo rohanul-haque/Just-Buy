@@ -11,6 +11,19 @@ import {
 import orderService from "@/api/services/order.service";
 import type { IOrder } from "@/types/order";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const EarningsPage: React.FC = () => {
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -136,34 +149,35 @@ export const EarningsPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="icon"
             onClick={fetchOrders}
             disabled={isLoading}
-            className="p-2.5 rounded-full bg-white border border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#F8FAFC] transition cursor-pointer disabled:opacity-50"
+            className="rounded-md border-[#E5E7EB] text-[#1F2937] hover:text-[#4F46E5] hover:bg-[#F8FAFC]"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outline"
             onClick={handleExportCSV}
-            className="h-10 flex items-center gap-2 px-5 rounded-full bg-white border border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC] text-sm font-medium transition cursor-pointer"
+            className="h-10 px-5 rounded-md border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC] text-sm font-medium"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4 mr-2" />
             <span>Export Report</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white rounded-[16px] p-6 md:p-[28px] border border-[#E5E7EB]">
+        <Card className="rounded-md p-6 border-[#E5E7EB] bg-white">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#4B5563] uppercase tracking-wider">
               Total Admin Commission
             </span>
-            <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
               <Wallet className="w-5 h-5" />
             </div>
           </div>
@@ -171,14 +185,14 @@ export const EarningsPage: React.FC = () => {
             ${totalPlatformEarnings.toFixed(2)}
           </h3>
           <p className="text-xs text-[#4B5563] mt-2">Net platform earnings</p>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-[16px] p-6 md:p-[28px] border border-[#E5E7EB]">
+        <Card className="rounded-md p-6 border-[#E5E7EB] bg-white">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#4B5563] uppercase tracking-wider">
               Gross Platform Sales
             </span>
-            <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -186,14 +200,14 @@ export const EarningsPage: React.FC = () => {
             ${totalGrossSales.toFixed(2)}
           </h3>
           <p className="text-xs text-[#4B5563] mt-2">Total order volume</p>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-[16px] p-6 md:p-[28px] border border-[#E5E7EB]">
+        <Card className="rounded-md p-6 border-[#E5E7EB] bg-white">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#4B5563] uppercase tracking-wider">
               Total Vendor Payouts
             </span>
-            <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
               <Receipt className="w-5 h-5" />
             </div>
           </div>
@@ -201,14 +215,14 @@ export const EarningsPage: React.FC = () => {
             ${totalVendorPayouts.toFixed(2)}
           </h3>
           <p className="text-xs text-[#4B5563] mt-2">Disbursed to vendors</p>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-[16px] p-6 md:p-[28px] border border-[#E5E7EB]">
+        <Card className="rounded-md p-6 border-[#E5E7EB] bg-white">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-semibold text-[#4B5563] uppercase tracking-wider">
               Avg. Commission / Order
             </span>
-            <div className="w-10 h-10 rounded-full bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] flex items-center justify-center">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
@@ -216,48 +230,51 @@ export const EarningsPage: React.FC = () => {
             ${avgCommission.toFixed(2)}
           </h3>
           <p className="text-xs text-[#4B5563] mt-2">Average yield per order</p>
-        </div>
+        </Card>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-[#4B5563] absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by Order ID..."
-            className="w-full pl-11 pr-4 py-2 rounded-full bg-white border border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#4B5563] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-          />
-        </div>
+      {/* Filter and Search Bar (shadcn Input & Button) */}
+      <Card className="rounded-md p-3 border-[#E5E7EB] bg-white">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Order ID..."
+              className="pl-9 h-9 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
+            />
+          </div>
 
-        <div className="flex items-center gap-2">
-          {["ALL", "DELIVERED", "PROCESSING", "CANCELLED"].map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setStatusFilter(status)}
-              className={`h-9 px-4 rounded-full text-xs font-medium transition cursor-pointer ${
-                statusFilter === status
-                  ? "bg-[#6366F1] text-white"
-                  : "bg-white text-[#1F2937] hover:bg-[#F8FAFC] border border-[#E5E7EB]"
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {["ALL", "DELIVERED", "PROCESSING", "CANCELLED"].map((status) => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(status)}
+                className={`h-8 px-3 rounded-md text-xs font-medium ${
+                  statusFilter === status
+                    ? "bg-[#6366F1] hover:bg-[#4F46E5] text-white"
+                    : "bg-white text-[#1F2937] hover:bg-[#F8FAFC] border-[#E5E7EB]"
+                }`}
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Transactions Table */}
-      <div className="bg-white rounded-[16px] border border-[#E5E7EB] overflow-hidden">
+      {/* Transactions Table (shadcn Table) */}
+      <Card className="rounded-md border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
         {error ? (
           <div className="p-6 text-center text-[#EF4444] text-sm">{error}</div>
         ) : isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 bg-[#F8FAFC] rounded-[8px] animate-pulse" />
+              <Skeleton key={i} className="h-10 w-full rounded-md" />
             ))}
           </div>
         ) : filteredOrders.length === 0 ? (
@@ -265,73 +282,72 @@ export const EarningsPage: React.FC = () => {
             No transactions match the selected criteria.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-[#E5E7EB] text-xs font-semibold text-[#4B5563] uppercase tracking-wider bg-[#F8FAFC]">
-                  <th className="py-3.5 px-4">Transaction / Order #</th>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4">Gross Total</th>
-                  <th className="py-3.5 px-4">Admin Commission</th>
-                  <th className="py-3.5 px-4">Vendor Payout</th>
-                  <th className="py-3.5 px-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E7EB]">
-                {filteredOrders.map((order) => {
-                  const items = order.productItems || order.items || [];
-                  const adminComm = items.reduce(
-                    (a, i) => a + (Number(i.adminCommission) || 0),
-                    0,
-                  );
-                  const vendorEarn = items.reduce(
-                    (a, i) => a + (Number(i.vendorEarning) || 0),
-                    0,
-                  );
+          <Table>
+            <TableHeader className="bg-[#F8FAFC]">
+              <TableRow className="border-b border-[#E5E7EB]">
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Transaction / Order #</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Date</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Gross Total</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Admin Commission</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Vendor Payout</TableHead>
+                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => {
+                const items = order.productItems || order.items || [];
+                const adminComm = items.reduce(
+                  (a, i) => a + (Number(i.adminCommission) || 0),
+                  0,
+                );
+                const vendorEarn = items.reduce(
+                  (a, i) => a + (Number(i.vendorEarning) || 0),
+                  0,
+                );
 
-                  return (
-                    <tr
-                      key={order._id}
-                      className="hover:bg-[#F8FAFC] transition-colors"
-                    >
-                      <td className="py-3.5 px-4 font-mono text-xs font-semibold text-[#0F172A]">
-                        #{order._id.slice(-8).toUpperCase()}
-                      </td>
-                      <td className="py-3.5 px-4 text-xs text-[#4B5563]">
-                        {order.createdAt
-                          ? new Date(order.createdAt).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td className="py-3.5 px-4 font-semibold text-[#0F172A]">
-                        ${Number(order.totalAmount || 0).toFixed(2)}
-                      </td>
-                      <td className="py-3.5 px-4 font-semibold text-[#4F46E5]">
-                        +${adminComm.toFixed(2)}
-                      </td>
-                      <td className="py-3.5 px-4 text-[#111827] font-medium">
-                        ${vendorEarn.toFixed(2)}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            order.status === "DELIVERED"
-                              ? "bg-[#E0E7FF] text-[#4F46E5]"
-                              : order.status === "CANCELLED"
-                              ? "bg-[#EF4444]/10 text-[#EF4444]"
-                              : "bg-[#F8FAFC] text-[#4B5563] border border-[#E5E7EB]"
-                          }`}
-                        >
-                          {order.status || "PENDING"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                return (
+                  <TableRow
+                    key={order._id}
+                    className="hover:bg-[#F8FAFC] transition-colors border-b border-[#E5E7EB]"
+                  >
+                    <TableCell className="font-mono text-xs font-semibold text-[#0F172A]">
+                      #{order._id.slice(-8).toUpperCase()}
+                    </TableCell>
+                    <TableCell className="text-xs text-[#4B5563]">
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell className="font-semibold text-[#0F172A]">
+                      ${Number(order.totalAmount || 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="font-semibold text-[#4F46E5]">
+                      +${adminComm.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-[#111827] font-medium">
+                      ${vendorEarn.toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={`rounded-md text-xs font-semibold ${
+                          order.status === "DELIVERED"
+                            ? "bg-[#E0E7FF] text-[#4F46E5] hover:bg-[#E0E7FF]"
+                            : order.status === "CANCELLED"
+                            ? "bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/10"
+                            : "bg-[#F8FAFC] text-[#4B5563] border border-[#E5E7EB]"
+                        }`}
+                      >
+                        {order.status || "PENDING"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </Card>
     </div>
   );
 };
