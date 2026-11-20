@@ -1,5 +1,6 @@
 import type { Types } from "mongoose";
 import type { TGender } from "@/modules/v1/buyer/buyer.constant";
+import type { TAccountStatus } from "@/modules/v1/user/user.constant";
 
 export interface IProfileImage {
   publicId: string;
@@ -31,5 +32,6 @@ export interface IBuyerQueryOptions {
   skip?: number;
   search?: string;
   gender?: TGender;
+  status?: TAccountStatus;
 }
 

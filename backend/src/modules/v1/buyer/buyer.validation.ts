@@ -38,6 +38,7 @@ export const buyerQuerySchema = z.object({
   skip: z.coerce.number().int().nonnegative().optional(),
   search: z.string().trim().optional(),
   gender: z.enum(Object.values(Gender) as [string, ...string[]]).optional(),
+  status: z.enum(Object.values(AccountStatus) as [string, ...string[]]).optional(),
 });
 
 export type TUpdateBuyerProfileInput = z.infer<typeof updateBuyerProfileSchema>;

@@ -7,6 +7,7 @@ export interface GetBuyersParams {
   limit?: number;
   search?: string;
   gender?: string;
+  status?: "ACTIVE" | "BLOCKED" | string;
 }
 
 export const buyerService = {

@@ -39,6 +39,7 @@ export interface BuyerLoaderData {
   buyers: IBuyer[];
   pagination: IBuyerPagination | null;
   search: string;
+  status: string;
   page: number;
 }
 

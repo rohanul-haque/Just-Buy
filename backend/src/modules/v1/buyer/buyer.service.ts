@@ -209,39 +209,65 @@ const getAllBuyers = async (
       ? Math.max(0, Number(options.skip))
       : (page - 1) * limit;
 
-  const filter: Record<string, any> = {};
+  // Build match criteria to securely enforce Buyer role and optional status/gender filters
+  const matchCriteria: Record<string, any> = {
+    "buyer.role": UserRole.BUYER,
+  };
+
+  if (options.status) {
+    matchCriteria["buyer.status"] = options.status;
+  }
 
   if (options.gender) {
-    filter.gender = options.gender;
+    matchCriteria.gender = options.gender;
   }
+
+  const pipeline: any[] = [
+    {
+      $lookup: {
+        from: "users",
+        localField: "buyer",
+        foreignField: "_id",
+        as: "buyer",
+      },
+    },
+    { $unwind: "$buyer" },
+    { $match: matchCriteria },
+  ];
 
   if (options.search && options.search.trim()) {
     const searchRegex = new RegExp(escapeRegex(options.search.trim()), "i");
-    // Search in user name/email (role BUYER) or phone number/address
-    const matchedUsers = await User.find({
-      role: UserRole.BUYER,
-      $or: [{ name: searchRegex }, { email: searchRegex }],
-    }).select("_id");
-
-    const matchedUserIds = matchedUsers.map((u) => u._id);
-
-    filter.$or = [
-      { buyer: { $in: matchedUserIds } },
-      { phoneNumber: searchRegex },
-      { address: searchRegex },
-    ];
+    pipeline.push({
+      $match: {
+        $or: [
+          { "buyer.name": searchRegex },
+          { "buyer.email": searchRegex },
+          { phoneNumber: searchRegex },
+          { address: searchRegex },
+        ],
+      },
+    });
   }
 
-  const [buyers, total] = await Promise.all([
-    Buyer.find(filter)
-      .populate("buyer", "name email role status createdAt")
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-      .exec(),
-    Buyer.countDocuments(filter),
+  pipeline.push({
+    $project: {
+      "buyer.password": 0,
+    },
+  });
+
+  const [aggregateResult] = await Buyer.aggregate([
+    ...pipeline,
+    { $sort: { createdAt: -1 } },
+    {
+      $facet: {
+        data: [{ $skip: skip }, { $limit: limit }],
+        totalCount: [{ $count: "count" }],
+      },
+    },
   ]);
 
+  const buyers = aggregateResult?.data || [];
+  const total = aggregateResult?.totalCount?.[0]?.count || 0;
   const totalPages = Math.ceil(total / limit) || 1;
 
   return {

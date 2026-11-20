@@ -1,6 +1,7 @@
 import BuyerDeleteDialog from "@/components/buyers/BuyerDeleteDialog";
 import BuyerDetailsDialog from "@/components/buyers/BuyerDetailsDialog";
 import BuyerSearch from "@/components/buyers/BuyerSearch";
+import BuyerStatusFilter from "@/components/buyers/BuyerStatusFilter";
 import BuyersTable from "@/components/buyers/BuyersTable";
 import BuyerTableSkeleton from "@/components/buyers/BuyerTableSkeleton";
 import type { BuyerLoaderData, IBuyer } from "@/types/buyer";
@@ -27,14 +28,15 @@ export const BuyersPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header (Consistent with Categories layout) */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
             Buyers
           </h2>
         </div>
-        <div className="flex items-center">
+        <div className="flex flex-col items-stretch sm:items-end gap-2.5">
           <BuyerSearch />
+          <BuyerStatusFilter />
         </div>
       </div>
 

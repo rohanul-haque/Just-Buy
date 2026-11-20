@@ -1,4 +1,3 @@
-import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -8,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import React from "react";
 
 interface BuyerTableSkeletonProps {
   rows?: number;
@@ -21,18 +21,27 @@ export const BuyerTableSkeleton: React.FC<BuyerTableSkeletonProps> = ({
       <Table>
         <TableHeader className="bg-[#F8FAFC]">
           <TableRow className="border-b border-[#E5E7EB]">
-            <TableHead className="w-16 text-xs font-semibold text-[#4B5563] uppercase">
-              SL
+            {/* 1. Buyer Image */}
+            <TableHead className="w-24 text-xs font-semibold text-[#4B5563] uppercase">
+              Buyer Image
             </TableHead>
+            {/* 2. Buyer Name */}
             <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
               Buyer Name
             </TableHead>
+            {/* 3. Email */}
             <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
               Email
             </TableHead>
+            {/* 4. Role */}
+            <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
+              Role
+            </TableHead>
+            {/* 5. Join Date */}
             <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
               Join Date
             </TableHead>
+            {/* 6. Actions */}
             <TableHead className="w-28 text-xs font-semibold text-[#4B5563] uppercase text-right">
               Actions
             </TableHead>
@@ -44,26 +53,32 @@ export const BuyerTableSkeleton: React.FC<BuyerTableSkeletonProps> = ({
               key={idx}
               className="border-b border-[#E5E7EB] hover:bg-transparent"
             >
-              <TableCell className="py-4">
-                <Skeleton className="h-4 w-6 rounded-md" />
+              {/* 1. Buyer Image */}
+              <TableCell className="py-3">
+                <Skeleton className="w-10 h-10 rounded-md" />
               </TableCell>
-              <TableCell className="py-4">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="w-9 h-9 rounded-md flex-shrink-0" />
-                  <div className="space-y-1.5 flex-1">
-                    <Skeleton className="h-4 w-32 rounded-md" />
-                    <Skeleton className="h-3 w-20 rounded-md" />
-                  </div>
+              {/* 2. Buyer Name */}
+              <TableCell className="py-3">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-32 rounded-md" />
+                  <Skeleton className="h-3 w-20 rounded-md" />
                 </div>
               </TableCell>
-              <TableCell className="py-4">
+              {/* 3. Email */}
+              <TableCell className="py-3">
                 <Skeleton className="h-4 w-40 rounded-md" />
               </TableCell>
-              <TableCell className="py-4">
+              {/* 4. Role */}
+              <TableCell className="py-3">
+                <Skeleton className="h-5 w-16 rounded-md" />
+              </TableCell>
+              {/* 5. Join Date */}
+              <TableCell className="py-3">
                 <Skeleton className="h-4 w-24 rounded-md" />
               </TableCell>
-              <TableCell className="py-4 text-right">
-                <div className="flex items-center justify-end gap-2">
+              {/* 6. Actions */}
+              <TableCell className="py-3 text-right">
+                <div className="flex items-center justify-end gap-1.5">
                   <Skeleton className="w-8 h-8 rounded-md" />
                   <Skeleton className="w-8 h-8 rounded-md" />
                 </div>

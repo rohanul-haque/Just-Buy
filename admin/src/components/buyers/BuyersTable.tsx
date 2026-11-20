@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -50,6 +51,9 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
     ? pagination.hasNextPage
     : currentPage < totalPages;
 
+  const activeSearch = searchParams.get("search");
+  const activeStatus = searchParams.get("status");
+
   if (buyers.length === 0) {
     return (
       <div className="rounded-md border border-[#E5E7EB] bg-white p-12 text-center">
@@ -60,8 +64,8 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
           No buyers found
         </h3>
         <p className="text-sm text-[#4B5563] mt-1 max-w-sm mx-auto">
-          {searchParams.get("search")
-            ? `No buyers match your search for "${searchParams.get("search")}". Try searching with a different term.`
+          {activeSearch || activeStatus
+            ? "No buyers match your search and filter criteria. Try adjusting your search term or status filter."
             : "No registered buyers found in the platform."}
         </p>
       </div>
@@ -74,29 +78,38 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
         <Table>
           <TableHeader className="bg-[#F8FAFC]">
             <TableRow className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC]">
-              <TableHead className="w-16 text-xs font-semibold text-[#4B5563] uppercase">
-                Serial Number
+              {/* 1. Buyer Image */}
+              <TableHead className="w-24 text-xs font-semibold text-[#4B5563] uppercase">
+                Buyer Image
               </TableHead>
+              {/* 2. Buyer Name */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Buyer Name
               </TableHead>
+              {/* 3. Email */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Email
               </TableHead>
+              {/* 4. Role (immediately after Email) */}
+              <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
+                Role
+              </TableHead>
+              {/* 5. Join Date */}
               <TableHead className="text-xs font-semibold text-[#4B5563] uppercase">
                 Join Date
               </TableHead>
+              {/* 6. Actions */}
               <TableHead className="w-28 text-xs font-semibold text-[#4B5563] uppercase text-right">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {buyers.map((buyer, index) => {
-              const serialNumber = (currentPage - 1) * limit + index + 1;
+            {buyers.map((buyer) => {
               const user = buyer.buyer;
               const name = user?.name || "Anonymous Buyer";
               const email = user?.email || "No email";
+              const role = user?.role || "BUYER";
               const isBlocked = user?.status === "BLOCKED";
               const rawDate = user?.createdAt || buyer.createdAt;
               const formattedDate = rawDate
@@ -121,57 +134,64 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
                   key={buyer._id}
                   className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
                 >
-                  {/* 1. Serial Number */}
-                  <TableCell className="font-mono text-xs text-[#6B7280]">
-                    {String(serialNumber).padStart(2, "0")}
+                  {/* 1. Buyer Image */}
+                  <TableCell className="py-3">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={name}
+                        className="w-10 h-10 rounded-md object-cover border border-[#E5E7EB] shadow-xs"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-xs flex items-center justify-center border border-[#C7D2FE] shadow-xs">
+                        {initials}
+                      </div>
+                    )}
                   </TableCell>
 
                   {/* 2. Buyer Name */}
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt={name}
-                          className="w-9 h-9 rounded-md object-cover border border-[#E5E7EB] flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-xs flex items-center justify-center flex-shrink-0">
-                          {initials}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-sm text-[#0F172A] truncate leading-tight">
-                            {name}
-                          </p>
-                          {isBlocked && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EF4444]/10 text-[#EF4444]">
-                              Blocked
-                            </span>
-                          )}
-                        </div>
-                        {buyer.phoneNumber && (
-                          <p className="text-xs text-[#6B7280] truncate mt-0.5">
-                            {buyer.phoneNumber}
-                          </p>
+                  <TableCell className="py-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm text-[#0F172A] leading-tight">
+                          {name}
+                        </p>
+                        {isBlocked && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EF4444]/10 text-[#EF4444]">
+                            Blocked
+                          </span>
                         )}
                       </div>
+                      {buyer.phoneNumber && (
+                        <p className="text-xs text-[#6B7280]">
+                          {buyer.phoneNumber}
+                        </p>
+                      )}
                     </div>
                   </TableCell>
 
                   {/* 3. Email */}
-                  <TableCell className="text-sm text-[#374151]">
+                  <TableCell className="py-3 text-sm text-[#374151]">
                     <span className="truncate block max-w-xs">{email}</span>
                   </TableCell>
 
-                  {/* 4. Join Date */}
-                  <TableCell className="text-sm text-[#4B5563]">
+                  {/* 4. Role (immediately after Email) */}
+                  <TableCell className="py-3">
+                    <Badge
+                      variant="outline"
+                      className="rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-[#F8FAFC] text-[#4338CA] border-[#C7D2FE]"
+                    >
+                      {role}
+                    </Badge>
+                  </TableCell>
+
+                  {/* 5. Join Date */}
+                  <TableCell className="py-3 text-sm text-[#4B5563]">
                     {formattedDate}
                   </TableCell>
 
-                  {/* 5. Actions (Exactly two icon-only actions) */}
-                  <TableCell className="text-right">
+                  {/* 6. Actions (Exactly two icon-only actions) */}
+                  <TableCell className="py-3 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       {/* Action 1: Soft Delete / Block */}
                       <Button
