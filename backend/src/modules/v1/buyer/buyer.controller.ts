@@ -94,6 +94,20 @@ const updateBuyerStatus = asyncHandler(
   },
 );
 
+const deleteBuyer = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const buyerId = req.params.buyerId as string;
+    const result = await buyerService.deleteBuyer(buyerId);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: BUYER_MESSAGES.PROFILE_DELETED,
+      data: result,
+    });
+  },
+);
+
 const buyerController = {
   getOwnProfile,
   updateOwnProfile,
@@ -101,6 +115,7 @@ const buyerController = {
   getAllBuyers,
   getBuyerById,
   updateBuyerStatus,
+  deleteBuyer,
 };
 
 export default buyerController;

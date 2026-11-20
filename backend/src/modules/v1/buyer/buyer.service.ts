@@ -164,6 +164,10 @@ const updateOwnProfile = async (
   }
 };
 
+const escapeRegex = (str: string): string => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
 const deleteOwnAccount = async (
   userId: string,
 ): Promise<{ message: string }> => {
@@ -176,43 +180,11 @@ const deleteOwnAccount = async (
     );
   }
 
-  const oldPublicId = buyer.profile?.publicId;
+  // Soft-delete / deactivate User to preserve order, payment, and review history
+  await User.findByIdAndUpdate(userId, { status: AccountStatus.BLOCKED });
 
-  // 1. Run database operations in transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    // Soft-delete / deactivate User to preserve order and payment history
-    await User.findByIdAndUpdate(
-      userId,
-      { status: AccountStatus.BLOCKED },
-      { session },
-    );
-
-    // Delete or clear the Buyer profile document
-    await Buyer.deleteOne({ buyer: userId }, { session });
-
-    await session.commitTransaction();
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    await session.endSession();
-  }
-
-  // 2. Revoke active sessions in Redis
+  // Revoke active sessions in Redis
   await revokeRefreshToken(userId);
-
-  // 3. Delete Cloudinary profile image only after successful DB commit
-  if (oldPublicId) {
-    cloudinaryService.deleteImage(oldPublicId).catch((err) => {
-      logger.error(
-        "Failed to delete Cloudinary image on account deletion:",
-        err,
-      );
-    });
-  }
 
   return { message: BUYER_MESSAGES.PROFILE_DELETED };
 };
@@ -243,10 +215,11 @@ const getAllBuyers = async (
     filter.gender = options.gender;
   }
 
-  if (options.search) {
-    const searchRegex = new RegExp(options.search, "i");
-    // Search in user name/email or phone number/address
+  if (options.search && options.search.trim()) {
+    const searchRegex = new RegExp(escapeRegex(options.search.trim()), "i");
+    // Search in user name/email (role BUYER) or phone number/address
     const matchedUsers = await User.find({
+      role: UserRole.BUYER,
       $or: [{ name: searchRegex }, { email: searchRegex }],
     }).select("_id");
 
@@ -336,6 +309,10 @@ const updateBuyerStatus = async (
   return updatedBuyer!;
 };
 
+const deleteBuyer = async (buyerId: string): Promise<IBuyer> => {
+  return await updateBuyerStatus(buyerId, AccountStatus.BLOCKED);
+};
+
 const buyerService = {
   getOwnProfile,
   updateOwnProfile,
@@ -343,6 +320,7 @@ const buyerService = {
   getAllBuyers,
   getBuyerById,
   updateBuyerStatus,
+  deleteBuyer,
 };
 
 export default buyerService;

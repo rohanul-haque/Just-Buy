@@ -1,13 +1,15 @@
 import AdminLayout from "@/components/layout/AdminLayout";
+import BuyersPage from "@/pages/BuyersPage";
 import CategoriesPage from "@/pages/CategoriesPage";
 import DashboardPage from "@/pages/DashboardPage";
 import EarningsPage from "@/pages/EarningsPage";
 import LoginPage from "@/pages/LoginPage";
 import SettingsPage from "@/pages/SettingsPage";
-import UsersPage from "@/pages/UsersPage";
 import VendorsPage from "@/pages/VendorsPage";
+import buyerAction from "@/routes/actions/buyer.action";
 import categoryAction from "@/routes/actions/category.action";
 import profileAction from "@/routes/actions/profile.action";
+import buyersLoader from "@/routes/loaders/buyer.loader";
 import categoriesLoader from "@/routes/loaders/category.loader";
 import profileLoader from "@/routes/loaders/profile.loader";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -39,8 +41,14 @@ const router = createBrowserRouter([
         Component: EarningsPage,
       },
       {
+        path: "buyers",
+        loader: buyersLoader,
+        action: buyerAction,
+        Component: BuyersPage,
+      },
+      {
         path: "users",
-        Component: UsersPage,
+        element: <Navigate to="/buyers" replace />,
       },
       {
         path: "vendors",

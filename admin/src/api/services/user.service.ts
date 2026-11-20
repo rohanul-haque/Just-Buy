@@ -1,4 +1,4 @@
-import apiClient from "@/api/client";
+import buyerService from "@/api/services/buyer.service";
 import type { ApiResponse, PaginationParams } from "@/types/api";
 import type { IBuyer } from "@/types/user";
 
@@ -6,26 +6,22 @@ export const userService = {
   getAllBuyers: async (
     params?: PaginationParams,
   ): Promise<ApiResponse<IBuyer[]>> => {
-    const response = await apiClient.get<ApiResponse<IBuyer[]>>("/buyers", {
-      params,
-    });
-    return response.data;
+    return buyerService.getAllBuyers(params);
   },
 
   getBuyerById: async (id: string): Promise<ApiResponse<IBuyer>> => {
-    const response = await apiClient.get<ApiResponse<IBuyer>>(`/buyers/${id}`);
-    return response.data;
+    return buyerService.getBuyerById(id);
   },
 
   updateBuyerStatus: async (
     buyerId: string,
     status: "ACTIVE" | "BLOCKED",
   ): Promise<ApiResponse<IBuyer>> => {
-    const response = await apiClient.patch<ApiResponse<IBuyer>>(
-      `/buyers/${buyerId}/status`,
-      { status },
-    );
-    return response.data;
+    return buyerService.updateBuyerStatus(buyerId, status);
+  },
+
+  deleteBuyer: async (buyerId: string): Promise<ApiResponse<IBuyer>> => {
+    return buyerService.deleteBuyer(buyerId);
   },
 };
 

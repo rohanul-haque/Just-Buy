@@ -63,4 +63,12 @@ router.patch(
   buyerController.updateBuyerStatus,
 );
 
+router.delete(
+  "/:buyerId",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  validateRequest(buyerIdParamsSchema, "params"),
+  buyerController.deleteBuyer,
+);
+
 export default router;
