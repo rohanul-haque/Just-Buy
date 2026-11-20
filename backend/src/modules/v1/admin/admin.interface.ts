@@ -16,5 +16,7 @@ export interface IAdmin {
 }
 
 export interface IUpdateAdminProfileInput {
+  name?: string;
+  email?: string;
   phoneNumber?: string;
 }
