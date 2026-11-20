@@ -181,6 +181,10 @@ const orderSchema = new Schema<IOrder>(
       type: Schema.Types.ObjectId,
       ref: "Payment",
     },
+    deliveredAt: {
+      type: Date,
+      index: true,
+    },
   },
   {
     timestamps: true,

@@ -12,6 +12,7 @@ import profileAction from "@/routes/actions/profile.action";
 import vendorAction from "@/routes/actions/vendor.action";
 import buyersLoader from "@/routes/loaders/buyer.loader";
 import categoriesLoader from "@/routes/loaders/category.loader";
+import earningsLoader from "@/routes/loaders/earnings.loader";
 import profileLoader from "@/routes/loaders/profile.loader";
 import vendorsLoader from "@/routes/loaders/vendor.loader";
 import ProtectedRoute from "@/routes/ProtectedRoute";
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
       },
       {
         path: "earnings",
+        loader: earningsLoader,
         Component: EarningsPage,
       },
       {

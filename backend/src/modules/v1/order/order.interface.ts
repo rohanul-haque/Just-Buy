@@ -44,6 +44,7 @@ export interface IOrder {
   totalAmount: number;
   status: OrderStatus;
   payment?: Types.ObjectId | any;
+  deliveredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

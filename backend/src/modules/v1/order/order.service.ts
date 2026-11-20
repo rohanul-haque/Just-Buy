@@ -646,6 +646,10 @@ const updateOrderStatus = async (
       }
     }
 
+    if (payload.status === OrderStatus.DELIVERED && !order.deliveredAt) {
+      order.deliveredAt = new Date();
+    }
+
     order.status = payload.status;
 
     if (session) {
