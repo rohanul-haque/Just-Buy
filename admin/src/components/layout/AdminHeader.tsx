@@ -45,7 +45,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
   return (
     <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between select-none">
-      {/* Left: Sidebar Toggle + Dynamic Greeting */}
+      {/* Left: Sidebar Toggle + Welcome Section */}
       <div className="flex items-center gap-4">
         {/* Desktop Collapse Toggle */}
         <Button
@@ -69,21 +69,25 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <Menu className="w-5 h-5" />
         </Button>
 
-        {/* Dynamic Greeting */}
-        <div className="flex flex-col">
-          <h1 className="text-lg md:text-xl font-bold tracking-tight text-[#0F172A] leading-tight">
-            {greeting}
+        {/* Two-Line Left-Aligned Welcome Section */}
+        <div className="flex flex-col text-left">
+          <h1 className="text-sm sm:text-base md:text-lg font-bold text-[#0F172A] leading-tight">
+            Welcome Back, {adminName}
           </h1>
-          <span className="text-xs md:text-sm text-[#4B5563] font-normal">
-            Have a nice day!
+          <span className="text-xs md:text-sm text-[#4B5563] font-normal mt-0.5">
+            {greeting}! Have a nice day.
           </span>
         </div>
       </div>
 
-      {/* Right: Admin Profile */}
+      {/* Right: User Profile (Notification Bell removed) */}
       <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10 rounded-md border border-[#E5E7EB]">
-          <AvatarImage src={avatarUrl} alt={adminName} className="rounded-md" />
+        <Avatar className="w-10 h-10 rounded-md border border-[#E5E7EB] shrink-0">
+          <AvatarImage
+            src={avatarUrl}
+            alt={adminName}
+            className="rounded-md object-cover"
+          />
           <AvatarFallback className="bg-[#E0E7FF] text-[#4F46E5] text-sm font-semibold rounded-md">
             {getInitials(adminName)}
           </AvatarFallback>
