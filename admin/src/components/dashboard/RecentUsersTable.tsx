@@ -11,9 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { IRecentUser, IRecentUsersResponse } from "@/types/dashboard";
-import { ChevronLeft, ChevronRight, Info, Users as UsersIcon } from "lucide-react";
+import { Info, Users as UsersIcon } from "lucide-react";
 import React from "react";
-import { useSearchParams } from "react-router";
 
 interface RecentUsersTableProps {
   data: IRecentUsersResponse;
@@ -26,23 +25,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
   isLoading = false,
   onViewDetails,
 }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
-
   const users = data?.users || [];
-  const pagination = data?.pagination || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 1,
-    hasNextPage: false,
-    hasPrevPage: false,
-  };
-
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", newPage.toString());
-    setSearchParams(params);
-  };
 
   const formatDate = (val?: string | Date) => {
     if (!val) return "N/A";
@@ -76,39 +59,20 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
   };
 
   return (
-    <Card className="rounded-md p-6 border-[#E5E7EB] bg-white space-y-4 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#E5E7EB] gap-2">
-        <div>
-          <h3 className="text-lg font-bold text-[#0F172A]">
-            Recent Users &amp; Vendors
-          </h3>
-          <p className="text-xs text-[#4B5563] mt-0.5">
-            Registered platform accounts ordered by registration date
-          </p>
-        </div>
-        {pagination.total > 0 && (
-          <span className="text-xs text-[#4B5563] font-medium">
-            Total {pagination.total} registered accounts
-          </span>
-        )}
-      </div>
-
+    <Card className="rounded-md border border-[#E5E7EB] bg-white shadow-xs overflow-hidden">
       {isLoading ? (
-        <div className="space-y-3 py-4">
+        <div className="space-y-3 p-6">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-md" />
+            <Skeleton key={i} className="h-12 w-full rounded-md" />
           ))}
         </div>
       ) : users.length === 0 ? (
         <div className="py-12 text-center text-[#4B5563]">
           <UsersIcon className="w-8 h-8 mx-auto text-[#4B5563]/40 mb-2" />
           <p className="text-sm font-medium">No users or vendors found.</p>
-          <p className="text-xs text-[#4B5563] mt-1">
-            Registered buyer and vendor accounts will appear here.
-          </p>
         </div>
       ) : (
-        <div className="rounded-md border border-[#E5E7EB] overflow-hidden">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-[#F8FAFC]">
               <TableRow className="border-b border-[#E5E7EB]">
@@ -201,37 +165,6 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
               })}
             </TableBody>
           </Table>
-        </div>
-      )}
-
-      {/* Pagination Controls */}
-      {pagination.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[#E5E7EB]">
-          <span className="text-xs text-[#4B5563]">
-            Page {pagination.page} of {pagination.totalPages}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!pagination.hasPrevPage}
-              onClick={() => handlePageChange(pagination.page - 1)}
-              className="h-8 px-2.5 rounded-md border-[#E5E7EB] text-xs text-[#0F172A] hover:bg-[#F8FAFC]"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
-              <span>Previous</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!pagination.hasNextPage}
-              onClick={() => handlePageChange(pagination.page + 1)}
-              className="h-8 px-2.5 rounded-md border-[#E5E7EB] text-xs text-[#0F172A] hover:bg-[#F8FAFC]"
-            >
-              <span>Next</span>
-              <ChevronRight className="w-3.5 h-3.5 ml-1" />
-            </Button>
-          </div>
         </div>
       )}
     </Card>

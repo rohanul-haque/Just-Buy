@@ -46,16 +46,10 @@ export const DashboardSkeleton: React.FC = () => {
       </div>
 
       {/* Recent Users Table Skeleton */}
-      <Card className="rounded-md p-6 border-[#E5E7EB] bg-white space-y-4">
-        <div className="space-y-1.5 pb-2 border-b border-[#E5E7EB]">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-3 w-64" />
-        </div>
-        <div className="space-y-3 py-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full rounded-md" />
-          ))}
-        </div>
+      <Card className="rounded-md border border-[#E5E7EB] bg-white p-6 space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-12 w-full rounded-md" />
+        ))}
       </Card>
     </div>
   );
