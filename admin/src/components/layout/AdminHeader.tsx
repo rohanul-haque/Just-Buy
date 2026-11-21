@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Menu } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           className="hidden md:flex rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
           aria-label="Toggle sidebar"
         >
-          <Menu className="w-5 h-5" />
+          <PanelLeft className="w-5 h-5" />
         </Button>
 
         {/* Mobile Drawer Open Button */}
@@ -66,7 +66,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           className="flex md:hidden rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
           aria-label="Open mobile menu"
         >
-          <Menu className="w-5 h-5" />
+          <PanelLeft className="w-5 h-5" />
         </Button>
 
         {/* Two-Line Left-Aligned Welcome Section */}
