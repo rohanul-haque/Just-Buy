@@ -45,6 +45,13 @@ router.get(
 );
 
 router.get(
+  "/statistics",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  buyerController.getBuyerStatistics,
+);
+
+router.get(
   "/:buyerId",
   authenticate,
   authorize(UserRole.ADMIN, UserRole.VENDOR),

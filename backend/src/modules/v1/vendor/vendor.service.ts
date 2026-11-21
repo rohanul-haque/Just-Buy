@@ -397,6 +397,25 @@ const deleteVendorRequest = async (
   return await updateVendorStatus(vendorId, VendorStatus.REJECTED, adminUserId);
 };
 
+const getVendorStatistics = async () => {
+  const [vendorList, vendorRequests, rejected, suspended, pending] =
+    await Promise.all([
+      Vendor.countDocuments({ status: VendorStatus.APPROVED }),
+      Vendor.countDocuments({ status: { $ne: VendorStatus.APPROVED } }),
+      Vendor.countDocuments({ status: VendorStatus.REJECTED }),
+      Vendor.countDocuments({ status: VendorStatus.SUSPENDED }),
+      Vendor.countDocuments({ status: VendorStatus.PENDING }),
+    ]);
+
+  return {
+    vendorList,
+    vendorRequests,
+    rejected,
+    suspended,
+    pending,
+  };
+};
+
 const vendorService = {
   createVendorProfile,
   getOwnProfile,
@@ -405,6 +424,7 @@ const vendorService = {
   getVendorById,
   updateVendorStatus,
   deleteVendorRequest,
+  getVendorStatistics,
 };
 
 export default vendorService;

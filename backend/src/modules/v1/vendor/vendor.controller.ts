@@ -101,6 +101,19 @@ const deleteVendorRequest = asyncHandler(
   },
 );
 
+const getVendorStatistics = asyncHandler(
+  async (_req: Request, res: Response): Promise<void> => {
+    const stats = await vendorService.getVendorStatistics();
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: VENDOR_MESSAGES.STATISTICS_RETRIEVED,
+      data: stats,
+    });
+  },
+);
+
 const vendorController = {
   getOwnProfile,
   updateOwnProfile,
@@ -108,6 +121,7 @@ const vendorController = {
   getVendorById,
   updateVendorStatus,
   deleteVendorRequest,
+  getVendorStatistics,
 };
 
 export default vendorController;

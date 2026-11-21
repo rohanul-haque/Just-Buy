@@ -6,17 +6,17 @@ export const EarningsTableSkeleton: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* 2 Summary Cards Skeleton with Icon on Left */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {[1, 2].map((i) => (
           <Card
             key={i}
-            className="p-6 bg-white border-[#E5E7EB] rounded-md shadow-xs"
+            className="p-5 bg-white border-[#E5E7EB] rounded-xl shadow-xs"
           >
             <div className="flex items-center gap-4">
-              <Skeleton className="h-12 w-12 rounded-md shrink-0" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-28 rounded-sm" />
-                <Skeleton className="h-7 w-36 rounded-sm" />
+              <Skeleton className="h-12 w-12 rounded-[12px] shrink-0" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-3 w-24 rounded-sm" />
+                <Skeleton className="h-6 w-36 rounded-sm" />
               </div>
             </div>
           </Card>

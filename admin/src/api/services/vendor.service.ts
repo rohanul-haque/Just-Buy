@@ -1,6 +1,6 @@
 import apiClient from "@/api/client";
 import type { ApiResponse } from "@/types/api";
-import type { IVendor, VendorStatus } from "@/types/vendor";
+import type { IVendor, IVendorStatistics, VendorStatus } from "@/types/vendor";
 
 export interface GetVendorsParams {
   page?: number;
@@ -17,6 +17,13 @@ export const vendorService = {
     const response = await apiClient.get<ApiResponse<IVendor[]>>("/vendors", {
       params,
     });
+    return response.data;
+  },
+
+  getVendorStatistics: async (): Promise<ApiResponse<IVendorStatistics>> => {
+    const response = await apiClient.get<ApiResponse<IVendorStatistics>>(
+      "/admin/vendors/statistics",
+    );
     return response.data;
   },
 

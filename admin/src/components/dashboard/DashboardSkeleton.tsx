@@ -5,20 +5,19 @@ import React from "react";
 export const DashboardSkeleton: React.FC = () => {
   return (
     <div className="space-y-6">
-      {/* 4 Summary Cards Skeleton */}
+      {/* 4 Summary Cards Skeleton (Horizontal reference layout) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card
             key={i}
-            className="rounded-md p-6 border-[#E5E7EB] bg-white flex flex-col justify-between shadow-xs space-y-4"
+            className="p-5 bg-white border border-[#E5E7EB] rounded-xl shadow-xs"
           >
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-10 w-10 rounded-md" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-3 w-40" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="w-12 h-12 rounded-[12px] shrink-0" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-6 w-28" />
+              </div>
             </div>
           </Card>
         ))}

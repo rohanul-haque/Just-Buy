@@ -13,4 +13,5 @@ export const BUYER_MESSAGES = {
   BUYERS_RETRIEVED: "Buyers retrieved successfully",
   BUYER_NOT_FOUND: "Buyer profile not found",
   STATUS_UPDATED: "Buyer account status updated successfully",
+  STATISTICS_RETRIEVED: "Buyer statistics retrieved successfully",
 } as const;

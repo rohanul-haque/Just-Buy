@@ -26,3 +26,8 @@ export interface ICategoryQuery {
   isActive?: boolean | "all";
   sort?: string;
 }
+
+export interface ICategoryStatistics {
+  activeCategories: number;
+  inactiveCategories: number;
+}

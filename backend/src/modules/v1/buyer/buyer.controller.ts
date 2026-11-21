@@ -108,6 +108,19 @@ const deleteBuyer = asyncHandler(
   },
 );
 
+const getBuyerStatistics = asyncHandler(
+  async (_req: Request, res: Response): Promise<void> => {
+    const stats = await buyerService.getBuyerStatistics();
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: BUYER_MESSAGES.STATISTICS_RETRIEVED,
+      data: stats,
+    });
+  },
+);
+
 const buyerController = {
   getOwnProfile,
   updateOwnProfile,
@@ -116,6 +129,7 @@ const buyerController = {
   getBuyerById,
   updateBuyerStatus,
   deleteBuyer,
+  getBuyerStatistics,
 };
 
 export default buyerController;

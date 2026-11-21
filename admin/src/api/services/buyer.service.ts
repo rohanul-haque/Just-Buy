@@ -1,6 +1,6 @@
 import apiClient from "@/api/client";
 import type { ApiResponse } from "@/types/api";
-import type { IBuyer } from "@/types/buyer";
+import type { IBuyer, IBuyerStatistics } from "@/types/buyer";
 
 export interface GetBuyersParams {
   page?: number;
@@ -17,6 +17,13 @@ export const buyerService = {
     const response = await apiClient.get<ApiResponse<IBuyer[]>>("/buyers", {
       params,
     });
+    return response.data;
+  },
+
+  getBuyerStatistics: async (): Promise<ApiResponse<IBuyerStatistics>> => {
+    const response = await apiClient.get<ApiResponse<IBuyerStatistics>>(
+      "/admin/buyers/statistics",
+    );
     return response.data;
   },
 

@@ -65,17 +65,35 @@ export const vendorsLoader = async ({
   }
 
   try {
-    const response = await vendorService.getAllVendors({
-      search: search.trim() ? search.trim() : undefined,
-      status: statusParam,
-      tab: tabParam,
-      page,
-      limit,
-    });
+    const [response, statsRes] = await Promise.all([
+      vendorService.getAllVendors({
+        search: search.trim() ? search.trim() : undefined,
+        status: statusParam,
+        tab: tabParam,
+        page,
+        limit,
+      }),
+      vendorService.getVendorStatistics().catch(() => ({
+        data: {
+          vendorList: 0,
+          vendorRequests: 0,
+          rejected: 0,
+          suspended: 0,
+          pending: 0,
+        },
+      })),
+    ]);
 
     return {
       vendors: response.data || [],
       pagination: response.pagination || null,
+      statistics: statsRes.data || {
+        vendorList: 0,
+        vendorRequests: 0,
+        rejected: 0,
+        suspended: 0,
+        pending: 0,
+      },
       category,
       tab: category === "requests" ? "requests" : "list",
       search,
@@ -86,6 +104,13 @@ export const vendorsLoader = async ({
     return {
       vendors: [],
       pagination: null,
+      statistics: {
+        vendorList: 0,
+        vendorRequests: 0,
+        rejected: 0,
+        suspended: 0,
+        pending: 0,
+      },
       category,
       tab: category === "requests" ? "requests" : "list",
       search,

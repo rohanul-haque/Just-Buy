@@ -97,6 +97,19 @@ const updateCategoryStatus = asyncHandler(
   },
 );
 
+const getCategoryStatistics = asyncHandler(
+  async (_req: Request, res: Response): Promise<void> => {
+    const stats = await categoryService.getCategoryStatistics();
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: CATEGORY_MESSAGES.STATISTICS_RETRIEVED,
+      data: stats,
+    });
+  },
+);
+
 const categoryController = {
   createCategory,
   getAllCategories,
@@ -104,6 +117,7 @@ const categoryController = {
   updateCategory,
   updateCategoryStatus,
   deleteCategory,
+  getCategoryStatistics,
 };
 
 export default categoryController;

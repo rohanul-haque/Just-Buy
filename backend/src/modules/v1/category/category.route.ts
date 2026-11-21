@@ -30,6 +30,13 @@ router.get(
 );
 
 router.get(
+  "/statistics",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  categoryController.getCategoryStatistics,
+);
+
+router.get(
   "/:categoryId",
   validateRequest(categoryIdParamsSchema, "params"),
   categoryController.getCategoryById,

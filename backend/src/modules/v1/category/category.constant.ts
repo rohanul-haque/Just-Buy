@@ -12,4 +12,5 @@ export const CATEGORY_MESSAGES = {
   INVALID_CATEGORY_ID: "Invalid category ID",
   IMAGE_REQUIRED: "Category image is required",
   IMAGE_UPLOAD_FAILED: "Failed to upload category image",
+  STATISTICS_RETRIEVED: "Category statistics retrieved successfully",
 } as const;

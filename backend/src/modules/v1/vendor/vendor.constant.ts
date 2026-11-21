@@ -17,5 +17,6 @@ export const VENDOR_MESSAGES = {
   LICENCE_ALREADY_EXISTS: "Licence number is already registered by another vendor",
   CANNOT_UPDATE_OWN_STATUS: "Vendors cannot update their own status",
   STATUS_ALREADY_SET: "Vendor status is already set to the requested value",
+  STATISTICS_RETRIEVED: "Vendor statistics retrieved successfully",
 } as const;
 

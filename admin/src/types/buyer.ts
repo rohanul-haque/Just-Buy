@@ -35,9 +35,16 @@ export interface IBuyerPagination {
   hasPrevPage: boolean;
 }
 
+export interface IBuyerStatistics {
+  totalBuyers: number;
+  blocked: number;
+  active: number;
+}
+
 export interface BuyerLoaderData {
   buyers: IBuyer[];
   pagination: IBuyerPagination | null;
+  statistics?: IBuyerStatistics;
   search: string;
   status: string;
   page: number;

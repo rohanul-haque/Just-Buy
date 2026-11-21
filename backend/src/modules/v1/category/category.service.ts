@@ -303,6 +303,18 @@ const updateCategoryStatus = async (
   return updatedCategory;
 };
 
+const getCategoryStatistics = async () => {
+  const [activeCategories, inactiveCategories] = await Promise.all([
+    Category.countDocuments({ isActive: true }),
+    Category.countDocuments({ isActive: false }),
+  ]);
+
+  return {
+    activeCategories,
+    inactiveCategories,
+  };
+};
+
 const categoryService = {
   createCategory,
   getAllCategories,
@@ -310,6 +322,7 @@ const categoryService = {
   updateCategory,
   updateCategoryStatus,
   deleteCategory,
+  getCategoryStatistics,
 };
 
 export default categoryService;

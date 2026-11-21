@@ -36,3 +36,11 @@ export interface IVendorQueryOptions {
   status?: TVendorStatus | "ALL";
   tab?: "requests" | "approved" | "all";
 }
+
+export interface IVendorStatistics {
+  vendorList: number;
+  vendorRequests: number;
+  rejected: number;
+  suspended: number;
+  pending: number;
+}

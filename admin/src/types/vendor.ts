@@ -55,9 +55,18 @@ export type TVendorCategory =
   | "suspended"
   | "pending";
 
+export interface IVendorStatistics {
+  vendorList: number;
+  vendorRequests: number;
+  rejected: number;
+  suspended: number;
+  pending: number;
+}
+
 export interface VendorLoaderData {
   vendors: IVendor[];
   pagination: IVendorPagination | null;
+  statistics?: IVendorStatistics;
   category: TVendorCategory;
   tab: "requests" | "list";
   search: string;

@@ -37,3 +37,8 @@ export interface ICategoryQueryOptions {
   search?: string;
   isActive?: boolean | string;
 }
+
+export interface ICategoryStatistics {
+  activeCategories: number;
+  inactiveCategories: number;
+}

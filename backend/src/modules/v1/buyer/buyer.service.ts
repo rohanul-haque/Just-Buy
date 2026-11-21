@@ -339,6 +339,20 @@ const deleteBuyer = async (buyerId: string): Promise<IBuyer> => {
   return await updateBuyerStatus(buyerId, AccountStatus.BLOCKED);
 };
 
+const getBuyerStatistics = async () => {
+  const [totalBuyers, active, blocked] = await Promise.all([
+    User.countDocuments({ role: UserRole.BUYER }),
+    User.countDocuments({ role: UserRole.BUYER, status: AccountStatus.ACTIVE }),
+    User.countDocuments({ role: UserRole.BUYER, status: AccountStatus.BLOCKED }),
+  ]);
+
+  return {
+    totalBuyers,
+    active,
+    blocked,
+  };
+};
+
 const buyerService = {
   getOwnProfile,
   updateOwnProfile,
@@ -347,6 +361,7 @@ const buyerService = {
   getBuyerById,
   updateBuyerStatus,
   deleteBuyer,
+  getBuyerStatistics,
 };
 
 export default buyerService;

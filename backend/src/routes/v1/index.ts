@@ -30,6 +30,9 @@ router.use("/earnings", earningsRoutes);
 router.use("/admin/earnings", earningsRoutes);
 router.use("/admin/dashboard", dashboardRoutes);
 router.use("/admins/dashboard", dashboardRoutes);
+router.use("/admin/buyers", buyerRoutes);
+router.use("/admin/vendors", vendorRoutes);
+router.use("/admin/categories", categoryRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/reviews", reviewRoutes);
 

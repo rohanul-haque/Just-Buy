@@ -35,3 +35,9 @@ export interface IBuyerQueryOptions {
   status?: TAccountStatus;
 }
 
+export interface IBuyerStatistics {
+  totalBuyers: number;
+  blocked: number;
+  active: number;
+}
+

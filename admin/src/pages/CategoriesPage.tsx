@@ -3,12 +3,13 @@ import CategoryCard from "@/components/categories/CategoryCard";
 import CategorySkeletonGrid from "@/components/categories/CategorySkeletonGrid";
 import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
 import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
+import SummaryCard from "@/components/ui/SummaryCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CategoryActionResult } from "@/routes/actions/category.action";
 import type { CategoryLoaderData } from "@/routes/loaders/category.loader";
 import type { ICategory } from "@/types/category";
-import { Plus, Tags } from "lucide-react";
+import { FolderCheck, FolderX, Plus, Tags } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useFetcher, useLoaderData, useNavigation } from "react-router";
 import { toast } from "sonner";
@@ -19,6 +20,10 @@ export const CategoriesPage: React.FC = () => {
   const statusFetcher = useFetcher<CategoryActionResult>();
 
   const categories = loaderData?.categories ?? [];
+  const stats = loaderData?.statistics || {
+    activeCategories: 0,
+    inactiveCategories: 0,
+  };
   const isLoading =
     navigation.state === "loading" || statusFetcher.state === "submitting";
 
@@ -64,6 +69,9 @@ export const CategoriesPage: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
             Categories
           </h1>
+          <p className="text-sm text-[#4B5563] mt-1 font-normal">
+            Organize platform catalog items into active and inactive categories.
+          </p>
         </div>
 
         <Button
@@ -73,6 +81,22 @@ export const CategoriesPage: React.FC = () => {
           <Plus className="w-4 h-4 mr-1.5" />
           <span>Add Category</span>
         </Button>
+      </div>
+
+      {/* Exactly Two Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <SummaryCard
+          title="Active Categories"
+          value={stats.activeCategories.toLocaleString("en-US")}
+          icon={<FolderCheck />}
+          iconBackgroundColor="bg-[#10B981]"
+        />
+        <SummaryCard
+          title="Inactive Categories"
+          value={stats.inactiveCategories.toLocaleString("en-US")}
+          icon={<FolderX />}
+          iconBackgroundColor="bg-[#EF4444]"
+        />
       </div>
 
       {/* Loading Skeletons via dedicated CategorySkeletonGrid component */}

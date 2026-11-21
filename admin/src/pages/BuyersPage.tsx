@@ -4,7 +4,9 @@ import BuyerSearch from "@/components/buyers/BuyerSearch";
 import BuyerStatusFilter from "@/components/buyers/BuyerStatusFilter";
 import BuyersTable from "@/components/buyers/BuyersTable";
 import BuyerTableSkeleton from "@/components/buyers/BuyerTableSkeleton";
+import SummaryCard from "@/components/ui/SummaryCard";
 import type { BuyerLoaderData, IBuyer } from "@/types/buyer";
+import { UserCheck, Users, UserX } from "lucide-react";
 import React, { useState } from "react";
 import { useLoaderData, useNavigation } from "react-router";
 
@@ -15,6 +17,11 @@ export const BuyersPage: React.FC = () => {
   const buyers = loaderData?.buyers ?? [];
   const pagination = loaderData?.pagination ?? null;
   const currentPage = loaderData?.page ?? 1;
+  const stats = loaderData?.statistics || {
+    totalBuyers: 0,
+    active: 0,
+    blocked: 0,
+  };
 
   // Track page transitions / loading state
   const isLoading = navigation.state === "loading";
@@ -27,20 +34,45 @@ export const BuyersPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header and Controls in One Row on the Same Horizontal Line */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-            Buyers
-          </h2>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <BuyerSearch />
-          <BuyerStatusFilter />
-        </div>
+      {/* 1. Page Heading */}
+      <div>
+        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
+          Buyers
+        </h2>
+        <p className="text-sm text-[#4B5563] mt-1 font-normal">
+          Manage registered customer accounts and monitor account status.
+        </p>
       </div>
 
-      {/* Main Table Content */}
+      {/* 2. Exactly Three Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        <SummaryCard
+          title="Total Buyers"
+          value={stats.totalBuyers.toLocaleString("en-US")}
+          icon={<Users />}
+          iconBackgroundColor="bg-[#3B82F6]"
+        />
+        <SummaryCard
+          title="Blocked"
+          value={stats.blocked.toLocaleString("en-US")}
+          icon={<UserX />}
+          iconBackgroundColor="bg-[#EF4444]"
+        />
+        <SummaryCard
+          title="Active"
+          value={stats.active.toLocaleString("en-US")}
+          icon={<UserCheck />}
+          iconBackgroundColor="bg-[#10B981]"
+        />
+      </div>
+
+      {/* 3. Search and Status Filters */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+        <BuyerSearch />
+        <BuyerStatusFilter />
+      </div>
+
+      {/* 4. Main Table Content */}
       {isLoading ? (
         <BuyerTableSkeleton rows={pagination?.limit || 8} />
       ) : (

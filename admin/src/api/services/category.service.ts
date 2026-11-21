@@ -1,6 +1,10 @@
 import apiClient from "@/api/client";
 import type { ApiResponse } from "@/types/api";
-import type { ICategory, ICategoryQuery } from "@/types/category";
+import type {
+  ICategory,
+  ICategoryQuery,
+  ICategoryStatistics,
+} from "@/types/category";
 
 export const categoryService = {
   getAllCategories: async (
@@ -11,6 +15,15 @@ export const categoryService = {
       {
         params: query,
       },
+    );
+    return response.data;
+  },
+
+  getCategoryStatistics: async (): Promise<
+    ApiResponse<ICategoryStatistics>
+  > => {
+    const response = await apiClient.get<ApiResponse<ICategoryStatistics>>(
+      "/admin/categories/statistics",
     );
     return response.data;
   },

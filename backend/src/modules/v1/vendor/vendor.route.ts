@@ -38,6 +38,13 @@ router.get(
 );
 
 router.get(
+  "/statistics",
+  authenticate,
+  authorize(UserRole.ADMIN),
+  vendorController.getVendorStatistics,
+);
+
+router.get(
   "/:vendorId",
   authenticate,
   authorize(UserRole.ADMIN),
