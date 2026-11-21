@@ -53,9 +53,6 @@ export const VendorCategorySelect: React.FC<VendorCategorySelectProps> = ({
           <SelectItem value="suspended" className="rounded-sm text-sm">
             Suspended
           </SelectItem>
-          <SelectItem value="pending" className="rounded-sm text-sm">
-            Pending
-          </SelectItem>
         </SelectContent>
       </Select>
     </div>
