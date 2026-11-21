@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PanelLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { ChatGPTAvatar } from "@/components/ui/ChatGPTAvatar";
+import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import { getTimeBasedGreeting } from "@/utils/greeting";
 
@@ -71,7 +71,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
       {/* Right: User Profile (Notification Bell removed) */}
       <div className="flex items-center gap-3">
-        <ChatGPTAvatar
+        <ProfileAvatar
           src={avatarUrl}
           alt={adminName}
           className="w-10 h-10 rounded-full border border-[#E5E7EB] shrink-0 shadow-xs"

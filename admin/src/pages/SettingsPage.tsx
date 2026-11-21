@@ -1,4 +1,4 @@
-import { ChatGPTAvatar } from "@/components/ui/ChatGPTAvatar";
+import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -123,7 +123,7 @@ export const SettingsPage: React.FC = () => {
           {/* Avatar Upload */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group">
-              <ChatGPTAvatar
+              <ProfileAvatar
                 src={previewUrl}
                 alt={displayName}
                 className="w-24 h-24 rounded-full border-2 border-[#E5E7EB] shadow-xs"
