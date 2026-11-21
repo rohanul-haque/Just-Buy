@@ -43,10 +43,10 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
       onClick={onClick}
     >
       <div className="flex items-center gap-4">
-        {/* Left: Square icon container with ~12px border radius */}
+        {/* Left: Square icon container with rounded-md */}
         <div
           className={cn(
-            "w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0 shadow-xs [&>svg]:w-6 [&>svg]:h-6",
+            "w-12 h-12 rounded-md flex items-center justify-center shrink-0 shadow-xs [&>svg]:w-6 [&>svg]:h-6",
             !isCustomBg && iconBackgroundColor,
             iconColor,
           )}

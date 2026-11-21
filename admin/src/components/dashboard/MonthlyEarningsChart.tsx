@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { IMonthlyEarning } from "@/types/dashboard";
-import { BarChart3 } from "lucide-react";
 import React, { useState } from "react";
 
 interface MonthlyEarningsChartProps {
@@ -11,8 +10,6 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
   data,
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-  const currentYear = new Date().getFullYear();
 
   // Ensure all 12 months are accounted for
   const months =
@@ -40,11 +37,6 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
           };
         });
 
-  const totalYearlyIncome = months.reduce(
-    (sum, m) => sum + (Number(m.totalIncome) || 0),
-    0,
-  );
-
   const maxVal = Math.max(
     ...months.map((m) => Number(m.totalIncome) || 0),
     100,
@@ -52,9 +44,9 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
   // Round up max for nice axis ticks
   const chartMax = Math.ceil((maxVal * 1.15) / 50) * 50;
 
-  // SVG Chart Dimensions
-  const svgWidth = 640;
-  const svgHeight = 280;
+  // SVG Chart Dimensions - Larger height and visual area
+  const svgWidth = 720;
+  const svgHeight = 350;
   const paddingLeft = 55;
   const paddingRight = 20;
   const paddingTop = 25;
@@ -71,7 +63,7 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
 
   const barCount = 12;
   const slotWidth = chartWidth / barCount;
-  const barWidth = Math.min(28, slotWidth * 0.65);
+  const barWidth = Math.min(32, slotWidth * 0.65);
 
   const formatCurrency = (val: number) => {
     return `$${Number(val || 0).toLocaleString("en-US", {
@@ -102,31 +94,15 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
   ];
 
   return (
-    <Card className="rounded-md border-[#E5E7EB] bg-white shadow-xs p-6 flex flex-col justify-between">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E5E7EB] gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-[#0F172A]">
-              Monthly Earnings
-            </h3>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#E0E7FF] text-[#4F46E5]">
-              {currentYear}
-            </span>
-          </div>
-          <p className="text-xs text-[#4B5563] mt-0.5">
-            Admin commission recognized from delivered orders
-          </p>
-        </div>
-        <div className="text-left sm:text-right">
-          <span className="text-xs text-[#4B5563] block">Year Total</span>
-          <span className="text-base font-extrabold text-[#4F46E5]">
-            {formatCurrency(totalYearlyIncome)}
-          </span>
-        </div>
+    <Card className="rounded-md border-[#E5E7EB] bg-white shadow-xs p-6 flex flex-col justify-between h-full">
+      {/* Header - Only 'Earnings' title */}
+      <div className="pb-4 border-b border-[#E5E7EB]">
+        <h3 className="text-lg font-bold text-[#0F172A]">
+          Earnings
+        </h3>
       </div>
 
-      <CardContent className="p-0 pt-4 relative">
+      <CardContent className="p-0 pt-4 relative flex-1 flex flex-col justify-center">
         {/* Tooltip Hover Overlay */}
         {hoveredIndex !== null && (
           <div
@@ -159,11 +135,11 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
           </div>
         )}
 
-        {/* SVG Bar Chart */}
+        {/* Responsive Large SVG Bar Chart */}
         <div className="w-full overflow-x-auto">
           <svg
             viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            className="w-full h-auto min-w-[540px] select-none"
+            className="w-full h-auto min-w-[560px] select-none"
             aria-label="Monthly earnings bar chart"
           >
             {/* Grid lines and Y-axis labels */}
@@ -234,7 +210,7 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
                   {/* Month Label */}
                   <text
                     x={paddingLeft + index * slotWidth + slotWidth / 2}
-                    y={paddingTop + chartHeight + 18}
+                    y={paddingTop + chartHeight + 20}
                     textAnchor="middle"
                     className={`text-[11px] font-medium transition-colors ${
                       isHovered
@@ -249,13 +225,6 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
             })}
           </svg>
         </div>
-
-        {totalYearlyIncome === 0 && (
-          <div className="text-center py-2 text-xs text-[#4B5563]">
-            <BarChart3 className="w-4 h-4 mx-auto text-[#4B5563]/50 mb-1 inline mr-1.5" />
-            No delivered order earnings recorded for this year yet.
-          </div>
-        )}
       </CardContent>
     </Card>
   );
