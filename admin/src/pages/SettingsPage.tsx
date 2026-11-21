@@ -110,25 +110,15 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Page Title */}
+      {/* 1. Page Heading */}
       <div>
         <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-          Admin Settings
+          Personal Profile
         </h2>
-        <p className="text-sm text-[#4B5563] mt-1 font-normal">
-          Manage your personal profile and account credentials.
-        </p>
       </div>
 
-      {/* Admin Profile Card (shadcn Card with MD rounded corners) */}
+      {/* Admin Profile Card */}
       <Card className="rounded-md p-6 md:p-8 border-[#E5E7EB] bg-white space-y-6 shadow-xs">
-        <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-4">
-          <User className="w-5 h-5 text-[#4F46E5]" />
-          <h3 className="text-base font-bold text-[#0F172A]">
-            Personal Profile
-          </h3>
-        </div>
-
         <form onSubmit={handleSaveProfile} className="space-y-6">
           {/* Avatar Upload */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -212,9 +202,6 @@ export const SettingsPage: React.FC = () => {
                   className="pl-9 h-10 rounded-md bg-[#F8FAFC] border-[#E5E7EB] text-[#4B5563] text-sm cursor-not-allowed"
                 />
               </div>
-              <p className="text-[11px] text-[#4B5563]">
-                Primary email associated with administrator credentials
-              </p>
             </div>
 
             {/* 3. Phone Number (Editable) */}
