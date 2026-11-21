@@ -44,14 +44,14 @@ export const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
         title="Total Users"
         value={formattedUsers}
         icon={<Users />}
-        iconBackgroundColor="bg-[#6366F1]"
+        iconBackgroundColor="bg-[#8B5CF6]"
         link="/buyers"
       />
       <SummaryCard
         title="Total Vendors"
         value={formattedVendors}
         icon={<Store />}
-        iconBackgroundColor="bg-[#8B5CF6]"
+        iconBackgroundColor="bg-[#F97316]"
         link="/vendors"
       />
     </div>
