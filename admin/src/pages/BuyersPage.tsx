@@ -34,17 +34,7 @@ export const BuyersPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Page Heading */}
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-          Buyers
-        </h2>
-        <p className="text-sm text-[#4B5563] mt-1 font-normal">
-          Manage registered customer accounts and monitor account status.
-        </p>
-      </div>
-
-      {/* 2. Exactly Three Summary Cards */}
+      {/* 1. Exactly Three Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         <SummaryCard
           title="Total Buyers"
@@ -66,20 +56,21 @@ export const BuyersPage: React.FC = () => {
         />
       </div>
 
-      {/* 3. Search and Status Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
-        <BuyerSearch />
-        <BuyerStatusFilter />
+      {/* 2. Search and Status Filters */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
+        <BuyerSearch className="flex-1 w-full" />
+        <BuyerStatusFilter className="w-full sm:w-48 shrink-0" />
       </div>
 
-      {/* 4. Main Table Content */}
-      {isLoading ? (
-        <BuyerTableSkeleton rows={pagination?.limit || 8} />
+      {/* 3. Main Table Content */}
+      {isLoading && !loaderData ? (
+        <BuyerTableSkeleton rows={pagination?.limit || 10} />
       ) : (
         <BuyersTable
           buyers={buyers}
           pagination={pagination}
           currentPage={currentPage}
+          isLoading={isLoading}
           onViewDetails={(buyer) => setSelectedBuyerForDetails(buyer)}
           onSoftDelete={(buyer) => setSelectedBuyerForDelete(buyer)}
         />

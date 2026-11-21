@@ -194,6 +194,7 @@ const getAllBuyers = async (
 ): Promise<{
   data: IBuyer[];
   pagination: {
+    page: number;
     skip: number;
     limit: number;
     total: number;
@@ -273,6 +274,7 @@ const getAllBuyers = async (
   return {
     data: buyers,
     pagination: {
+      page,
       skip,
       limit,
       total,

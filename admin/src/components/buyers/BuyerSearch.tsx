@@ -59,7 +59,7 @@ export const BuyerSearch: React.FC<BuyerSearchProps> = ({
   };
 
   return (
-    <div className={`relative w-full sm:w-80 md:w-96 ${className}`}>
+    <div className={`relative w-full flex-1 min-w-0 ${className}`}>
       <Search className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <Input
         type="text"
