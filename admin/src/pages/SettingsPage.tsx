@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChatGPTAvatar } from "@/components/ui/ChatGPTAvatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -123,24 +123,17 @@ export const SettingsPage: React.FC = () => {
           {/* Avatar Upload */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group">
-              <Avatar className="w-24 h-24 rounded-md border-2 border-[#E5E7EB]">
-                {previewUrl ? (
-                  <AvatarImage
-                    src={previewUrl}
-                    alt={displayName}
-                    className="rounded-md object-cover"
-                  />
-                ) : null}
-                <AvatarFallback className="bg-[#E0E7FF] text-[#4F46E5] text-3xl font-bold rounded-md">
-                  {displayName[0]?.toUpperCase() || "A"}
-                </AvatarFallback>
-              </Avatar>
+              <ChatGPTAvatar
+                src={previewUrl}
+                alt={displayName}
+                className="w-24 h-24 rounded-full border-2 border-[#E5E7EB] shadow-xs"
+              />
               <Button
                 type="button"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSaving}
-                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white shadow-sm cursor-pointer"
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#6366F1] hover:bg-[#4F46E5] text-white shadow-sm cursor-pointer"
                 title="Change photo"
               >
                 <Camera className="w-4 h-4" />

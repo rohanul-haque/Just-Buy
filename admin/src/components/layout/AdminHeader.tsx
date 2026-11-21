@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PanelLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChatGPTAvatar } from "@/components/ui/ChatGPTAvatar";
 import { Button } from "@/components/ui/button";
 import { getTimeBasedGreeting } from "@/utils/greeting";
 
@@ -30,18 +30,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
     (adminProfile as any)?.name ||
     user?.name ||
     "Admin";
-  const avatarUrl =
-    adminProfile?.profile?.url ||
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  const avatarUrl = adminProfile?.profile?.url || null;
 
   return (
     <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between select-none">
@@ -82,16 +71,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
       {/* Right: User Profile (Notification Bell removed) */}
       <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10 rounded-md border border-[#E5E7EB] shrink-0">
-          <AvatarImage
-            src={avatarUrl}
-            alt={adminName}
-            className="rounded-md object-cover"
-          />
-          <AvatarFallback className="bg-[#E0E7FF] text-[#4F46E5] text-sm font-semibold rounded-md">
-            {getInitials(adminName)}
-          </AvatarFallback>
-        </Avatar>
+        <ChatGPTAvatar
+          src={avatarUrl}
+          alt={adminName}
+          className="w-10 h-10 rounded-full border border-[#E5E7EB] shrink-0 shadow-xs"
+        />
 
         <div className="hidden sm:flex flex-col text-left">
           <span className="text-sm font-semibold text-[#0F172A] leading-tight">

@@ -128,8 +128,8 @@ export const MonthlyEarningsChart: React.FC<MonthlyEarningsChartProps> = ({
               marginTop: "-8px",
             }}
           >
-            <div className="font-semibold">{months[hoveredIndex].month}</div>
-            <div className="text-[#818CF8] font-bold">
+            <div className="font-semibold text-white">{months[hoveredIndex].month}</div>
+            <div className="text-white font-bold">
               {formatCurrency(months[hoveredIndex].totalIncome)}
             </div>
           </div>
