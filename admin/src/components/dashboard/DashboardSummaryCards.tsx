@@ -1,7 +1,8 @@
 import SummaryCard from "@/components/ui/SummaryCard";
 import type { IDashboardSummary } from "@/types/dashboard";
-import { DollarSign, ShoppingBag, Store, Users } from "lucide-react";
+import { ShoppingBag, Store, Users } from "lucide-react";
 import React from "react";
+import { GrMoney } from "react-icons/gr";
 
 interface DashboardSummaryCardsProps {
   summary: IDashboardSummary;
@@ -29,7 +30,7 @@ export const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
       <SummaryCard
         title="Total Income"
         value={formattedIncome}
-        icon={<DollarSign />}
+        icon={<GrMoney />}
         iconBackgroundColor="bg-[#10B981]"
         link="/earnings"
       />
