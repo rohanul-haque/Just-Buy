@@ -1,36 +1,23 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-party Modules
- */
-import { model, models, Schema } from "mongoose";
-
-/**
- * Type
- */
 import type { IWishlist } from "@/modules/v1/wishlist/wishlist.interface";
+import { Schema, model } from "mongoose";
 
-/**
- * Wishlist Schema Definition
- */
 const wishlistSchema = new Schema<IWishlist>(
   {
     buyer: {
       type: Schema.Types.ObjectId,
-      ref: "Buyer",
+      ref: "User",
       required: true,
       unique: true,
     },
-    products: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
+    products: {
+      type: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+        },
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -38,10 +25,6 @@ const wishlistSchema = new Schema<IWishlist>(
   },
 );
 
-/**
- * Wishlist Model Definition
- */
-const Wishlist =
-  models.Wishlist || model<IWishlist>("Wishlist", wishlistSchema);
-
+export const Wishlist = model<IWishlist>("Wishlist", wishlistSchema);
 export default Wishlist;
+

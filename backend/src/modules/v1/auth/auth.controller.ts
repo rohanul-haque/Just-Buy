@@ -1,224 +1,160 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Application Modules
- */
-import config from "@/config";
-import { logger } from "@/lib/winston";
+import { getClientIp } from "@/middlewares/rate-limiter.middleware";
+import Buyer from "@/modules/v1/buyer/buyer.model";
+import authService from "@/modules/v1/auth/auth.service";
+import AppError from "@/utils/AppError";
+import ERROR_CODE from "@/utils/ERROR_CODES";
+import MESSAGES from "@/utils/MESSAGE";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
+import { clearAuthCookies, setAuthCookies } from "@/utils/cookie";
 import sendResponse from "@/utils/sendResponse";
-
-/**
- * Services
- */
-import {
-  forgotPasswordService,
-  loginService,
-  refreshTokenService,
-  registerService,
-  resetPasswordService,
-} from "@/modules/v1/auth/auth.service";
-
-/**
- * Type
- */
 import type { Request, Response } from "express";
+import { status } from "http-status";
 
-/**
- * Controller for user registration
- */
-export const registerController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Call user registration service
-    const result = await registerService(req.body);
+const register = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await authService.register(req.body);
 
-    // Log the user signup
-    logger.info("User Signup Successfully", {
-      user: {
-        fullName: result.user.fullName,
-        email: result.user.email,
-        role: result.user.role,
-      },
-    });
-
-    // Set access token in cookie
-    res.cookie("accessToken", result.accessToken, {
-      httpOnly: true,
-      secure: config.NODE_ENV !== "development",
-      sameSite: config.NODE_ENV === "development" ? "lax" : "strict",
-      maxAge: 60 * 60 * 1000, // 1 hour
-    });
-
-    // Set refresh token in cookie
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: config.NODE_ENV !== "development",
-      sameSite: config.NODE_ENV === "development" ? "lax" : "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    });
-
-    // Get the message based on user role
-    const message =
-      result.user.role === "seller"
-        ? API_MESSAGES.SELLER_PROFILE_CREATED
-        : result.user.role === "buyer"
-          ? API_MESSAGES.BUYER_PROFILE_CREATED
-          : API_MESSAGES.ADMIN_PROFILE_CREATED;
-
-    // Send response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.CREATED,
+      statusCode: status.CREATED,
       success: true,
-      message,
+      message: result.message,
+      data: result.user,
+    });
+  },
+);
+
+const login = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const clientIp = getClientIp(req);
+    const result = await authService.login(req.body, clientIp);
+
+    setAuthCookies(res, result.accessToken, result.refreshToken);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: MESSAGES.LOGIN_SUCCESS,
       data: {
-        user: {
-          fullName: result.user.fullName,
-          email: result.user.email,
-          role: result.user.role,
-        },
+        user: result.user,
+        redirectUrl: result.redirectUrl,
       },
     });
   },
 );
 
-/**
- * Controller for user login
- */
-export const loginController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Call user login service
-    const result = await loginService(req.body);
+const logout = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user?.userId;
 
-    // Log the user login
-    logger.info("User Login Successfully", {
-      user: {
-        fullName: result.user.fullName,
-        email: result.user.email,
-        role: result.user.role,
-      },
-    });
-
-    // Set access token in cookie
-    res.cookie("accessToken", result.accessToken, {
-      httpOnly: true,
-      secure: config.NODE_ENV !== "development",
-      sameSite: config.NODE_ENV === "development" ? "lax" : "strict",
-      maxAge: 60 * 60 * 1000, // 1 hour
-    });
-
-    // Set refresh token in cookie
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: config.NODE_ENV !== "development",
-      sameSite: config.NODE_ENV === "development" ? "lax" : "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    });
-
-    // Get the message based on user role
-    const message =
-      result.user.role === "seller"
-        ? API_MESSAGES.SELLER_LOGIN_SUCCESS
-        : result.user.role === "buyer"
-          ? API_MESSAGES.BUYER_LOGIN_SUCCESS
-          : API_MESSAGES.ADMIN_PROFILE_CREATED;
+    if (userId) {
+      await authService.logout(userId).catch(() => {});
+    }
+    clearAuthCookies(res);
 
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: status.OK,
       success: true,
-      message,
+      message: MESSAGES.LOGOUT_SUCCESS,
+    });
+  },
+);
+
+const getMe = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const authUser = req.user;
+
+    if (!authUser) {
+      throw new AppError(
+        status.UNAUTHORIZED,
+        ERROR_CODE.UNAUTHORIZED,
+        MESSAGES.UNAUTHORIZED,
+      );
+    }
+
+    let avatar = "";
+    try {
+      const buyerProfile = await Buyer.findOne({ buyer: authUser._id })
+        .select("profile")
+        .lean()
+        .exec();
+      if (buyerProfile?.profile?.url) {
+        avatar = buyerProfile.profile.url;
+      }
+    } catch {
+      // Non-critical if profile document does not exist yet
+    }
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Current user retrieved successfully",
       data: {
-        user: {
-          fullName: result.user.fullName,
-          email: result.user.email,
-          role: result.user.role,
-        },
+        id: authUser.userId,
+        name: authUser.name,
+        email: authUser.email,
+        role: authUser.role,
+        isEmailVerified: true,
+        avatar,
       },
     });
   },
 );
 
-/**
- * Controller for user logout
- */
-export const logoutController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Clear access token cookie
-    res.clearCookie("accessToken");
+const refreshToken = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const token = req.cookies?.refreshToken || req.body?.refreshToken;
 
-    // Clear refresh token cookie
-    res.clearCookie("refreshToken");
+    if (!token) {
+      throw new AppError(
+        status.UNAUTHORIZED,
+        ERROR_CODE.AUTH_REFRESH_TOKEN_MISSING,
+        MESSAGES.REFRESH_TOKEN_MISSING,
+      );
+    }
 
-    // Log the user logout
-    logger.info("User Logout Successfully");
+    const result = await authService.refreshToken(token);
+    setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    // Send response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: status.OK,
       success: true,
-      message: API_MESSAGES.LOGOUT_SUCCESS,
+      message: MESSAGES.TOKEN_REFRESH_SUCCESS,
     });
   },
 );
 
-/**
- * Controller for user refresh token
- */
-export const refreshTokenController = asyncHandler(
-  async (req: Request, res: Response) => {
-    // Call user refresh token service
-    await refreshTokenService({ req, res });
+const forgotPassword = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await authService.forgotPassword(req.body);
 
-    // Log the user refresh token
-    logger.info("User Refresh Token Successfully");
-
-    // Send response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: status.OK,
       success: true,
-      message: API_MESSAGES.TOKEN_REFRESH_SUCCESS,
+      message: result.message,
     });
   },
 );
 
-/**
- * Forgot Password Controller
- * @param {Request} req
- * @param {Response} res
- */
-export const forgotPasswordController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const body = req.body;
-    await forgotPasswordService(body);
+const resetPassword = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await authService.resetPassword(req.body);
 
-    // Send response
     sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
+      statusCode: status.OK,
       success: true,
-      message: API_MESSAGES.PASSWORD_RESET_OTP_SENT,
+      message: result.message,
     });
   },
 );
 
-/**
- * Reset Password Controller
- * @param {Request} req
- * @param {Response} res
- */
-export const resetPasswordController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const body = req.body;
-    await resetPasswordService(body);
+const authController = {
+  register,
+  login,
+  logout,
+  getMe,
+  refreshToken,
+  forgotPassword,
+  resetPassword,
+};
 
-    // Send response
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.PASSWORD_RESET_SUCCESS,
-    });
-  },
-);
+export default authController;

@@ -1,49 +1,39 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
+import adminRoutes from "@/modules/v1/admin/admin.route";
+import authRoutes from "@/modules/v1/auth/auth.route";
+import buyerRoutes from "@/modules/v1/buyer/buyer.route";
+import cartRoutes from "@/modules/v1/cart/cart.route";
+import categoryRoutes from "@/modules/v1/category/category.route";
+import dashboardRoutes from "@/modules/v1/dashboard/dashboard.route";
+import earningsRoutes from "@/modules/v1/earnings/earnings.route";
+import orderRoutes from "@/modules/v1/order/order.route";
+import paymentRoutes from "@/modules/v1/payment/payment.route";
+import productRoutes from "@/modules/v1/product/product.route";
+import reviewRoutes from "@/modules/v1/review/review.route";
+import vendorRoutes from "@/modules/v1/vendor/vendor.route";
+import verificationRoutes from "@/modules/v1/verification/verification.route";
+import wishlistRoutes from "@/modules/v1/wishlist/wishlist.route";
 import express from "express";
 
-/**
- * API Routes
- */
-import AuthRoutes from "@/modules/v1/auth/auth.routes";
-import buyerRoutes from "@/modules/v1/buyer/buyer.routes";
-import cartRoute from "@/modules/v1/cart/cart.routes";
-import categoryRoutes from "@/modules/v1/category/category.routes";
-import earningRoutes from "@/modules/v1/earning/earning.routes";
-import orderRoute from "@/modules/v1/order/order.routes";
-import productRoutes from "@/modules/v1/product/product.routes";
-import sellerRoutes from "@/modules/v1/seller/seller.routes";
-import wishlistRoutes from "@/modules/v1/wishlist/wishlist.routes";
-
-/**
- * API Controller
- */
-import healthRoute from "@/routes/v1/health";
-
-/**
- * Express Router Initialization
- */
 const router = express.Router();
 
-/**
- * Mounting routes
- */
-router.use("/health", healthRoute);
-router.use("/auth", AuthRoutes);
-router.use("/seller", sellerRoutes);
-router.use("/buyer", buyerRoutes);
-router.use("/category", categoryRoutes);
-router.use("/product", productRoutes);
+router.use("/auth", authRoutes);
+router.use("/verification", verificationRoutes);
+router.use("/buyers", buyerRoutes);
+router.use("/admins", adminRoutes);
+router.use("/vendors", vendorRoutes);
+router.use("/categories", categoryRoutes);
+router.use("/products", productRoutes);
 router.use("/wishlist", wishlistRoutes);
-router.use("/cart", cartRoute);
-router.use("/order", orderRoute);
-router.use("/earning", earningRoutes);
+router.use("/cart", cartRoutes);
+router.use("/orders", orderRoutes);
+router.use("/earnings", earningsRoutes);
+router.use("/admin/earnings", earningsRoutes);
+router.use("/admin/dashboard", dashboardRoutes);
+router.use("/admins/dashboard", dashboardRoutes);
+router.use("/admin/buyers", buyerRoutes);
+router.use("/admin/vendors", vendorRoutes);
+router.use("/admin/categories", categoryRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/reviews", reviewRoutes);
 
 export default router;

@@ -1,105 +1,71 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
+import type { TProductSize } from "@/modules/v1/product/product.constant";
+import type { Types } from "mongoose";
 
-import { Types } from "mongoose";
-import { IAvatar } from "../seller/seller.interface";
-
-/**
- * Product Interface
- */
-
-export enum Size {
-  S = "S",
-  M = "M",
-  L = "L",
-  XL = "XL",
-  XXL = "XXL",
+export interface IProductImage {
+  publicId: string;
+  url: string;
+  width: number | null;
+  height: number | null;
 }
 
 export interface IProduct {
   _id: Types.ObjectId;
-  seller: {
-    _id: Types.ObjectId;
-    fullName: string;
-    email: string;
-    role: "seller";
-  };
+  vendor: Types.ObjectId;
+  category: Types.ObjectId;
   name: string;
   description: string;
-  category: string;
-  brand: string;
+  brand?: string;
   price: number;
-  stockQuantity: number;
-  sizes?: Size[];
-  images: IAvatar[];
+  stock: number;
+  sizes: TProductSize[];
+  featureImage: IProductImage;
+  images: IProductImage[];
+  salesCount: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-/**
- * Create Product Payload
- */
-export type CreateProduct = Pick<
-  IProduct,
-  | "name"
-  | "description"
-  | "category"
-  | "brand"
-  | "price"
-  | "stockQuantity"
-  | "sizes"
-  | "images"
->;
-
-/**
- * Create Product Request
- */
-export interface ICreateProductRequest {
-  sellerId: Types.ObjectId;
-  payload: CreateProduct;
-  files?: Express.Multer.File[];
+export interface ICreateProductInput {
+  category: string;
+  name: string;
+  description: string;
+  brand?: string;
+  price: number;
+  stock: number;
+  sizes?: TProductSize[];
 }
 
-export interface IGetProductsQuery {
+export interface IUpdateProductInput {
   category?: string;
   name?: string;
+  description?: string;
+  brand?: string;
   price?: number;
-  search?: string;
+  stock?: number;
+  sizes?: TProductSize[];
+  isActive?: boolean;
+}
+
+export interface IProductQueryOptions {
+  page?: number;
   limit?: number;
-  offset?: number;
+  skip?: number;
+  search?: string;
+  category?: string;
+  isActive?: boolean;
 }
 
-export interface IGetProductsResult {
-  products: IProduct[];
-  total: number;
-  limit: number;
-  skip: number;
-}
-
-/**
- * Product ID
- */
-export interface IProductId {
-  productId: Types.ObjectId;
-}
-
-export type UpdateProductPayload = Partial<
-  Pick<
-    IProduct,
-    | "name"
-    | "description"
-    | "category"
-    | "brand"
-    | "price"
-    | "stockQuantity"
-    | "sizes"
-  >
->;
-
-export interface IUpdateProductRequest {
-  userId: Types.ObjectId;
-  productId: Types.ObjectId;
-  payload: UpdateProductPayload;
-  files?: Express.Multer.File[];
+export interface IPaginatedProductsResult<T = IProduct> {
+  data: T[];
+  pagination: {
+    page: number;
+    skip: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasPrevPage: boolean;
+    hasNextPage: boolean;
+  };
 }

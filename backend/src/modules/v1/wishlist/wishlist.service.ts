@@ -1,147 +1,124 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Application Modules
- */
-import { logger } from "@/lib/winston";
 import Product from "@/modules/v1/product/product.model";
+import type { IWishlist } from "@/modules/v1/wishlist/wishlist.interface";
 import Wishlist from "@/modules/v1/wishlist/wishlist.model";
-import AppError from "@/utils/appError";
-import { API_MESSAGES, ERROR_CODE, HTTP_STATUS } from "@/utils/constants";
+import AppError from "@/utils/AppError";
+import ERROR_CODE from "@/utils/ERROR_CODES";
+import MESSAGES from "@/utils/MESSAGE";
+import { status } from "http-status";
 
-/**
- * Type
- */
-import type {
-  BuyerId,
-  IAddWishlistRequest,
-  IWishlistResponse,
-} from "@/modules/v1/wishlist/wishlist.interface";
-
-/**
- * Service for adding a product to the wishlist
- * @param {BuyerId} buyerId - Buyer ID
- * @param {ProductId} productId - Product ID
- * @returns {Promise<void>}
- */
-export const addWishlistService = async ({
-  buyerId,
-  productId,
-}: IAddWishlistRequest): Promise<void> => {
-  // Check whether the product exists
-  const productExists = await Product.exists({
-    _id: productId,
-  });
-
-  if (!productExists) {
-    logger.warn("Product not found", { productId });
-
-    throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
-      ERROR_CODE.PRODUCT_NOT_FOUND,
-      API_MESSAGES.PRODUCT_NOT_FOUND,
-    );
-  }
-
-  // Check whether the product is already wishlisted
-  const isWished = await Wishlist.exists({
-    buyer: buyerId,
-    products: productId,
-  });
-
-  if (isWished) {
-    logger.warn("Product already exists in wishlist", {
-      buyerId,
-      productId,
-    });
-
-    throw new AppError(
-      HTTP_STATUS.CONFLICT,
-      ERROR_CODE.PRODUCT_ALREADY_WISHED,
-      API_MESSAGES.PRODUCT_ALREADY_WISHED,
-    );
-  }
-
-  // Add the product to the buyer's wishlist
-  await Wishlist.findOneAndUpdate(
-    { buyer: buyerId },
-    {
-      $addToSet: {
-        products: productId,
-      },
-    },
-    {
-      new: true,
-      upsert: true,
-      runValidators: true,
-      setDefaultsOnInsert: true,
-    },
-  );
+const safeProductPopulation = {
+  path: "products",
+  match: { isActive: true },
+  select:
+    "name price featureImage",
 };
 
-/**
- * Service for getting all wishlist items
- * @param {BuyerId} buyerId - Buyer ID
- * @returns {Promise<IWishlistResponse>}
- */
-export const getAllWishlistsService = async (
-  buyerId: BuyerId,
-): Promise<IWishlistResponse> => {
-  // Find the buyer's wishlist and populate products
-  const wishlist = await Wishlist.findOne({
-    buyer: buyerId,
-  })
-    .populate("products", "name images price")
-    .lean()
+const addProductToWishlist = async (
+  buyerId: string,
+  productId: string,
+): Promise<IWishlist> => {
+  // 1. Verify that the Product exists and is active
+  const product = await Product.findOne({
+    _id: productId,
+    isActive: true,
+  }).exec();
+
+  if (!product) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.PRODUCT_NOT_FOUND,
+      MESSAGES.PRODUCT_NOT_FOUND,
+    );
+  }
+
+  // 2. Find Buyer's existing Wishlist
+  const existingWishlist = await Wishlist.findOne({ buyer: buyerId }).exec();
+
+  if (existingWishlist) {
+    // 3. Prevent duplicate Product IDs
+    const isAlreadyWished = existingWishlist.products.some(
+      (p) => p.toString() === productId,
+    );
+
+    if (isAlreadyWished) {
+      throw new AppError(
+        status.CONFLICT,
+        ERROR_CODE.PRODUCT_ALREADY_WISHED,
+        MESSAGES.PRODUCT_ALREADY_WISHED,
+      );
+    }
+  }
+
+  // 4. Upsert/Update wishlist using $addToSet for concurrency safety
+  const updatedWishlist = await Wishlist.findOneAndUpdate(
+    { buyer: buyerId },
+    { $addToSet: { products: productId } },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  )
+    .populate(safeProductPopulation)
     .exec();
+
+  return updatedWishlist;
+};
+
+const getWishlist = async (
+  buyerId: string,
+): Promise<IWishlist | { buyer: string; products: any[] }> => {
+  const wishlist = await Wishlist.findOne({ buyer: buyerId })
+    .populate(safeProductPopulation)
+    .exec();
+
+  if (!wishlist) {
+    return {
+      buyer: buyerId,
+      products: [],
+    };
+  }
 
   return wishlist;
 };
 
-/**
- * Service for removing a product from the wishlist
- * @param {BuyerId} buyerId - Buyer ID
- * @param {ProductId} productId - Product ID
- * @returns {Promise<void>}
- */
-export const removeWishlistService = async ({
-  buyerId,
-  productId,
-}: IAddWishlistRequest): Promise<void> => {
-  // heck whether the product is already wishlisted
-  const isWished = await Wishlist.exists({
-    buyer: buyerId,
-    products: productId,
-  });
+const removeProductFromWishlist = async (
+  buyerId: string,
+  productId: string,
+): Promise<IWishlist> => {
+  const wishlist = await Wishlist.findOne({ buyer: buyerId }).exec();
 
-  if (!isWished) {
-    logger.warn("Product not found in wishlist", {
-      buyerId,
-      productId,
-    });
-
+  if (!wishlist) {
     throw new AppError(
-      HTTP_STATUS.NOT_FOUND,
+      status.NOT_FOUND,
       ERROR_CODE.WISHLIST_NOT_FOUND,
-      API_MESSAGES.WISHLIST_ITEM_NOT_FOUND,
+      MESSAGES.WISHLIST_NOT_FOUND,
     );
   }
 
-  // Remove the product from the buyer's wishlist
-  await Wishlist.findOneAndUpdate(
-    { buyer: buyerId },
-    {
-      $pull: {
-        products: productId,
-      },
-    },
-    {
-      new: true,
-      runValidators: true,
-    },
+  const isProductInWishlist = wishlist.products.some(
+    (p) => p.toString() === productId,
   );
+
+  if (!isProductInWishlist) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.WISHLIST_ITEM_NOT_FOUND,
+      MESSAGES.WISHLIST_ITEM_NOT_FOUND,
+    );
+  }
+
+  const updatedWishlist = await Wishlist.findOneAndUpdate(
+    { buyer: buyerId },
+    { $pull: { products: productId } },
+    { new: true },
+  )
+    .populate(safeProductPopulation)
+    .exec();
+
+  return updatedWishlist!;
 };
+
+const wishlistService = {
+  addProductToWishlist,
+  getWishlist,
+  removeProductFromWishlist,
+};
+
+export default wishlistService;

@@ -1,29 +1,14 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Application Modules
- */
 import app from "@/app";
 import config from "@/config";
-import { connectToMongoDB, disconnectFromMongoDB } from "@/lib/mongoose";
+import db from "@/lib/db";
+import { redisClient } from "@/lib/redis";
 import { logger } from "@/lib/winston";
-import { redisClient } from "./lib/redis";
 
-/**
- * HTTP Server
- */
 let server: ReturnType<typeof app.listen>;
 
-/**
- * Start Server
- */
 const startServer = async () => {
   try {
-    await connectToMongoDB();
+    await db.connectToMongoDB();
     await redisClient.connect();
 
     server = app.listen(config.PORT, () => {
@@ -37,15 +22,12 @@ const startServer = async () => {
 
 startServer();
 
-/**
- * Graceful Shutdown
- */
 const gracefulShutdown = async (signal: string) => {
   logger.warn(`${signal} received. Shutting down server...`);
 
   server.close(async () => {
     try {
-      await disconnectFromMongoDB();
+      await db.disconnectFromMongoDB();
 
       logger.info("MongoDB disconnected.");
       logger.info("Server shutdown completed.");
@@ -58,15 +40,9 @@ const gracefulShutdown = async (signal: string) => {
   });
 };
 
-/**
- * Handle Process Signals
- */
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
-/**
- * Handle Unhandled Promise Rejections
- */
 process.on("unhandledRejection", (reason) => {
   logger.error("Unhandled Rejection", reason);
 
@@ -77,9 +53,6 @@ process.on("unhandledRejection", (reason) => {
   }
 });
 
-/**
- * Handle Uncaught Exceptions
- */
 process.on("uncaughtException", (error) => {
   logger.error("Uncaught Exception", error);
   process.exit(1);

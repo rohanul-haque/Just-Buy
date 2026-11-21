@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JustBuy Frontend Guidelines
 
-## Getting Started
+This documentation defines the implementation scope and workflow for the current JustBuy customer-facing frontend.
 
-First, run the development server:
+## Current scope only
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Authentication: create account, login, refresh token, change password, verify account, resend OTP, logout.
+2. Buyer: get profile, update profile, order history.
+3. Public shopping: categories, New Arrivals (4), Explore Products (8), all products, product details, reviews, related products.
+4. Wishlist: retrieve and add/remove items only where supported by the backend.
+5. Cart: add to cart; retrieve, update and remove items only if supported by the backend.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Out of scope:** Buyer Dashboard, Seller Dashboard and Admin Dashboard. These will be developed later as a separate React project. Do not create dashboard routes, navigation or features now.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Read first
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. `AGENTS.md`
+2. `docs/project-overview.md`
+3. `docs/architecture.md`
+4. `docs/feature-scope.md`
+5. `docs/api-contract-checklist.md`
+6. `docs/ui-context.md`
+7. `docs/figma-to-code-workflow.md`
+8. `docs/api-integration.md`
+9. `docs/forms-and-validation.md`
+10. `docs/ai-workflow-rules.md`
+11. `docs/testing-strategy.md`
+12. `docs/progress-tracker.md`
 
-## Learn More
+## Rule
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Figma is the visual source of truth. Backend routes, validation, services and API documentation are the source of truth for API behavior. Never invent missing details.

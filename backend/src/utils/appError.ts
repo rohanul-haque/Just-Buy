@@ -1,12 +1,3 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Custom Error Class
- */
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly code: string;

@@ -1,27 +1,8 @@
-/**
- * @copyright 2026
- * @author Rohanul Haque Rohan - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
+import config from "@/config";
 import winston from "winston";
 
-/**
- * Application Module
- */
-import config from "@/config";
-
-/**
- * Configure winston
- */
 const { combine, timestamp, errors, align, printf, colorize } = winston.format;
 
-/**
- * Configure console format
- */
 const consoleFormat = combine(
   colorize({ all: true }),
   timestamp({
@@ -40,9 +21,6 @@ const consoleFormat = combine(
   }),
 );
 
-/**
- * Create logger
- */
 const logger = winston.createLogger({
   level: config.LOG_LEVEL,
 

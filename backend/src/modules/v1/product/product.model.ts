@@ -1,101 +1,92 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
+import { ProductSize } from "@/modules/v1/product/product.constant";
+import type {
+  IProduct,
+  IProductImage,
+} from "@/modules/v1/product/product.interface";
+import { Schema, model } from "mongoose";
 
-/**
- * Third-party module
- */
-import { Schema, model, models } from "mongoose";
+const productImageSchema = new Schema<IProductImage>(
+  {
+    publicId: { type: String, required: true },
+    url: { type: String, required: true },
+    width: { type: Number, default: null },
+    height: { type: Number, default: null },
+  },
+  { _id: false },
+);
 
-/**
- * Type
- */
-import type { IProduct } from "@/modules/v1/product/product.interface";
-
-/**
- * Product Schema
- */
 const productSchema = new Schema<IProduct>(
   {
-    seller: {
+    vendor: {
       type: Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "Seller is required"],
+      ref: "Vendor",
+      required: true,
+      index: true,
     },
-
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
-      required: [true, "Product name is required"],
+      required: true,
       trim: true,
-      minlength: [2, "Product name must be at least 2 characters"],
-      maxlength: [200, "Product name cannot exceed 200 characters"],
+      maxlength: 200,
     },
-
     description: {
       type: String,
-      required: [true, "Description is required"],
+      required: true,
       trim: true,
     },
-
-    category: {
-      type: String,
-      required: [true, "Category is required"],
-    },
-
     brand: {
       type: String,
-      required: [true, "Brand is required"],
       trim: true,
+      default: "",
     },
-
     price: {
       type: Number,
-      required: [true, "Product price is required"],
-      min: [0, "Product price cannot be negative"],
+      required: true,
+      min: 0,
     },
-
-    stockQuantity: {
+    stock: {
       type: Number,
+      required: true,
+      min: 0,
       default: 0,
-      min: [0, "Stock quantity cannot be negative"],
     },
-
     sizes: {
       type: [
         {
           type: String,
-          enum: ["S", "M", "L", "XL", "XXL"],
-          trim: true,
+          enum: Object.values(ProductSize),
         },
       ],
       default: [],
     },
-
+    featureImage: {
+      type: productImageSchema,
+      required: true,
+    },
     images: {
-      type: [
-        {
-          publicId: {
-            type: String,
-            default: "",
-          },
-          url: {
-            type: String,
-            default: "",
-          },
-          width: {
-            type: Number,
-            default: null,
-          },
-          height: {
-            type: Number,
-            default: null,
-          },
-          _id: false,
-        },
-      ],
+      type: [productImageSchema],
       default: [],
+    },
+    salesCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
   },
   {
@@ -104,9 +95,9 @@ const productSchema = new Schema<IProduct>(
   },
 );
 
-/**
- * Product Model Definition
- */
-const Product = models.Product || model<IProduct>("Product", productSchema);
+productSchema.index({ vendor: 1, createdAt: -1 });
+productSchema.index({ category: 1, isActive: 1 });
+productSchema.index({ isActive: 1, createdAt: -1 });
 
+export const Product = model<IProduct>("Product", productSchema);
 export default Product;

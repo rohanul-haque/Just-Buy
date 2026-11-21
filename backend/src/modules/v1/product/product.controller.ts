@@ -1,178 +1,151 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Modules
- */
-import { Request, Response } from "express";
-
-/**
- * Application Modules
- */
-import { logger } from "@/lib/winston";
+import { PRODUCT_MESSAGES } from "@/modules/v1/product/product.constant";
+import productService from "@/modules/v1/product/product.service";
 import asyncHandler from "@/utils/asyncHandler";
-import { API_MESSAGES, HTTP_STATUS } from "@/utils/constants";
 import sendResponse from "@/utils/sendResponse";
+import type { Request, Response } from "express";
+import { status } from "http-status";
 
-/**
- * Application Services
- */
-import config from "@/config";
-import {
-  createProductService,
-  deleteProductService,
-  getAllProductsService,
-  getProductByIdService,
-  updateProductService,
-} from "@/modules/v1/product/product.service";
-import { Types } from "mongoose";
+const createProduct = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const files = req.files as
+      { [fieldname: string]: Express.Multer.File[] } | undefined;
 
-/**
- * Create Product Controller (Add product)
- * @access - Private (Seller, Admin)
- * @method - POST
- * @route - /api/v1/products
- */
-
-/**
- * Create Product Controller
- */
-export const createProductController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const files = Array.isArray(req.files) ? req.files : [];
-
-    await createProductService({
-      sellerId: req.userId!,
-      payload: req.body,
+    const result = await productService.createProduct(
+      req.user!.userId,
+      req.body,
       files,
-    });
-
-    logger.info(API_MESSAGES.PRODUCT_CREATED);
+    );
 
     sendResponse(res, {
-      statusCode: HTTP_STATUS.CREATED,
+      statusCode: status.CREATED,
       success: true,
-      message: API_MESSAGES.PRODUCT_CREATED,
-    });
-  },
-);
-
-/**
- * Get All Products Controller (Product list)
- * @access - Public
- * @method - GET
- * @route - /api/v1/products
- */
-
-export const getAllProductsController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { category, name, price, search } = req.query;
-
-    const limit =
-      parseInt(req.query.limit as string, 10) || config.DEFAULT_LIMIT;
-
-    const offset =
-      parseInt(req.query.offset as string, 10) || config.DEFAULT_OFFSET;
-
-    const result = await getAllProductsService({
-      category: category as string,
-      name: name as string,
-      price: price ? Number(price) : undefined,
-      search: search as string,
-      limit,
-      offset,
-    });
-
-    logger.info(API_MESSAGES.PRODUCTS_FETCHED);
-
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      data: result.products,
-      total: result.total,
-      skip: result.skip,
-      limit: result.limit,
-    });
-  },
-);
-
-/**
- * Get Product By ID Controller (Product details)
- * @access - Public
- * @method - GET
- * @route - /api/v1/products/:id
- */
-export const getProductByIdController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const productId = req.params.productId;
-
-    const result = await getProductByIdService({
-      productId: productId as unknown as Types.ObjectId,
-    });
-
-    logger.info(API_MESSAGES.PRODUCT_FETCHED);
-
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT_CREATED,
       data: result,
     });
   },
 );
 
-/**
- * Update Product Controller
- * @access - Private (Seller, Admin)
- * @method - PATCH
- * @route - /api/v1/products/:id
- */
-export const updateProductController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const files =
-      (req.files as Express.Multer.File[]) ||
-      (req.file ? [req.file] : undefined);
-
-    await updateProductService({
-      productId: req.params.productId as unknown as Types.ObjectId,
-      userId: req.userId!,
-      payload: req.body,
-      files,
-    });
-
-    logger.info(API_MESSAGES.PRODUCT_UPDATED);
-
-    sendResponse(res, {
-      statusCode: HTTP_STATUS.OK,
-      success: true,
-      message: API_MESSAGES.PRODUCT_UPDATED,
-    });
-  },
-);
-
-/**
- * Delete Product Controller
- * @access - Private (Seller, Admin)
- * @method - DELETE
- * @route - /api/v1/products/:id
- */
-export const deleteProductController = asyncHandler(
-  async (req: Request, res: Response) => {
-    const productId = req.params.productId;
-
-    await deleteProductService(
-      productId as unknown as Types.ObjectId,
-      req.userId!,
+const getMyProducts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await productService.getMyProducts(
+      req.user!.userId,
+      req.query,
     );
 
-    logger.info(API_MESSAGES.PRODUCT_DELETED);
-
     sendResponse(res, {
-      statusCode: HTTP_STATUS.NO_CONTENT,
+      statusCode: status.OK,
       success: true,
-      message: API_MESSAGES.PRODUCT_DELETED,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result.data,
+      pagination: result.pagination,
     });
   },
 );
+
+const updateMyProduct = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const files = req.files as
+      { [fieldname: string]: Express.Multer.File[] } | undefined;
+
+    const result = await productService.updateMyProduct(
+      req.user!.userId,
+      productId,
+      req.body,
+      files,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT_UPDATED,
+      data: result,
+    });
+  },
+);
+
+const deleteMyProduct = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const result = await productService.deleteMyProduct(
+      req.user!.userId,
+      productId,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: result.message,
+    });
+  },
+);
+
+const getPublicProducts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await productService.getPublicProducts(req.query);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result.data,
+      pagination: result.pagination,
+    });
+  },
+);
+
+const getNewArrivals = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const result = await productService.getNewArrivals(limit);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result,
+    });
+  },
+);
+
+const getProductById = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const result = await productService.getProductById(productId);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCT_FETCHED,
+      data: result,
+    });
+  },
+);
+
+const getRelatedProducts = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const productId = req.params.productId as string;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const result = await productService.getRelatedProducts(productId, limit);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: PRODUCT_MESSAGES.PRODUCTS_FETCHED,
+      data: result,
+    });
+  },
+);
+
+const productController = {
+  createProduct,
+  getMyProducts,
+  updateMyProduct,
+  deleteMyProduct,
+  getPublicProducts,
+  getNewArrivals,
+  getProductById,
+  getRelatedProducts,
+};
+
+export default productController;

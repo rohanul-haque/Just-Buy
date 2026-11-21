@@ -1,79 +1,80 @@
-/**
- * @copyright 2026
- * @author Fardin Islam Selim - MERN Stack Developer
- * @license Apache-2.0
- */
-
-/**
- * Third-Party Module
- */
-import { Types } from "mongoose";
 import { z } from "zod";
 
-/**
- * Create Category Validation Schema
- */
-export const createCategorySchema = z.object({
-  name: z
-    .string()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters")
-    .trim(),
-});
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
-/**
- * Update Category Validation Schema
- */
-export const updateCategorySchema = z.object({
-  name: z
-    .string()
-    .min(2, "Category name must be at least 2 characters")
-    .max(100, "Category name cannot exceed 100 characters")
-    .trim()
-    .optional(),
-});
+const booleanPreprocessor = (val: unknown): unknown => {
+  if (typeof val === "string") {
+    const trimmed = val.trim().toLowerCase();
+    if (trimmed === "true" || trimmed === "1") return true;
+    if (trimmed === "false" || trimmed === "0") return false;
+  }
+  return val;
+};
 
-/**
- * Object ID Schema
- */
-export const categoryObjectIdSchema = z
-  .string()
-  .refine((value) => Types.ObjectId.isValid(value), {
-    message: "Invalid Category ID",
-  });
+const booleanOrAllPreprocessor = (val: unknown): unknown => {
+  if (typeof val === "string") {
+    const trimmed = val.trim().toLowerCase();
+    if (trimmed === "true" || trimmed === "1") return true;
+    if (trimmed === "false" || trimmed === "0") return false;
+    if (trimmed === "all") return "all";
+  }
+  return val;
+};
 
-/**
- * Category ID Schema
- */
-export const categoryIdSchema = z.object({
-  categoryId: categoryObjectIdSchema,
-});
+export const createCategorySchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Category name is required" })
+      .max(100, { message: "Category name cannot exceed 100 characters" }),
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+  })
+  .strict();
 
-/**
- * Get Categories Query Validation Schema
- */
-export const getCategoriesQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(10).optional(),
-  search: z.string().trim().optional(),
-  isActive: z
-    .union([
-      z.boolean(),
-      z.enum(["true", "false"]).transform((val) => val === "true"),
-    ])
-    .optional(),
-  sortBy: z
-    .enum(["name", "createdAt", "updatedAt"])
-    .default("createdAt")
-    .optional(),
-  sortOrder: z.enum(["asc", "desc"]).default("desc").optional(),
-});
+export const updateCategorySchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { message: "Category name cannot be empty" })
+      .max(100, { message: "Category name cannot exceed 100 characters" })
+      .optional(),
+    isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+  })
+  .strict();
 
-/**
- * Types
- */
-export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
-export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
-export type CategoryIdInput = z.infer<typeof categoryIdSchema>;
-export type GetCategoriesQueryInput = z.infer<typeof getCategoriesQuerySchema>;
-export type CategoryObjectIdInput = z.infer<typeof categoryObjectIdSchema>;
+export const updateCategoryStatusSchema = z
+  .object({
+    isActive: z.preprocess(
+      booleanPreprocessor,
+      z.boolean({
+        message: "isActive is required and must be a boolean",
+      }),
+    ),
+  })
+  .strict();
+
+export const categoryIdParamsSchema = z
+  .object({
+    categoryId: z
+      .string()
+      .regex(objectIdRegex, { message: "Invalid category ID" }),
+  })
+  .strict();
+
+export const categoryQuerySchema = z
+  .object({
+    search: z.string().trim().optional(),
+    isActive: z.preprocess(
+      booleanOrAllPreprocessor,
+      z.union([z.boolean(), z.literal("all")]).optional(),
+    ),
+    sort: z.string().trim().optional(),
+  })
+  .strict();
+
+export type TCreateCategoryInput = z.infer<typeof createCategorySchema>;
+export type TUpdateCategoryInput = z.infer<typeof updateCategorySchema>;
+export type TUpdateCategoryStatus = z.infer<typeof updateCategoryStatusSchema>;
+export type TCategoryQuery = z.infer<typeof categoryQuerySchema>;
