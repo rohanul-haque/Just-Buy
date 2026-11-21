@@ -1,5 +1,6 @@
 import AddCategoryDialog from "@/components/categories/AddCategoryDialog";
 import CategoryCard from "@/components/categories/CategoryCard";
+import CategoryFilterSelect from "@/components/categories/CategoryFilterSelect";
 import CategorySkeletonGrid from "@/components/categories/CategorySkeletonGrid";
 import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
 import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
@@ -11,13 +12,19 @@ import type { CategoryLoaderData } from "@/routes/loaders/category.loader";
 import type { ICategory } from "@/types/category";
 import { FolderCheck, FolderX, Plus, Tags } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useFetcher, useLoaderData, useNavigation } from "react-router";
+import {
+  useFetcher,
+  useLoaderData,
+  useNavigation,
+  useSearchParams,
+} from "react-router";
 import { toast } from "sonner";
 
 export const CategoriesPage: React.FC = () => {
   const loaderData = useLoaderData() as CategoryLoaderData | undefined;
   const navigation = useNavigation();
   const statusFetcher = useFetcher<CategoryActionResult>();
+  const [searchParams] = useSearchParams();
 
   const categories = loaderData?.categories ?? [];
   const stats = loaderData?.statistics || {
@@ -26,6 +33,15 @@ export const CategoriesPage: React.FC = () => {
   };
   const isLoading =
     navigation.state === "loading" || statusFetcher.state === "submitting";
+
+  const rawStatus = (
+    searchParams.get("status") ||
+    searchParams.get("filter") ||
+    loaderData?.status ||
+    "all"
+  ).toLowerCase();
+  const currentStatus =
+    rawStatus === "active" || rawStatus === "inactive" ? rawStatus : "all";
 
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -63,27 +79,7 @@ export const CategoriesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Header: Page Heading + Add Category Button */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-            Categories
-          </h1>
-          <p className="text-sm text-[#4B5563] mt-1 font-normal">
-            Organize platform catalog items into active and inactive categories.
-          </p>
-        </div>
-
-        <Button
-          onClick={() => setIsAddOpen(true)}
-          className="h-10 px-5 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition-colors shadow-xs"
-        >
-          <Plus className="w-4 h-4 mr-1.5" />
-          <span>Add Category</span>
-        </Button>
-      </div>
-
-      {/* Exactly Two Summary Cards */}
+      {/* 1. Exactly Two Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         <SummaryCard
           title="Active Categories"
@@ -99,33 +95,55 @@ export const CategoriesPage: React.FC = () => {
         />
       </div>
 
-      {/* Loading Skeletons via dedicated CategorySkeletonGrid component */}
+      {/* 2. Category Controls and Add Category */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+        {/* Category Filter / Select Dropdown */}
+        <CategoryFilterSelect className="w-full sm:w-52 shrink-0" />
+
+        {/* Add Category Button */}
+        <Button
+          onClick={() => setIsAddOpen(true)}
+          className="h-10 px-5 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition-colors shadow-xs shrink-0"
+        >
+          <Plus className="w-4 h-4 mr-1.5" />
+          <span>Add Category</span>
+        </Button>
+      </div>
+
+      {/* 3. Loading Skeletons via dedicated CategorySkeletonGrid component */}
       {isLoading && categories.length === 0 && (
         <CategorySkeletonGrid count={8} />
       )}
 
-      {/* Empty State */}
+      {/* 4. Empty State */}
       {categories.length === 0 && !isLoading && (
-        <Card className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-md border-[#E5E7EB] p-8">
+        <Card className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-md border-[#E5E7EB] p-8 shadow-xs">
           <Tags className="w-12 h-12 text-[#4F46E5] mb-3" />
           <h3 className="text-base font-semibold text-[#0F172A] mb-1">
-            No categories yet
+            {currentStatus === "active"
+              ? "No active categories"
+              : currentStatus === "inactive"
+                ? "No inactive categories"
+                : "No categories yet"}
           </h3>
           <p className="text-sm text-[#4B5563] max-w-sm mb-4">
-            Get started by adding your first product category for vendors and
-            buyers.
+            {currentStatus === "active" || currentStatus === "inactive"
+              ? `There are currently no ${currentStatus} categories.`
+              : "Get started by adding your first product category for vendors and buyers."}
           </p>
-          <Button
-            onClick={() => setIsAddOpen(true)}
-            className="h-10 px-5 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-medium"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            <span>Add First Category</span>
-          </Button>
+          {currentStatus === "all" && (
+            <Button
+              onClick={() => setIsAddOpen(true)}
+              className="h-10 px-5 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-medium"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              <span>Add First Category</span>
+            </Button>
+          )}
         </Card>
       )}
 
-      {/* Category Card Grid (Exactly 4 cards in each row on desktop) */}
+      {/* 5. Category Card Grid (Exactly 4 cards in each row on desktop) */}
       {categories.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
@@ -141,10 +159,7 @@ export const CategoriesPage: React.FC = () => {
       )}
 
       {/* Add Dialog */}
-      <AddCategoryDialog
-        open={isAddOpen}
-        onOpenChange={setIsAddOpen}
-      />
+      <AddCategoryDialog open={isAddOpen} onOpenChange={setIsAddOpen} />
 
       {/* Edit Dialog */}
       <EditCategoryDialog

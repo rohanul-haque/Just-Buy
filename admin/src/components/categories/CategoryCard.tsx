@@ -48,7 +48,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
               ? "bg-[#E0E7FF] text-[#4F46E5] border-[#C7D2FE]"
               : "bg-[#F1F5F9] text-[#64748B] border-[#E2E8F0]",
           )}
-          title={onToggleStatus ? `Status: ${category.isActive ? "Active" : "Inactive"} (Click to switch)` : `Status: ${category.isActive ? "Active" : "Inactive"}`}
+          title={
+            onToggleStatus
+              ? `Status: ${category.isActive ? "Active" : "Inactive"} (Click to switch)`
+              : `Status: ${category.isActive ? "Active" : "Inactive"}`
+          }
         >
           <span
             className={cn(
