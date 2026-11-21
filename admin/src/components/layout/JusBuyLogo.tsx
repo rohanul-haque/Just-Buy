@@ -51,25 +51,16 @@ export const JusBuyLogo: React.FC<JusBuyLogoProps> = ({
       </div>
 
       {/* Brand Text */}
-      <div className="flex flex-col">
-        <div className="flex items-center text-2xl font-bold tracking-tight">
-          <span className={isWhite ? "text-white" : "text-[#0F172A]"}>
-            Jus
-          </span>
-          <span
-            className={
-              isWhite ? "text-white font-extrabold" : "text-[#4F46E5] font-extrabold"
-            }
-          >
-            Buy
-          </span>
-        </div>
+      <div className="flex items-center gap-1.5 text-2xl font-bold tracking-tight">
+        <span className={isWhite ? "text-white" : "text-[#0F172A]"}>
+          JUS
+        </span>
         <span
-          className={`text-[8.5px] uppercase tracking-wider font-semibold ${
-            isWhite ? "text-white/80" : "text-[#4B5563]"
-          }`}
+          className={
+            isWhite ? "text-white font-extrabold" : "text-[#4F46E5] font-extrabold"
+          }
         >
-          Simplify Your Shopping Experience
+          BUY
         </span>
       </div>
     </div>
