@@ -646,8 +646,21 @@ const updateOrderStatus = async (
       }
     }
 
-    if (payload.status === OrderStatus.DELIVERED && !order.deliveredAt) {
-      order.deliveredAt = new Date();
+    if (payload.status === OrderStatus.DELIVERED) {
+      if (!order.deliveredAt) {
+        order.deliveredAt = new Date();
+      }
+      for (const item of order.productItems) {
+        const updateProduct = Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { salesCount: item.quantity } },
+          { new: true },
+        );
+        if (session) {
+          updateProduct.session(session);
+        }
+        await updateProduct.exec();
+      }
     }
 
     order.status = payload.status;
