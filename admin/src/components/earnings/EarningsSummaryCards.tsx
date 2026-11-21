@@ -1,7 +1,7 @@
 import SummaryCard from "@/components/ui/SummaryCard";
 import type { IEarningsSummary } from "@/types/earnings";
-import { Coins, Wallet } from "lucide-react";
 import React from "react";
+import { GrMoney } from "react-icons/gr";
 
 interface EarningsSummaryCardsProps {
   summary: IEarningsSummary;
@@ -11,7 +11,7 @@ export const EarningsSummaryCards: React.FC<EarningsSummaryCardsProps> = ({
   summary,
 }) => {
   const formatCurrency = (val: number) => {
-    return `$ ${(Number(val) || 0).toLocaleString("en-US", {
+    return `$${(Number(val) || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -22,13 +22,13 @@ export const EarningsSummaryCards: React.FC<EarningsSummaryCardsProps> = ({
       <SummaryCard
         title="Today's Income"
         value={formatCurrency(summary.todayIncome)}
-        icon={<Coins />}
-        iconBackgroundColor="bg-[#6366F1]"
+        icon={<GrMoney />}
+        iconBackgroundColor="bg-[#10B981]"
       />
       <SummaryCard
         title="Total Income"
         value={formatCurrency(summary.totalIncome)}
-        icon={<Wallet />}
+        icon={<GrMoney />}
         iconBackgroundColor="bg-[#10B981]"
       />
     </div>

@@ -13,7 +13,7 @@ export const EarningsTableSkeleton: React.FC = () => {
             className="p-5 bg-white border-[#E5E7EB] rounded-xl shadow-xs"
           >
             <div className="flex items-center gap-4">
-              <Skeleton className="h-12 w-12 rounded-[12px] shrink-0" />
+              <Skeleton className="h-12 w-12 rounded-md shrink-0" />
               <div className="space-y-2 flex-1">
                 <Skeleton className="h-3 w-24 rounded-sm" />
                 <Skeleton className="h-6 w-36 rounded-sm" />

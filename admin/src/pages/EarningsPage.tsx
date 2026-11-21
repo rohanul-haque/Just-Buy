@@ -22,34 +22,25 @@ export const EarningsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Page Heading */}
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-          Earnings
-        </h2>
-        <p className="text-sm text-[#4B5563] mt-1 font-normal">
-          Track admin commissions and monitor earnings from delivered orders.
-        </p>
-      </div>
-
-      {isLoading ? (
+      {isLoading && !loaderData ? (
         <EarningsTableSkeleton />
       ) : (
         <>
-          {/* 2. Earnings Summary Cards */}
+          {/* 1. Earnings Summary Cards */}
           <EarningsSummaryCards summary={summary} />
 
-          {/* 3. Earnings Transactions Table (All Orders, Search removed) */}
+          {/* 2. Earnings Transactions Table with Pagination */}
           <EarningsTransactionsTable
             transactions={transactions}
             pagination={pagination}
             currentPage={currentPage}
+            isLoading={isLoading}
             onViewDetails={(orderId) => setSelectedOrderId(orderId)}
           />
         </>
       )}
 
-      {/* 4. Order Details Dialog */}
+      {/* 3. Order Details Dialog */}
       <OrderDetailsDialog
         open={!!selectedOrderId}
         orderId={selectedOrderId}
