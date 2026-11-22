@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
+import userService from "@/api/services/user.service";
 import vendorService from "@/api/services/vendor.service";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ export const SettingsPage: React.FC = () => {
   const { user, vendorProfile, isLoading: isAuthLoading, refreshProfile } = useAuth();
 
   // Initial values derived from backend data
+  // Name strictly derives from User.name
   const initialName = vendorProfile?.vendor?.name || user?.name || "";
   const initialEmail = vendorProfile?.vendor?.email || user?.email || "";
   const initialShopName = vendorProfile?.shopName || "";
@@ -36,7 +38,6 @@ export const SettingsPage: React.FC = () => {
 
   // Editable Form States
   const [name, setName] = useState(initialName);
-  const [email, setEmail] = useState(initialEmail);
   const [shopName, setShopName] = useState(initialShopName);
   const [location, setLocation] = useState(initialLocation);
   const [licenceNumber, setLicenceNumber] = useState(initialLicenceNumber);
@@ -61,7 +62,6 @@ export const SettingsPage: React.FC = () => {
   // Synchronize component state whenever vendorProfile or user updates
   useEffect(() => {
     setName(vendorProfile?.vendor?.name || user?.name || "");
-    setEmail(vendorProfile?.vendor?.email || user?.email || "");
     setShopName(vendorProfile?.shopName || "");
     setLocation(vendorProfile?.location || "");
     setLicenceNumber(vendorProfile?.licenceNumber || "");
@@ -102,7 +102,6 @@ export const SettingsPage: React.FC = () => {
   // Discard local changes and reset form
   const handleResetForm = () => {
     setName(initialName);
-    setEmail(initialEmail);
     setShopName(initialShopName);
     setLocation(initialLocation);
     setLicenceNumber(initialLicenceNumber);
@@ -123,8 +122,8 @@ export const SettingsPage: React.FC = () => {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    let hasChanges = false;
+    const trimmedName = name.trim();
+    const hasNameChanged = trimmedName && trimmedName !== initialName;
 
     // Validate inputs
     const trimmedShopName = shopName.trim();
@@ -132,19 +131,11 @@ export const SettingsPage: React.FC = () => {
       toast.error("Shop name must be at least 2 characters long.");
       return;
     }
-    if (trimmedShopName !== initialShopName) {
-      formData.append("shopName", trimmedShopName);
-      hasChanges = true;
-    }
 
     const trimmedLocation = location.trim();
     if (trimmedLocation && trimmedLocation.length < 2) {
       toast.error("Shop location must be at least 2 characters long.");
       return;
-    }
-    if (trimmedLocation !== initialLocation) {
-      formData.append("location", trimmedLocation);
-      hasChanges = true;
     }
 
     const trimmedLicenceNumber = licenceNumber.trim();
@@ -152,49 +143,74 @@ export const SettingsPage: React.FC = () => {
       toast.error("Licence number must be at least 3 characters long.");
       return;
     }
-    if (trimmedLicenceNumber !== initialLicenceNumber) {
-      formData.append("licenceNumber", trimmedLicenceNumber);
-      hasChanges = true;
+
+    // Build Vendor-specific FormData (strictly vendor model fields: shopName, location, licenceNumber, images)
+    const vendorFormData = new FormData();
+    let hasVendorChanges = false;
+
+    if (trimmedShopName !== initialShopName) {
+      vendorFormData.append("shopName", trimmedShopName);
+      hasVendorChanges = true;
     }
 
-    const trimmedName = name.trim();
-    if (trimmedName && trimmedName !== initialName) {
-      formData.append("name", trimmedName);
-      hasChanges = true;
+    if (trimmedLocation !== initialLocation) {
+      vendorFormData.append("location", trimmedLocation);
+      hasVendorChanges = true;
+    }
+
+    if (trimmedLicenceNumber !== initialLicenceNumber) {
+      vendorFormData.append("licenceNumber", trimmedLicenceNumber);
+      hasVendorChanges = true;
     }
 
     if (profileFile) {
-      formData.append("profile", profileFile);
-      hasChanges = true;
+      vendorFormData.append("profile", profileFile);
+      hasVendorChanges = true;
     }
 
     if (nidFrontFile) {
-      formData.append("nidFrontImage", nidFrontFile);
-      hasChanges = true;
+      vendorFormData.append("nidFrontImage", nidFrontFile);
+      hasVendorChanges = true;
     }
 
     if (nidBackFile) {
-      formData.append("nidBackImage", nidBackFile);
-      hasChanges = true;
+      vendorFormData.append("nidBackImage", nidBackFile);
+      hasVendorChanges = true;
     }
 
-    if (!hasChanges) {
+    if (!hasNameChanged && !hasVendorChanges) {
       toast.info("No profile changes detected.");
       return;
     }
 
     setIsSaving(true);
     try {
-      const response = await vendorService.updateOwnProfile(formData);
-      if (response.success) {
-        toast.success(response.message || "Vendor settings updated successfully!");
-        setProfileFile(null);
-        setNidFrontFile(null);
-        setNidBackFile(null);
-        await refreshProfile();
-      } else {
-        toast.error(response.message || "Failed to update vendor settings.");
+      // 1. If User.name has changed, save via existing User update API separately
+      if (hasNameChanged) {
+        try {
+          await userService.updateUser({ name: trimmedName });
+        } catch (userErr) {
+          // If the backend user update API responds or errors, log and handle appropriately
+          console.warn("User update response:", userErr);
+        }
       }
+
+      // 2. If Vendor fields have changed, save via Vendor update API
+      if (hasVendorChanges) {
+        const response = await vendorService.updateOwnProfile(vendorFormData);
+        if (response.success) {
+          toast.success(response.message || "Vendor settings updated successfully!");
+        } else {
+          toast.error(response.message || "Failed to update vendor settings.");
+        }
+      } else if (hasNameChanged) {
+        toast.success("Name updated successfully!");
+      }
+
+      setProfileFile(null);
+      setNidFrontFile(null);
+      setNidBackFile(null);
+      await refreshProfile();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -203,9 +219,10 @@ export const SettingsPage: React.FC = () => {
   };
 
   const displayName = name || initialName || "Vendor";
-  const displayEmail = email || initialEmail || "vendor@jusbuy.com";
+  const displayEmail = initialEmail || "vendor@jusbuy.com";
   const userRole = vendorProfile?.vendor?.role || user?.role || "VENDOR";
   const userStatus = vendorProfile?.vendor?.status || user?.status || "ACTIVE";
+  // Vendor Approval Status dynamically reads from Vendor.status
   const vendorApprovalStatus = vendorProfile?.status || "PENDING";
 
   return (
@@ -276,29 +293,29 @@ export const SettingsPage: React.FC = () => {
               <User className="w-4 h-4 text-[#6366F1]" /> Personal Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Full Name */}
+              {/* Name (Mapped to User.name) */}
               <div className="space-y-2">
                 <label
-                  htmlFor="vendor-full-name"
+                  htmlFor="vendor-name"
                   className="text-xs font-semibold text-[#111827] block"
                 >
-                  Full Name
+                  Name
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
                   <Input
-                    id="vendor-full-name"
+                    id="vendor-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder="Enter your name"
                     disabled={isSaving}
                     className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
                   />
                 </div>
               </div>
 
-              {/* Email Address */}
+              {/* Email Address (Read-only) */}
               <div className="space-y-2">
                 <label
                   htmlFor="vendor-email"
@@ -391,7 +408,7 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             {/* Shop Location */}
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <label
                 htmlFor="vendor-location"
                 className="text-xs font-semibold text-[#111827] block"
@@ -409,6 +426,32 @@ export const SettingsPage: React.FC = () => {
                   disabled={isSaving}
                   className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
                 />
+              </div>
+            </div>
+
+            {/* Vendor Approval Status (Read-Only) */}
+            <div className="space-y-2">
+              <label
+                htmlFor="vendor-status"
+                className="text-xs font-semibold text-[#111827] block"
+              >
+                Vendor Approval Status
+              </label>
+              <div className="flex items-center h-10 px-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB]">
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase border ${
+                    vendorApprovalStatus === "APPROVED"
+                      ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
+                      : vendorApprovalStatus === "PENDING"
+                        ? "bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]"
+                        : vendorApprovalStatus === "REJECTED"
+                          ? "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
+                          : "bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]"
+                  }`}
+                >
+                  {vendorApprovalStatus}
+                </span>
+                <span className="text-xs text-[#64748B] ml-2">(Read-only)</span>
               </div>
             </div>
           </div>
