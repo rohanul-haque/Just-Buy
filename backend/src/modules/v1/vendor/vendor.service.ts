@@ -76,7 +76,24 @@ const updateOwnProfile = async (
     );
   }
 
-  // Check licenceNumber uniqueness if vendor is updating licenceNumber
+  // 1. If email is provided, verify uniqueness against other users
+  if (payload.email) {
+    const trimmedEmail = payload.email.trim().toLowerCase();
+    const existingUserWithEmail = await User.findOne({
+      email: trimmedEmail,
+      _id: { $ne: userId },
+    }).exec();
+
+    if (existingUserWithEmail) {
+      throw new AppError(
+        status.CONFLICT,
+        ERROR_CODE.AUTH_EMAIL_EXISTS,
+        "Email is already in use by another account",
+      );
+    }
+  }
+
+  // 2. Check licenceNumber uniqueness if vendor is updating licenceNumber
   if (
     payload.licenceNumber &&
     payload.licenceNumber !== existingVendor.licenceNumber
@@ -93,6 +110,23 @@ const updateOwnProfile = async (
         VENDOR_MESSAGES.LICENCE_ALREADY_EXISTS,
       );
     }
+  }
+
+  // 3. Update User document fields (name and email) if provided
+  const userUpdateFields: Record<string, any> = {};
+  if (payload.name !== undefined && payload.name.trim().length > 0) {
+    userUpdateFields.name = payload.name.trim();
+  }
+  if (payload.email !== undefined && payload.email.trim().length > 0) {
+    userUpdateFields.email = payload.email.trim().toLowerCase();
+  }
+
+  if (Object.keys(userUpdateFields).length > 0) {
+    await User.findByIdAndUpdate(
+      userId,
+      { $set: userUpdateFields },
+      { new: true, runValidators: true },
+    ).exec();
   }
 
   const oldProfilePublicId = existingVendor.profile?.publicId;
@@ -152,9 +186,6 @@ const updateOwnProfile = async (
   try {
     const updateFields: Record<string, any> = {};
 
-    if (payload.shopName !== undefined) {
-      updateFields.shopName = payload.shopName;
-    }
     if (payload.location !== undefined) {
       updateFields.location = payload.location;
     }
@@ -276,7 +307,6 @@ const getAllVendors = async (
 
     filter.$or = [
       { vendor: { $in: matchedUserIds } },
-      { shopName: searchRegex },
       { location: searchRegex },
       { licenceNumber: searchRegex },
     ];

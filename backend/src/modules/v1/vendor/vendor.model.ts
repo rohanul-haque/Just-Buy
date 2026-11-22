@@ -20,11 +20,6 @@ const vendorProfileSchema = new Schema<IVendor>(
       required: true,
       unique: true,
     },
-    shopName: {
-      type: String,
-      trim: true,
-      maxlength: 150,
-    },
     location: {
       type: String,
       trim: true,

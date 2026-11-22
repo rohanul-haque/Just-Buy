@@ -439,7 +439,7 @@ const getPublicProducts = async (
       .populate("category", "name image")
       .populate({
         path: "vendor",
-        select: "shopName profile location",
+        select: "profile location",
       })
       .exec(),
   ]);
@@ -470,7 +470,7 @@ const getNewArrivals = async (
     .populate("category", "name image")
     .populate({
       path: "vendor",
-      select: "shopName profile location",
+      select: "profile location",
     })
     .exec();
 
@@ -485,7 +485,7 @@ const getProductById = async (productId: string): Promise<IProduct> => {
     .populate("category", "name image")
     .populate({
       path: "vendor",
-      select: "shopName profile location",
+      select: "profile location",
     })
     .exec();
 
@@ -527,7 +527,7 @@ const getRelatedProducts = async (
     .populate("category", "name image")
     .populate({
       path: "vendor",
-      select: "shopName profile location",
+      select: "profile location",
     })
     .exec();
 

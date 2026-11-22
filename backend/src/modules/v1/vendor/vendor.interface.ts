@@ -11,7 +11,6 @@ export interface IVendorImage {
 export interface IVendor {
   _id: Types.ObjectId;
   vendor: Types.ObjectId;
-  shopName?: string;
   location?: string;
   licenceNumber?: string;
   profile?: IVendorImage;
@@ -23,7 +22,8 @@ export interface IVendor {
 }
 
 export interface IUpdateVendorProfileInput {
-  shopName?: string;
+  name?: string;
+  email?: string;
   location?: string;
   licenceNumber?: string;
 }

@@ -238,7 +238,7 @@ export const dashboardService = {
         : [],
       vendorUserIds.length > 0
         ? Vendor.find({ vendor: { $in: vendorUserIds } })
-            .select("vendor profile shopName location")
+            .select("vendor profile location")
             .lean()
             .exec()
         : [],
@@ -265,7 +265,6 @@ export const dashboardService = {
         avatar,
         status: u.status,
         createdAt: u.createdAt || new Date(),
-        shopName: vendorDoc?.shopName,
         phoneNumber: buyerDoc?.phoneNumber,
       };
     });
@@ -322,11 +321,10 @@ export const dashboardService = {
       };
     } else if (user.role === UserRole.VENDOR) {
       const vendor = await Vendor.findOne({ vendor: user._id })
-        .select("shopName location licenceNumber status profile")
+        .select("location licenceNumber status profile")
         .lean()
         .exec();
       profileData = {
-        shopName: vendor?.shopName || "",
         location: vendor?.location || "",
         licenceNumber: vendor?.licenceNumber || "",
         vendorStatus: vendor?.status || "",

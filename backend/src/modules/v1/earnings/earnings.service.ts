@@ -206,8 +206,16 @@ export const earningsService = {
     const order = await Order.findById(orderId)
       .populate("buyer", "name email phoneNumber")
       .populate("payment", "paymentMethod provider status amount paidAt stripePaymentIntentId")
-      .populate("vendor", "shopName location")
-      .populate("productItems.vendor", "shopName location")
+      .populate({
+        path: "vendor",
+        select: "location vendor",
+        populate: { path: "vendor", select: "name" },
+      })
+      .populate({
+        path: "productItems.vendor",
+        select: "location vendor",
+        populate: { path: "vendor", select: "name" },
+      })
       .exec();
 
     if (!order) {
@@ -242,9 +250,11 @@ export const earningsService = {
           productName: item.name,
           productImage: item.image || "",
           vendorName:
+            (item.vendor as any)?.vendor?.name ||
+            (order.vendor as any)?.vendor?.name ||
             (item.vendor as any)?.shopName ||
             (order.vendor as any)?.shopName ||
-            "Vendor Store",
+            "Vendor",
           brand: item.brand || "N/A",
           unitPrice: Number(item.unitPrice) || 0,
           quantity: Number(item.quantity) || 1,

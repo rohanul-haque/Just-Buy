@@ -2,11 +2,16 @@ import { z } from "zod";
 import { VendorStatus } from "@/modules/v1/vendor/vendor.constant";
 
 export const updateVendorProfileSchema = z.object({
-  shopName: z
+  name: z
     .string()
     .trim()
-    .min(2, { message: "Shop name must be at least 2 characters" })
-    .max(150, { message: "Shop name cannot exceed 150 characters" })
+    .min(2, { message: "Name must be at least 2 characters" })
+    .max(100, { message: "Name cannot exceed 100 characters" })
+    .optional(),
+  email: z
+    .string()
+    .trim()
+    .email({ message: "Invalid email format" })
     .optional(),
   location: z
     .string()

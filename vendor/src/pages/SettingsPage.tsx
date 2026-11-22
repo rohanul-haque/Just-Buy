@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
-import userService from "@/api/services/user.service";
 import vendorService from "@/api/services/vendor.service";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
@@ -26,10 +25,9 @@ export const SettingsPage: React.FC = () => {
   const { user, vendorProfile, isLoading: isAuthLoading, refreshProfile } = useAuth();
 
   // Initial values derived from backend data
-  // Name strictly derives from User.name
+  // User model is the single source of truth for personal name and email
   const initialName = vendorProfile?.vendor?.name || user?.name || "";
   const initialEmail = vendorProfile?.vendor?.email || user?.email || "";
-  const initialShopName = vendorProfile?.shopName || "";
   const initialLocation = vendorProfile?.location || "";
   const initialLicenceNumber = vendorProfile?.licenceNumber || "";
   const initialProfileUrl = vendorProfile?.profile?.url || null;
@@ -38,7 +36,7 @@ export const SettingsPage: React.FC = () => {
 
   // Editable Form States
   const [name, setName] = useState(initialName);
-  const [shopName, setShopName] = useState(initialShopName);
+  const [email, setEmail] = useState(initialEmail);
   const [location, setLocation] = useState(initialLocation);
   const [licenceNumber, setLicenceNumber] = useState(initialLicenceNumber);
 
@@ -62,7 +60,7 @@ export const SettingsPage: React.FC = () => {
   // Synchronize component state whenever vendorProfile or user updates
   useEffect(() => {
     setName(vendorProfile?.vendor?.name || user?.name || "");
-    setShopName(vendorProfile?.shopName || "");
+    setEmail(vendorProfile?.vendor?.email || user?.email || "");
     setLocation(vendorProfile?.location || "");
     setLicenceNumber(vendorProfile?.licenceNumber || "");
 
@@ -102,7 +100,7 @@ export const SettingsPage: React.FC = () => {
   // Discard local changes and reset form
   const handleResetForm = () => {
     setName(initialName);
-    setShopName(initialShopName);
+    setEmail(initialEmail);
     setLocation(initialLocation);
     setLicenceNumber(initialLicenceNumber);
 
@@ -122,20 +120,39 @@ export const SettingsPage: React.FC = () => {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const trimmedName = name.trim();
-    const hasNameChanged = trimmedName && trimmedName !== initialName;
+    const formData = new FormData();
+    let hasChanges = false;
 
-    // Validate inputs
-    const trimmedShopName = shopName.trim();
-    if (trimmedShopName && trimmedShopName.length < 2) {
-      toast.error("Shop name must be at least 2 characters long.");
+    // Validate and append User Information (name and email)
+    const trimmedName = name.trim();
+    if (trimmedName && trimmedName.length < 2) {
+      toast.error("Name must be at least 2 characters long.");
       return;
     }
+    if (trimmedName !== initialName) {
+      formData.append("name", trimmedName);
+      hasChanges = true;
+    }
 
+    const trimmedEmail = email.trim().toLowerCase();
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (trimmedEmail !== initialEmail.toLowerCase()) {
+      formData.append("email", trimmedEmail);
+      hasChanges = true;
+    }
+
+    // Validate and append Vendor Information (location and licenceNumber)
     const trimmedLocation = location.trim();
     if (trimmedLocation && trimmedLocation.length < 2) {
-      toast.error("Shop location must be at least 2 characters long.");
+      toast.error("Location must be at least 2 characters long.");
       return;
+    }
+    if (trimmedLocation !== initialLocation) {
+      formData.append("location", trimmedLocation);
+      hasChanges = true;
     }
 
     const trimmedLicenceNumber = licenceNumber.trim();
@@ -143,74 +160,44 @@ export const SettingsPage: React.FC = () => {
       toast.error("Licence number must be at least 3 characters long.");
       return;
     }
-
-    // Build Vendor-specific FormData (strictly vendor model fields: shopName, location, licenceNumber, images)
-    const vendorFormData = new FormData();
-    let hasVendorChanges = false;
-
-    if (trimmedShopName !== initialShopName) {
-      vendorFormData.append("shopName", trimmedShopName);
-      hasVendorChanges = true;
-    }
-
-    if (trimmedLocation !== initialLocation) {
-      vendorFormData.append("location", trimmedLocation);
-      hasVendorChanges = true;
-    }
-
     if (trimmedLicenceNumber !== initialLicenceNumber) {
-      vendorFormData.append("licenceNumber", trimmedLicenceNumber);
-      hasVendorChanges = true;
+      formData.append("licenceNumber", trimmedLicenceNumber);
+      hasChanges = true;
     }
 
+    // Append Image Files
     if (profileFile) {
-      vendorFormData.append("profile", profileFile);
-      hasVendorChanges = true;
+      formData.append("profile", profileFile);
+      hasChanges = true;
     }
 
     if (nidFrontFile) {
-      vendorFormData.append("nidFrontImage", nidFrontFile);
-      hasVendorChanges = true;
+      formData.append("nidFrontImage", nidFrontFile);
+      hasChanges = true;
     }
 
     if (nidBackFile) {
-      vendorFormData.append("nidBackImage", nidBackFile);
-      hasVendorChanges = true;
+      formData.append("nidBackImage", nidBackFile);
+      hasChanges = true;
     }
 
-    if (!hasNameChanged && !hasVendorChanges) {
+    if (!hasChanges) {
       toast.info("No profile changes detected.");
       return;
     }
 
     setIsSaving(true);
     try {
-      // 1. If User.name has changed, save via existing User update API separately
-      if (hasNameChanged) {
-        try {
-          await userService.updateUser({ name: trimmedName });
-        } catch (userErr) {
-          // If the backend user update API responds or errors, log and handle appropriately
-          console.warn("User update response:", userErr);
-        }
+      const response = await vendorService.updateOwnProfile(formData);
+      if (response.success) {
+        toast.success(response.message || "Vendor settings updated successfully!");
+        setProfileFile(null);
+        setNidFrontFile(null);
+        setNidBackFile(null);
+        await refreshProfile();
+      } else {
+        toast.error(response.message || "Failed to update vendor settings.");
       }
-
-      // 2. If Vendor fields have changed, save via Vendor update API
-      if (hasVendorChanges) {
-        const response = await vendorService.updateOwnProfile(vendorFormData);
-        if (response.success) {
-          toast.success(response.message || "Vendor settings updated successfully!");
-        } else {
-          toast.error(response.message || "Failed to update vendor settings.");
-        }
-      } else if (hasNameChanged) {
-        toast.success("Name updated successfully!");
-      }
-
-      setProfileFile(null);
-      setNidFrontFile(null);
-      setNidBackFile(null);
-      await refreshProfile();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -219,10 +206,10 @@ export const SettingsPage: React.FC = () => {
   };
 
   const displayName = name || initialName || "";
-  const displayEmail = initialEmail || "";
+  const displayEmail = email || initialEmail || "";
   const userRole = vendorProfile?.vendor?.role || user?.role || "VENDOR";
   const userStatus = vendorProfile?.vendor?.status || user?.status || "ACTIVE";
-  // Vendor Approval Status dynamically reads from Vendor.status
+  // Vendor Approval Status dynamically reads from Vendor.status (read-only)
   const vendorApprovalStatus = vendorProfile?.status || "PENDING";
 
   return (
@@ -233,7 +220,7 @@ export const SettingsPage: React.FC = () => {
           Vendor Settings
         </h2>
         <p className="text-sm text-[#64748B] mt-1">
-          Manage your personal profile, shop details, and verification documents.
+          Manage your personal profile, business details, and verification documents.
         </p>
       </div>
 
@@ -293,7 +280,7 @@ export const SettingsPage: React.FC = () => {
               <User className="w-4 h-4 text-[#6366F1]" /> Personal Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Name (Mapped to User.name) */}
+              {/* Name (User.name) */}
               <div className="space-y-2">
                 <label
                   htmlFor="vendor-name"
@@ -315,7 +302,7 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Email Address (Read-only) */}
+              {/* Email Address (User.email) */}
               <div className="space-y-2">
                 <label
                   htmlFor="vendor-email"
@@ -328,9 +315,11 @@ export const SettingsPage: React.FC = () => {
                   <Input
                     id="vendor-email"
                     type="email"
-                    value={displayEmail}
-                    disabled
-                    className="pl-9 h-10 rounded-md bg-[#F8FAFC] border-[#E5E7EB] text-[#4B5563] text-sm cursor-not-allowed"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    disabled={isSaving}
+                    className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
                   />
                 </div>
               </div>
@@ -338,11 +327,11 @@ export const SettingsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Section 2: Shop & Business Information */}
+        {/* Section 2: Business Information */}
         <Card className="rounded-md p-6 md:p-8 border-[#E5E7EB] bg-white space-y-6 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F1F5F9] pb-4">
             <h3 className="text-sm font-semibold text-[#0F172A] flex items-center gap-2">
-              <Store className="w-4 h-4 text-[#6366F1]" /> Shop & Business Information
+              <Store className="w-4 h-4 text-[#6366F1]" /> Business Information
             </h3>
             <div className="flex items-center gap-2">
               <span className="text-xs text-[#64748B]">Approval Status:</span>
@@ -363,22 +352,22 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Shop Name */}
+            {/* Location */}
             <div className="space-y-2">
               <label
-                htmlFor="vendor-shop-name"
+                htmlFor="vendor-location"
                 className="text-xs font-semibold text-[#111827] block"
               >
-                Shop Name
+                Business Location / Address
               </label>
               <div className="relative">
-                <Store className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+                <MapPin className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
-                  id="vendor-shop-name"
+                  id="vendor-location"
                   type="text"
-                  value={shopName}
-                  onChange={(e) => setShopName(e.target.value)}
-                  placeholder="e.g. Metro Fashion Store"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. Level 3, Block B, Jamuna Future Park, Dhaka"
                   disabled={isSaving}
                   className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
                 />
@@ -407,30 +396,8 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Shop Location */}
-            <div className="space-y-2">
-              <label
-                htmlFor="vendor-location"
-                className="text-xs font-semibold text-[#111827] block"
-              >
-                Shop Location / Business Address
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input
-                  id="vendor-location"
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Level 3, Block B, Jamuna Future Park, Dhaka"
-                  disabled={isSaving}
-                  className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-                />
-              </div>
-            </div>
-
             {/* Vendor Approval Status (Read-Only) */}
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <label
                 htmlFor="vendor-status"
                 className="text-xs font-semibold text-[#111827] block"

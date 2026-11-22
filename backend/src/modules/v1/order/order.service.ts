@@ -270,8 +270,8 @@ const createOrder = async (
 
   // Populate order details
   await newOrder.populate([
-    { path: "vendor", select: "shopName location profile" },
-    { path: "productItems.vendor", select: "shopName location profile" },
+    { path: "vendor", select: "location profile" },
+    { path: "productItems.vendor", select: "location profile" },
     {
       path: "payment",
       select: "paymentMethod provider amount currency status paidAt",
@@ -337,8 +337,8 @@ const getMyOrders = async (
       .sort({ createdAt: -1 })
       .skip(skipCount)
       .limit(limit)
-      .populate("vendor", "shopName location profile")
-      .populate("productItems.vendor", "shopName location profile")
+      .populate("vendor", "location profile")
+      .populate("productItems.vendor", "location profile")
       .populate(
         "payment",
         "paymentMethod provider amount currency status paidAt",
@@ -371,8 +371,8 @@ const getOrderById = async (
   const role = typeof user === "string" ? UserRole.BUYER : user.role;
 
   const order = await Order.findById(orderId)
-    .populate("vendor", "shopName location profile")
-    .populate("productItems.vendor", "shopName location profile")
+    .populate("vendor", "location profile")
+    .populate("productItems.vendor", "location profile")
     .populate("payment", "paymentMethod provider amount currency status paidAt")
     .exec();
 
@@ -521,8 +521,8 @@ const cancelOrder = async (
   }
 
   return (await order.populate([
-    { path: "vendor", select: "shopName location profile" },
-    { path: "productItems.vendor", select: "shopName location profile" },
+    { path: "vendor", select: "location profile" },
+    { path: "productItems.vendor", select: "location profile" },
     {
       path: "payment",
       select: "paymentMethod provider amount currency status paidAt",
@@ -584,8 +584,8 @@ const updateOrderStatus = async (
   // Avoid unnecessary database writes when requested status is unchanged
   if (order.status === payload.status) {
     return (await order.populate([
-      { path: "vendor", select: "shopName location profile" },
-      { path: "productItems.vendor", select: "shopName location profile" },
+      { path: "vendor", select: "location profile" },
+      { path: "productItems.vendor", select: "location profile" },
       {
         path: "payment",
         select: "paymentMethod provider amount currency status paidAt",
@@ -684,8 +684,8 @@ const updateOrderStatus = async (
   }
 
   return (await order.populate([
-    { path: "vendor", select: "shopName location profile" },
-    { path: "productItems.vendor", select: "shopName location profile" },
+    { path: "vendor", select: "location profile" },
+    { path: "productItems.vendor", select: "location profile" },
     {
       path: "payment",
       select: "paymentMethod provider amount currency status paidAt",
@@ -714,8 +714,8 @@ const getAllOrders = async (
       .skip(skipCount)
       .limit(limit)
       .populate("buyer", "name email")
-      .populate("vendor", "shopName location profile")
-      .populate("productItems.vendor", "shopName location profile")
+      .populate("vendor", "location profile")
+      .populate("productItems.vendor", "location profile")
       .populate(
         "payment",
         "paymentMethod provider amount currency status paidAt",
@@ -771,8 +771,8 @@ const getVendorOrders = async (
       .skip(skipCount)
       .limit(limit)
       .populate("buyer", "name email")
-      .populate("vendor", "shopName location profile")
-      .populate("productItems.vendor", "shopName location profile")
+      .populate("vendor", "location profile")
+      .populate("productItems.vendor", "location profile")
       .populate(
         "payment",
         "paymentMethod provider amount currency status paidAt",
