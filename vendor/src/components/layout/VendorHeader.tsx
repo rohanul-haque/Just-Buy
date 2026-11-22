@@ -3,6 +3,7 @@ import { PanelLeft } from "lucide-react";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import { getTimeBasedGreeting } from "@/utils/greeting";
+import { useAuth } from "@/hooks/useAuth";
 
 interface VendorHeaderProps {
   onToggleSidebar: () => void;
@@ -14,6 +15,7 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
   onOpenMobileSidebar,
 }) => {
   const [greeting, setGreeting] = useState(getTimeBasedGreeting);
+  const { user, vendorProfile } = useAuth();
 
   useEffect(() => {
     // Automatically update greeting based on current local time
@@ -23,7 +25,9 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const vendorName = "Vendor";
+  const vendorName =
+    vendorProfile?.vendor?.name || user?.name || "Vendor";
+  const avatarUrl = vendorProfile?.profile?.url;
 
   return (
     <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between select-none">
@@ -65,6 +69,8 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
       {/* Right: User Profile */}
       <div className="flex items-center gap-3">
         <ProfileAvatar
+          src={avatarUrl}
+          alt={vendorName}
           className="w-10 h-10 rounded-full border border-[#E5E7EB] shrink-0 shadow-xs"
         />
 
