@@ -304,7 +304,25 @@ const updateMyProduct = async (
     if (payload.isActive !== undefined)
       updateFields.isActive = payload.isActive;
     if (newFeatureImage) updateFields.featureImage = newFeatureImage;
-    if (newUploadedImages.length > 0) {
+
+    // Handle existing images and retainedImages
+    const removedImagesToDelete: string[] = [];
+    if (payload.retainedImages !== undefined) {
+      const retainedSet = new Set(payload.retainedImages);
+      const keptImages = existingProduct.images.filter(
+        (img) => retainedSet.has(img.publicId) || retainedSet.has(img.url),
+      );
+
+      for (const img of existingProduct.images) {
+        if (!retainedSet.has(img.publicId) && !retainedSet.has(img.url)) {
+          if (img.publicId) {
+            removedImagesToDelete.push(img.publicId);
+          }
+        }
+      }
+
+      updateFields.images = [...keptImages, ...newUploadedImages];
+    } else if (newUploadedImages.length > 0) {
       updateFields.images = [...existingProduct.images, ...newUploadedImages];
     }
 
@@ -322,6 +340,16 @@ const updateMyProduct = async (
         ERROR_CODE.PRODUCT_NOT_FOUND,
         MESSAGES.PRODUCT_NOT_FOUND,
       );
+    }
+
+    // Cleanup removed additional images from Cloudinary after successful DB update
+    for (const publicId of removedImagesToDelete) {
+      cloudinaryService.deleteImage(publicId).catch((err) => {
+        logger.error(
+          "Failed to delete removed product image from Cloudinary on update:",
+          { publicId, error: err },
+        );
+      });
     }
 
     // Cleanup old feature image from Cloudinary after successful DB update

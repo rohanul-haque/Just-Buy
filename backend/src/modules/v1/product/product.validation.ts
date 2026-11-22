@@ -93,6 +93,10 @@ export const updateProductSchema = z
       .optional(),
     sizes: sizesValidation,
     isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
+    retainedImages: z.preprocess(
+      jsonOrArrayPreprocessor,
+      z.array(z.string()).optional(),
+    ),
   })
   .strict();
 

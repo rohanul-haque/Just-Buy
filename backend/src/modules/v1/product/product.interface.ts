@@ -46,6 +46,7 @@ export interface IUpdateProductInput {
   stock?: number;
   sizes?: TProductSize[];
   isActive?: boolean;
+  retainedImages?: string[];
 }
 
 export interface IProductQueryOptions {

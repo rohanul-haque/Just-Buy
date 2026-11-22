@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import { Package, Pencil } from "lucide-react";
+import { Package, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { IProduct } from "@/types/product";
@@ -8,9 +8,14 @@ import type { IProduct } from "@/types/product";
 interface ProductCardProps {
   product: IProduct;
   onEdit?: (product: IProduct) => void;
+  onDelete?: (product: IProduct) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onEdit,
+  onDelete,
+}) => {
   const navigate = useNavigate();
 
   const imageUrl = product.featureImage?.url || product.images?.[0]?.url;
@@ -42,6 +47,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit }) => 
       onEdit(product);
     } else {
       navigate(`/products/edit/${product._id}`);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(product);
     }
   };
 
@@ -147,16 +159,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit }) => 
             )}
           </div>
 
-          {/* Edit Product Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleEditClick}
-            className="w-full h-8 text-xs font-semibold border-[#E5E7EB] text-[#374151] hover:text-[#6366F1] hover:bg-[#F8FAFC] flex items-center justify-center gap-1.5 cursor-pointer rounded-md transition-colors"
-          >
-            <Pencil className="w-3.5 h-3.5 text-[#6366F1]" />
-            Edit Product
-          </Button>
+          {/* Action Buttons: Edit & Delete Side by Side */}
+          <div className="flex items-center gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEditClick}
+              className="flex-1 h-8 text-xs font-semibold border-[#E5E7EB] text-[#374151] hover:text-[#6366F1] hover:bg-[#F8FAFC] flex items-center justify-center gap-1.5 cursor-pointer rounded-md transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5 text-[#6366F1]" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteClick}
+              className="flex-1 h-8 text-xs font-semibold border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2] hover:text-[#B91C1C] flex items-center justify-center gap-1.5 cursor-pointer rounded-md transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-[#DC2626]" />
+              Delete
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

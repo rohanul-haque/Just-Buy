@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   AlertCircle,
+  Loader2,
   Package,
   Plus,
   RotateCcw,
   Search,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
@@ -14,6 +16,14 @@ import productService from "@/api/services/product.service";
 import ProductCard from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ICategory } from "@/types/category";
@@ -34,6 +44,10 @@ export const ProductsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+
+  // Delete Dialog State
+  const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 1. Fetch Categories for Filter Dropdown
   const fetchCategories = useCallback(async () => {
@@ -98,6 +112,29 @@ export const ProductsPage: React.FC = () => {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Handle Delete Confirmation
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await productService.deleteMyProduct(
+        productToDelete._id,
+      );
+      if (response.success) {
+        toast.success("Product deleted successfully");
+        setProductToDelete(null);
+        await fetchProducts();
+      } else {
+        toast.error(response.message || "Failed to delete product.");
+      }
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -283,7 +320,11 @@ export const ProductsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
+            <ProductCard
+              key={product._id}
+              product={product}
+              onDelete={(prod) => setProductToDelete(prod)}
+            />
           ))}
         </div>
       )}
@@ -317,6 +358,61 @@ export const ProductsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 5. Delete Confirmation Dialog */}
+      <Dialog
+        open={!!productToDelete}
+        onOpenChange={(open) => {
+          if (!open && !isDeleting) {
+            setProductToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md bg-white p-6 rounded-lg">
+          <DialogHeader className="space-y-2">
+            <div className="w-10 h-10 rounded-full bg-[#FEF2F2] flex items-center justify-center text-[#DC2626] mb-1">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-[#0F172A]">
+              Delete Product
+            </DialogTitle>
+            <DialogDescription className="text-xs text-[#64748B] leading-relaxed">
+              Are you sure you want to permanently delete{" "}
+              <span className="font-semibold text-[#0F172A]">
+                &quot;{productToDelete?.name}&quot;
+              </span>
+              ? This action cannot be undone and will remove this product and its photos from your store.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex items-center justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => setProductToDelete(null)}
+              className="border-[#E5E7EB] text-[#374151]"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={isDeleting}
+              onClick={handleDeleteConfirm}
+              className="bg-[#DC2626] hover:bg-[#B91C1C] text-white font-semibold cursor-pointer shadow-xs"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Product"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

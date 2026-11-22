@@ -35,13 +35,14 @@ export const EditProductPage: React.FC = () => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
 
-  // Existing images from database
+  // Existing images state management: retained vs removed
   const [existingFeatureImageUrl, setExistingFeatureImageUrl] = useState<
     string | null
   >(null);
-  const [existingImages, setExistingImages] = useState<
+  const [retainedExistingImages, setRetainedExistingImages] = useState<
     Array<{ publicId: string; url: string }>
   >([]);
+  const [, setRemovedImagePublicIds] = useState<string[]>([]);
 
   // New Image Uploads (replacement / addition)
   const [newFeatureImage, setNewFeatureImage] = useState<File | null>(null);
@@ -95,8 +96,11 @@ export const EditProductPage: React.FC = () => {
             setExistingFeatureImageUrl(prod.featureImage.url);
           }
           if (prod.images && prod.images.length > 0) {
-            setExistingImages(prod.images);
+            setRetainedExistingImages(prod.images);
+          } else {
+            setRetainedExistingImages([]);
           }
+          setRemovedImagePublicIds([]);
         } else {
           setLoadError("Unable to retrieve product details from backend.");
         }
@@ -128,14 +132,27 @@ export const EditProductPage: React.FC = () => {
     }
   };
 
+  // Remove existing additional image from preview and mark for backend update
+  const handleRemoveExistingImage = (publicId: string) => {
+    setRetainedExistingImages((prev) =>
+      prev.filter((img) => img.publicId !== publicId),
+    );
+    setRemovedImagePublicIds((prev) => [...prev, publicId]);
+  };
+
   const handleAdditionalImagesChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      setNewAdditionalImages((prev) => [...prev, ...files].slice(0, 10));
-      const newPreviews = files.map((f) => URL.createObjectURL(f));
-      setNewAdditionalPreviews((prev) => [...prev, ...newPreviews].slice(0, 10));
+      const remainingSlots = Math.max(
+        0,
+        10 - (retainedExistingImages.length + newAdditionalImages.length),
+      );
+      const toAdd = files.slice(0, remainingSlots);
+      setNewAdditionalImages((prev) => [...prev, ...toAdd]);
+      const newPreviews = toAdd.map((f) => URL.createObjectURL(f));
+      setNewAdditionalPreviews((prev) => [...prev, ...newPreviews]);
     }
   };
 
@@ -169,6 +186,10 @@ export const EditProductPage: React.FC = () => {
       toast.error("Product description must be at least 5 characters.");
       return;
     }
+    if (!newFeatureImage && !existingFeatureImageUrl) {
+      toast.error("A main product feature image is required.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -191,6 +212,12 @@ export const EditProductPage: React.FC = () => {
       } else {
         formData.append("sizes", JSON.stringify([]));
       }
+
+      // Send retained image public IDs so backend preserves only kept images and deletes removed ones
+      formData.append(
+        "retainedImages",
+        JSON.stringify(retainedExistingImages.map((img) => img.publicId)),
+      );
 
       // Append new feature image only if replacement was selected
       if (newFeatureImage) {
@@ -449,7 +476,7 @@ export const EditProductPage: React.FC = () => {
             {/* Main Feature Image */}
             <div className="space-y-2">
               <Label className="text-xs font-semibold text-[#374151]">
-                Main Feature Image
+                Main Feature Image <span className="text-[#EF4444]">*</span>
               </Label>
               <div className="flex items-center gap-4">
                 {newFeatureImagePreview ? (
@@ -465,7 +492,7 @@ export const EditProductPage: React.FC = () => {
                         setNewFeatureImage(null);
                         setNewFeatureImagePreview(null);
                       }}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100"
+                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs"
                       title="Remove replacement photo"
                     >
                       <X className="w-3 h-3" />
@@ -481,6 +508,14 @@ export const EditProductPage: React.FC = () => {
                     <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1 py-0.5 rounded">
                       Current
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setExistingFeatureImageUrl(null)}
+                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs"
+                      title="Remove current feature photo"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
                 ) : null}
 
@@ -502,24 +537,39 @@ export const EditProductPage: React.FC = () => {
                 <div className="text-xs text-[#64748B]">
                   <p className="font-semibold text-[#0F172A]">Primary Showcase Photo</p>
                   <p>
-                    Leave untouched to keep the current image, or select a new
-                    photo to replace it.
+                    Leave untouched to keep the current image, or upload a replacement.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Additional Images */}
+            {/* Additional Images with Individual Image Removal */}
             <div className="space-y-2 pt-2 border-t border-[#F1F5F9]">
-              <Label className="text-xs font-semibold text-[#374151]">
-                Additional Images
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-[#374151]">
+                  Additional Images ({retainedExistingImages.length + newAdditionalImages.length}/10)
+                </Label>
+                {retainedExistingImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      retainedExistingImages.forEach((img) =>
+                        handleRemoveExistingImage(img.publicId),
+                      );
+                    }}
+                    className="text-[11px] text-[#DC2626] hover:underline cursor-pointer font-medium"
+                  >
+                    Remove All Existing Photos
+                  </button>
+                )}
+              </div>
+
               <div className="flex flex-wrap gap-3">
-                {/* Existing Additional Photos */}
-                {existingImages.map((img, idx) => (
+                {/* Existing Saved Photos with Individual Removal Button */}
+                {retainedExistingImages.map((img, idx) => (
                   <div
-                    key={`existing-${idx}`}
-                    className="w-20 h-20 rounded-md border border-[#E5E7EB] overflow-hidden relative"
+                    key={`existing-${img.publicId || idx}`}
+                    className="w-20 h-20 rounded-md border border-[#E5E7EB] overflow-hidden relative group"
                   >
                     <img
                       src={img.url}
@@ -529,10 +579,18 @@ export const EditProductPage: React.FC = () => {
                     <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[8px] px-1 py-0.5 rounded">
                       Current
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExistingImage(img.publicId)}
+                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs transition-opacity"
+                      title="Remove image"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
                 ))}
 
-                {/* Newly Added Additional Photos */}
+                {/* Newly Added Additional Photos with Removal Button */}
                 {newAdditionalPreviews.map((preview, idx) => (
                   <div
                     key={`new-${idx}`}
@@ -546,14 +604,15 @@ export const EditProductPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => removeNewAdditionalImage(idx)}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100"
+                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs transition-opacity"
+                      title="Remove uploaded image"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
 
-                {existingImages.length + newAdditionalImages.length < 10 && (
+                {retainedExistingImages.length + newAdditionalImages.length < 10 && (
                   <label className="w-20 h-20 rounded-md border-2 border-dashed border-[#CBD5E1] hover:border-[#6366F1] flex flex-col items-center justify-center cursor-pointer bg-[#F8FAFC] transition-colors">
                     <Upload className="w-5 h-5 text-[#94A3B8]" />
                     <span className="text-[10px] text-[#64748B] mt-1 font-medium">+ Add</span>
