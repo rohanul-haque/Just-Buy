@@ -7,7 +7,6 @@ import {
   MoreHorizontal,
   MoreVertical,
   Package,
-  RefreshCw,
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -69,7 +68,6 @@ export const OrderListPage: React.FC = () => {
   const [statistics, setStatistics] = useState<IOrderStatistics | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchStatistics = useCallback(async () => {
     setIsStatsLoading(true);
@@ -131,17 +129,6 @@ export const OrderListPage: React.FC = () => {
   useEffect(() => {
     fetchStatistics();
   }, [fetchStatistics]);
-
-  // Combined Refresh Handler for both Orders Table and Statistics
-  const handleRefresh = async () => {
-    if (isRefreshing || isLoading || isStatsLoading) return;
-    setIsRefreshing(true);
-    try {
-      await Promise.all([fetchOrders(), fetchStatistics()]);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   // Handle Order Status Transitions
   const handleUpdateStatus = async (
@@ -279,39 +266,14 @@ export const OrderListPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-            Manage Orders
-          </h2>
-          <p className="text-sm text-[#64748B] mt-1">
-            Track and manage your customer orders by product.
-          </p>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isRefreshing || isLoading || isStatsLoading}
-          className="self-start sm:self-auto h-9 border-[#E5E7EB] text-[#374151] hover:bg-[#F8FAFC] cursor-pointer"
-        >
-          <RefreshCw
-            className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
-      </div>
-
-      {/* 2. Order Statistics Cards */}
+      {/* 1. Order Statistics Cards */}
       <OrderStatisticsCards
         statistics={statistics}
         isLoading={isStatsLoading}
         error={statsError}
       />
 
-      {/* 3. Search & Filter Bar */}
+      {/* 2. Search & Filter Bar */}
       <Card className="p-4 border-[#E5E7EB] bg-white rounded-md shadow-xs">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Search Input */}

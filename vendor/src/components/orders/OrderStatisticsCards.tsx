@@ -25,7 +25,7 @@ export const OrderStatisticsCards: React.FC<OrderStatisticsCardsProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {Array.from({ length: 6 }).map((_, idx) => (
           <Card
             key={idx}
@@ -55,7 +55,7 @@ export const OrderStatisticsCards: React.FC<OrderStatisticsCardsProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {/* 1. Total Orders */}
         <SummaryCard
           title="Total Orders"
