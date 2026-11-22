@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
+  CheckCircle,
   Eye,
   Loader2,
+  MoreHorizontal,
   MoreVertical,
   Package,
   RotateCcw,
@@ -423,19 +425,29 @@ export const OrderListPage: React.FC = () => {
                   const primaryItem = items[0];
                   const extraItemsCount = items.length - 1;
 
-                  // Vendor relevant item amount
-                  const vendorAmount = items.reduce(
-                    (sum, it) =>
-                      sum +
-                      (Number(it.itemSubtotal) ||
-                        Number(it.unitPrice * it.quantity) ||
-                        0),
-                    0,
-                  );
+                  // Vendor relevant item amount excluding delivery charge
+                  const vendorAmount =
+                    items.length > 0
+                      ? items.reduce(
+                          (sum, it) =>
+                            sum +
+                            (Number(it.itemSubtotal) ||
+                              Number(it.unitPrice * it.quantity) ||
+                              0),
+                          0,
+                        )
+                      : Number(order.subtotal || 0);
 
                   const isCOD =
                     order.orderType === "COD" ||
                     order.payment?.paymentMethod === "COD";
+                  const isOnline =
+                    order.orderType === "ONLINE" ||
+                    order.payment?.paymentMethod === "STRIPE";
+                  const currentPaymentStatus = order.payment?.status;
+                  const isPaymentPaid = currentPaymentStatus === "PAID";
+                  const isEligibleForCODConfirm =
+                    isCOD && order.status === "DELIVERED" && !isPaymentPaid;
 
                   // Shortened Transaction ID
                   const rawTxId =
@@ -455,6 +467,8 @@ export const OrderListPage: React.FC = () => {
 
                   const isRowUpdatingStatus =
                     updatingOrderId === order._id && updatingType === "status";
+                  const isRowUpdatingPayment =
+                    updatingOrderId === order._id && updatingType === "payment";
                   const isRowBusy = updatingOrderId === order._id;
 
                   return (
@@ -544,10 +558,7 @@ export const OrderListPage: React.FC = () => {
                                   disabled
                                   className="text-xs text-[#94A3B8]"
                                 >
-                                  {order.status === "DELIVERED" ||
-                                  order.status === "CANCELLED"
-                                    ? "Terminal state (No transitions)"
-                                    : "No transitions available"}
+                                  No transitions available
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -560,9 +571,78 @@ export const OrderListPage: React.FC = () => {
                         {formatCurrency(vendorAmount)}
                       </TableCell>
 
-                      {/* 7. Payment Method */}
+                      {/* 7. Payment Method with Three-Dot Menu */}
                       <TableCell className="text-xs text-[#475569] py-4 whitespace-nowrap">
-                        {isCOD ? "Cash on Delivery" : "Online Payment"}
+                        <div className="flex items-center gap-1.5">
+                          <span>
+                            {isCOD ? "Cash on Delivery" : "Online Payment"}
+                          </span>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isRowBusy}
+                                className="h-6 w-6 p-0 rounded-md hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
+                                title="Payment options"
+                              >
+                                {isRowUpdatingPayment ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <MoreHorizontal className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-56 bg-white"
+                            >
+                              <DropdownMenuLabel className="text-xs text-[#64748B]">
+                                Payment Actions
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {isOnline ? (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  Online payment (Verified / Read-only)
+                                </DropdownMenuItem>
+                              ) : isPaymentPaid ? (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  Payment completed (Paid)
+                                </DropdownMenuItem>
+                              ) : isEligibleForCODConfirm ? (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleConfirmCODPayment(order._id)
+                                  }
+                                  className="text-xs font-medium cursor-pointer text-[#059669] hover:bg-[#ECFDF5] flex items-center gap-1.5"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  Mark as Paid
+                                </DropdownMenuItem>
+                              ) : isCOD ? (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  Mark as Paid (Deliver order first)
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  No actions available
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
 
                       {/* 8. Transaction ID (shortened with tooltip) */}

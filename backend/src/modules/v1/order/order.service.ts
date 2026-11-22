@@ -419,7 +419,10 @@ const getOrderById = async (
       );
     }
 
-    return order;
+    // Strip admin-only shipping charge for vendor view
+    const orderObj = order.toObject ? order.toObject() : { ...order };
+    delete (orderObj as any).shippingCharge;
+    return orderObj as IOrder;
   }
 
   throw new AppError(
@@ -593,23 +596,6 @@ const updateOrderStatus = async (
     ])) as IOrder;
   }
 
-  // Prevent transitions from terminal states
-  if (order.status === OrderStatus.DELIVERED) {
-    throw new AppError(
-      status.BAD_REQUEST,
-      ERROR_CODE.BAD_REQUEST,
-      ORDER_MESSAGES.ORDER_ALREADY_TERMINAL,
-    );
-  }
-
-  if (order.status === OrderStatus.CANCELLED) {
-    throw new AppError(
-      status.BAD_REQUEST,
-      ERROR_CODE.BAD_REQUEST,
-      ORDER_MESSAGES.ORDER_ALREADY_TERMINAL,
-    );
-  }
-
   // Validate status transition
   const allowedTransitions = VALID_ORDER_STATUS_TRANSITIONS[order.status] || [];
   if (!allowedTransitions.includes(payload.status)) {
@@ -621,8 +607,56 @@ const updateOrderStatus = async (
   }
 
   await runInTransaction(async (session) => {
-    // If order is cancelled, restore stock for all items
-    if (payload.status === OrderStatus.CANCELLED) {
+    // 1. Reopening order from CANCELLED: re-reserve stock
+    if (
+      order.status === OrderStatus.CANCELLED &&
+      payload.status !== OrderStatus.CANCELLED
+    ) {
+      for (const item of order.productItems) {
+        const productDoc = await Product.findById(item.product).exec();
+        if (!productDoc || productDoc.stock < item.quantity) {
+          throw new AppError(
+            status.BAD_REQUEST,
+            ERROR_CODE.PRODUCT_OUT_OF_STOCK,
+            `Insufficient stock to reopen order for product "${item.name}"`,
+          );
+        }
+        const updateProduct = Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { stock: -item.quantity } },
+          { new: true },
+        );
+        if (session) {
+          updateProduct.session(session);
+        }
+        await updateProduct.exec();
+      }
+    }
+
+    // 2. Moving order away from DELIVERED: decrement salesCount and clear deliveredAt
+    if (
+      order.status === OrderStatus.DELIVERED &&
+      payload.status !== OrderStatus.DELIVERED
+    ) {
+      for (const item of order.productItems) {
+        const updateProduct = Product.findByIdAndUpdate(
+          item.product,
+          { $inc: { salesCount: -item.quantity } },
+          { new: true },
+        );
+        if (session) {
+          updateProduct.session(session);
+        }
+        await updateProduct.exec();
+      }
+      order.deliveredAt = undefined;
+    }
+
+    // 3. Transitioning into CANCELLED: restore stock and mark unpaid payment failed
+    if (
+      order.status !== OrderStatus.CANCELLED &&
+      payload.status === OrderStatus.CANCELLED
+    ) {
       for (const item of order.productItems) {
         const updateProduct = Product.findByIdAndUpdate(
           item.product,
@@ -646,10 +680,12 @@ const updateOrderStatus = async (
       }
     }
 
-    if (payload.status === OrderStatus.DELIVERED) {
-      if (!order.deliveredAt) {
-        order.deliveredAt = new Date();
-      }
+    // 4. Transitioning into DELIVERED: set deliveredAt and increment salesCount
+    if (
+      order.status !== OrderStatus.DELIVERED &&
+      payload.status === OrderStatus.DELIVERED
+    ) {
+      order.deliveredAt = new Date();
       for (const item of order.productItems) {
         const updateProduct = Product.findByIdAndUpdate(
           item.product,
@@ -767,6 +803,7 @@ const getVendorOrders = async (
 
   const [orders, total] = await Promise.all([
     Order.find(filter)
+      .select("-shippingCharge")
       .sort({ createdAt: -1 })
       .skip(skipCount)
       .limit(limit)

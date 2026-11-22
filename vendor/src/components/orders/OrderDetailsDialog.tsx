@@ -41,14 +41,17 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
   if (!order) return null;
 
   const items = order.productItems || [];
-  const vendorSubtotal = items.reduce(
-    (sum, item) =>
-      sum +
-      (Number(item.itemSubtotal) ||
-        Number(item.unitPrice * item.quantity) ||
-        0),
-    0,
-  );
+  const vendorSubtotal =
+    items.length > 0
+      ? items.reduce(
+          (sum, item) =>
+            sum +
+            (Number(item.itemSubtotal) ||
+              Number(item.unitPrice * item.quantity) ||
+              0),
+          0,
+        )
+      : Number(order.subtotal || 0);
 
   const formatCurrency = (amount: number | undefined | null) => {
     const validAmount = Number(amount) || 0;

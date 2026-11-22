@@ -23,9 +23,9 @@ export const VALID_ORDER_STATUS_TRANSITIONS: Record<
   ],
   [OrderStatus.CONFIRMED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
   [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
-  [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
-  [OrderStatus.DELIVERED]: [],
-  [OrderStatus.CANCELLED]: [],
+  [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+  [OrderStatus.DELIVERED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
+  [OrderStatus.CANCELLED]: [OrderStatus.PROCESSING],
 };
 
 export const DEFAULT_COMMISSION_RATE = 15;
