@@ -6,9 +6,9 @@ export interface IMonthlyCount {
 
 export interface IVendorDashboardOverview {
   totalProducts: number;
-  totalSales: number;
-  monthlyProducts: IMonthlyCount[];
-  monthlySales: IMonthlyCount[];
+  totalEarnings: number;
+  monthlyProductSales: IMonthlyCount[];
+  monthlyEarnings: IMonthlyCount[];
 }
 
 export interface IVendorRecentSale {
@@ -17,6 +17,7 @@ export interface IVendorRecentSale {
   orderStatus: string;
   paymentStatus: string;
   paymentMethod: string;
+  date: string;
   createdAt: string;
   product: {
     productId: string;

@@ -1,6 +1,12 @@
-import { authenticate, authorize } from "@/middlewares/auth.middleware";
+import {
+  authenticate,
+  authorize,
+  requireApprovedVendor,
+} from "@/middlewares/auth.middleware";
 import { uploadVendorImages } from "@/middlewares/upload.middleware";
 import validateRequest from "@/middlewares/validateRequest";
+import dashboardController from "@/modules/v1/dashboard/dashboard.controller";
+import { vendorRecentSalesQuerySchema } from "@/modules/v1/dashboard/dashboard.validation";
 import { UserRole } from "@/modules/v1/user/user.constant";
 import vendorController from "@/modules/v1/vendor/vendor.controller";
 import {
@@ -8,10 +14,28 @@ import {
   updateVendorStatusSchema,
   vendorIdParamsSchema,
   vendorQuerySchema,
-} from "@/modules/v1/vendor/vendor.validation";
+} from "./vendor.validation";
 import express from "express";
 
 const router = express.Router();
+
+// Vendor Dashboard Overview & Recent Sales Aliases under /vendors/dashboard
+router.get(
+  "/dashboard/overview",
+  authenticate,
+  authorize(UserRole.VENDOR),
+  requireApprovedVendor,
+  dashboardController.getVendorDashboardOverview,
+);
+
+router.get(
+  "/dashboard/recent-sales",
+  authenticate,
+  authorize(UserRole.VENDOR),
+  requireApprovedVendor,
+  validateRequest(vendorRecentSalesQuerySchema, "query"),
+  dashboardController.getVendorRecentSales,
+);
 
 router.get(
   "/me",

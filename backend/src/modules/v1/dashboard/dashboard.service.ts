@@ -364,86 +364,124 @@ export const dashboardService = {
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
     const vendorObjId = new mongoose.Types.ObjectId(vendor._id.toString());
 
-    const [totalProducts, totalSalesResult, productCounts, salesCounts] =
-      await Promise.all([
-        // 1. Total Products
-        Product.countDocuments({
-          $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
-        }),
+    const [
+      totalProducts,
+      totalEarningsResult,
+      productSalesCounts,
+      earningsCounts,
+    ] = await Promise.all([
+      // 1. Total Products owned by Vendor
+      Product.countDocuments({
+        $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
+      }),
 
-        // 2. Total Sales: sum of quantity sold across non-cancelled orders
-        Order.aggregate([
-          {
-            $match: {
-              $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
-              status: { $ne: OrderStatus.CANCELLED },
-            },
+      // 2. Total Earnings: sum of vendorEarning for successfully DELIVERED orders
+      Order.aggregate([
+        {
+          $match: {
+            $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
+            status: OrderStatus.DELIVERED,
           },
-          {
-            $unwind: "$productItems",
+        },
+        {
+          $unwind: "$productItems",
+        },
+        {
+          $match: {
+            $or: [
+              { "productItems.vendor": vendorObjId },
+              { "productItems.vendor": vendor._id },
+            ],
           },
-          {
-            $match: {
-              $or: [
-                { "productItems.vendor": vendorObjId },
-                { "productItems.vendor": vendor._id },
-              ],
-            },
+        },
+        {
+          $group: {
+            _id: null,
+            totalEarnings: { $sum: "$productItems.vendorEarning" },
           },
-          {
-            $group: {
-              _id: null,
-              totalSales: { $sum: "$productItems.quantity" },
-            },
-          },
-        ]),
+        },
+      ]),
 
-        // 3. Monthly Products for Area Chart in current year
-        Product.aggregate([
-          {
-            $match: {
-              $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
-              createdAt: { $gte: startOfYear, $lte: endOfYear },
-            },
+      // 3. Product Selling Overview: monthly quantity sold for DELIVERED orders in current year
+      Order.aggregate([
+        {
+          $match: {
+            $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
+            status: OrderStatus.DELIVERED,
           },
-          {
-            $group: {
-              _id: { $month: "$createdAt" },
-              count: { $sum: 1 },
-            },
+        },
+        {
+          $project: {
+            deliveryDate: { $ifNull: ["$deliveredAt", "$updatedAt"] },
+            productItems: 1,
           },
-        ]),
+        },
+        {
+          $match: {
+            deliveryDate: { $gte: startOfYear, $lte: endOfYear },
+          },
+        },
+        {
+          $unwind: "$productItems",
+        },
+        {
+          $match: {
+            $or: [
+              { "productItems.vendor": vendorObjId },
+              { "productItems.vendor": vendor._id },
+            ],
+          },
+        },
+        {
+          $group: {
+            _id: { $month: "$deliveryDate" },
+            count: { $sum: "$productItems.quantity" },
+          },
+        },
+      ]),
 
-        // 4. Monthly Product Sales for Bar Chart in current year
-        Order.aggregate([
-          {
-            $match: {
-              $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
-              status: { $ne: OrderStatus.CANCELLED },
-              createdAt: { $gte: startOfYear, $lte: endOfYear },
-            },
+      // 4. Earnings Overview: monthly earnings ($) for DELIVERED orders in current year
+      Order.aggregate([
+        {
+          $match: {
+            $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
+            status: OrderStatus.DELIVERED,
           },
-          {
-            $unwind: "$productItems",
+        },
+        {
+          $project: {
+            deliveryDate: { $ifNull: ["$deliveredAt", "$updatedAt"] },
+            productItems: 1,
           },
-          {
-            $match: {
-              $or: [
-                { "productItems.vendor": vendorObjId },
-                { "productItems.vendor": vendor._id },
-              ],
-            },
+        },
+        {
+          $match: {
+            deliveryDate: { $gte: startOfYear, $lte: endOfYear },
           },
-          {
-            $group: {
-              _id: { $month: "$createdAt" },
-              count: { $sum: "$productItems.quantity" },
-            },
+        },
+        {
+          $unwind: "$productItems",
+        },
+        {
+          $match: {
+            $or: [
+              { "productItems.vendor": vendorObjId },
+              { "productItems.vendor": vendor._id },
+            ],
           },
-        ]),
-      ]);
+        },
+        {
+          $group: {
+            _id: { $month: "$deliveryDate" },
+            count: { $sum: "$productItems.vendorEarning" },
+          },
+        },
+      ]),
+    ]);
 
-    const totalSales = Number(totalSalesResult[0]?.totalSales || 0);
+    const totalEarnings = Number(
+      Number(totalEarningsResult[0]?.totalEarnings || 0).toFixed(2),
+    );
 
     const MONTH_NAMES = [
       "January",
@@ -460,9 +498,9 @@ export const dashboardService = {
       "December",
     ];
 
-    const monthlyProducts = MONTH_NAMES.map((month, idx) => {
+    const monthlyProductSales = MONTH_NAMES.map((month, idx) => {
       const monthNumber = idx + 1;
-      const match = productCounts.find((r) => r._id === monthNumber);
+      const match = productSalesCounts.find((r) => r._id === monthNumber);
       return {
         month,
         monthNumber,
@@ -470,21 +508,21 @@ export const dashboardService = {
       };
     });
 
-    const monthlySales = MONTH_NAMES.map((month, idx) => {
+    const monthlyEarnings = MONTH_NAMES.map((month, idx) => {
       const monthNumber = idx + 1;
-      const match = salesCounts.find((r) => r._id === monthNumber);
+      const match = earningsCounts.find((r) => r._id === monthNumber);
       return {
         month,
         monthNumber,
-        count: match ? Number(match.count) || 0 : 0,
+        count: match ? Number(Number(match.count || 0).toFixed(2)) : 0,
       };
     });
 
     return {
       totalProducts,
-      totalSales,
-      monthlyProducts,
-      monthlySales,
+      totalEarnings,
+      monthlyProductSales,
+      monthlyEarnings,
     };
   },
 
@@ -511,7 +549,7 @@ export const dashboardService = {
         {
           $match: {
             $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
-            status: { $ne: OrderStatus.CANCELLED },
+            status: OrderStatus.DELIVERED,
           },
         },
         {
@@ -526,7 +564,7 @@ export const dashboardService = {
           },
         },
         {
-          $sort: { createdAt: -1 },
+          $sort: { deliveredAt: -1, updatedAt: -1, createdAt: -1 },
         },
         {
           $skip: skip,
@@ -581,7 +619,7 @@ export const dashboardService = {
         {
           $match: {
             $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
-            status: { $ne: OrderStatus.CANCELLED },
+            status: OrderStatus.DELIVERED,
           },
         },
         {
@@ -630,12 +668,15 @@ export const dashboardService = {
         ),
       );
 
+      const date = doc.deliveredAt || doc.updatedAt || doc.createdAt;
+
       return {
         orderId: doc._id.toString(),
         transactionId,
         orderStatus: doc.status,
         paymentStatus,
         paymentMethod,
+        date,
         createdAt: doc.createdAt,
         product: {
           productId: item.product?.toString() || "",

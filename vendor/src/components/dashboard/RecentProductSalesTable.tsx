@@ -79,10 +79,10 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
       <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
         <div>
           <h3 className="text-base font-bold text-[#0F172A]">
-            Recent Product Sales
+            Recent Selling Products
           </h3>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Real-time sales history of your store's products across all completed customer orders.
+            Real-time sales history of your store's delivered products across all completed customer orders.
           </p>
         </div>
         <div className="text-xs font-medium text-[#64748B] bg-[#F8FAFC] px-2.5 py-1 rounded-md border border-[#E2E8F0]">
@@ -98,10 +98,10 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
               <ShoppingBag className="w-6 h-6" />
             </div>
             <h4 className="text-sm font-semibold text-[#0F172A]">
-              No product sales yet
+              No selling products yet
             </h4>
             <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-              When customers purchase your products, the sales history will appear here.
+              When customers purchase and receive your products, the sales history will appear here.
             </p>
           </div>
         ) : (
