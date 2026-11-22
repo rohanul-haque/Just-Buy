@@ -1,8 +1,9 @@
 import VendorLayout from "@/components/layout/VendorLayout";
+import AddProductPage from "@/pages/AddProductPage";
 import DashboardPage from "@/pages/DashboardPage";
 import LoginPage from "@/pages/LoginPage";
-import ManageProductsPage from "@/pages/ManageProductsPage";
 import OrderListPage from "@/pages/OrderListPage";
+import ProductsPage from "@/pages/ProductsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { createBrowserRouter, Navigate } from "react-router";
@@ -30,7 +31,15 @@ const router = createBrowserRouter([
       },
       {
         path: "products",
-        Component: ManageProductsPage,
+        Component: ProductsPage,
+      },
+      {
+        path: "products/new",
+        Component: AddProductPage,
+      },
+      {
+        path: "products/add",
+        Component: AddProductPage,
       },
       {
         path: "orders",

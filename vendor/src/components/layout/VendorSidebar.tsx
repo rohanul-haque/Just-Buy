@@ -22,7 +22,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-  { label: "Manage Products", to: "/products", icon: Package },
+  { label: "Products", to: "/products", icon: Package },
   { label: "Order List", to: "/orders", icon: ClipboardList },
   { label: "Settings", to: "/settings", icon: Settings },
 ];

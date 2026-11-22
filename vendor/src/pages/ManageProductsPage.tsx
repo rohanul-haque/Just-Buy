@@ -1,13 +1,4 @@
-import React from "react";
+import ProductsPage from "./ProductsPage";
 
-export const ManageProductsPage: React.FC = () => {
-  return (
-    <div>
-      <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-        Manage Products Content
-      </h2>
-    </div>
-  );
-};
-
+export const ManageProductsPage = ProductsPage;
 export default ManageProductsPage;
