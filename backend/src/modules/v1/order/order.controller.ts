@@ -146,6 +146,29 @@ const getVendorOrderStatistics = asyncHandler(
   },
 );
 
+const updatePaymentStatus = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const orderId = req.params.orderId as string;
+    const { status: targetStatus } = req.body;
+
+    const result = await paymentService.updatePaymentStatus(
+      orderId,
+      targetStatus,
+      {
+        userId: req.user!.userId,
+        role: req.user!.role,
+      },
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Payment status updated successfully",
+      data: result,
+    });
+  },
+);
+
 const orderController = {
   createOrder,
   getMyOrders,
@@ -156,6 +179,7 @@ const orderController = {
   getVendorOrders,
   confirmCODPayment,
   getVendorOrderStatistics,
+  updatePaymentStatus,
 };
 
 export default orderController;

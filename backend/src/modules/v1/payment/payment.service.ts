@@ -888,6 +888,144 @@ const confirmCODPayment = async (
   };
 };
 
+const updatePaymentStatus = async (
+  orderId: string,
+  targetStatus: PaymentStatus,
+  user: { userId: string; role: string },
+): Promise<{ payment: IPayment; order: IOrder }> => {
+  const order = await Order.findById(orderId).exec();
+  if (!order) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.ORDER_NOT_FOUND,
+      ORDER_MESSAGES.ORDER_NOT_FOUND,
+    );
+  }
+
+  // Authorization check
+  if (user.role === UserRole.VENDOR) {
+    const vendor = await Vendor.findOne({ vendor: user.userId }).exec();
+    if (!vendor) {
+      throw new AppError(
+        status.NOT_FOUND,
+        ERROR_CODE.SELLER_PROFILE_NOT_FOUND,
+        MESSAGES.SELLER_PROFILE_NOT_FOUND,
+      );
+    }
+    if (vendor.status !== VendorStatus.APPROVED) {
+      throw new AppError(
+        status.FORBIDDEN,
+        ERROR_CODE.SELLER_NOT_APPROVED,
+        MESSAGES.SELLER_CANNOT_CREATE_PRODUCT,
+      );
+    }
+    const orderVendorId = (order.vendor as any)?._id || order.vendor;
+    if (orderVendorId.toString() !== vendor._id.toString()) {
+      throw new AppError(
+        status.FORBIDDEN,
+        ERROR_CODE.FORBIDDEN,
+        ORDER_MESSAGES.ORDER_UNAUTHORIZED,
+      );
+    }
+  } else if (user.role !== UserRole.ADMIN) {
+    throw new AppError(
+      status.FORBIDDEN,
+      ERROR_CODE.FORBIDDEN,
+      MESSAGES.FORBIDDEN,
+    );
+  }
+
+  const payment = await Payment.findOne({ order: order._id }).exec();
+  if (!payment) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.PAYMENT_NOT_FOUND,
+      PAYMENT_MESSAGES.PAYMENT_NOT_FOUND,
+    );
+  }
+
+  // If already at target status, return immediately
+  if (payment.status === targetStatus) {
+    const refreshedOrder = await Order.findById(order._id)
+      .populate("payment")
+      .exec();
+    return { payment, order: refreshedOrder || order };
+  }
+
+  // Business Rules for ONLINE Payment orders
+  if (
+    order.orderType === OrderType.ONLINE ||
+    payment.provider === PaymentProvider.STRIPE
+  ) {
+    if (targetStatus === PaymentStatus.PAID) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        ERROR_CODE.BAD_REQUEST,
+        "Online payments are verified automatically via Stripe and cannot be manually overridden.",
+      );
+    }
+    if (targetStatus === PaymentStatus.REFUNDED) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        ERROR_CODE.BAD_REQUEST,
+        "Online payment refunds must be processed through the Stripe payment gateway.",
+      );
+    }
+    throw new AppError(
+      status.BAD_REQUEST,
+      ERROR_CODE.BAD_REQUEST,
+      "Verified online payment status cannot be manually altered.",
+    );
+  }
+
+  // Business Rules for COD orders
+  if (targetStatus === PaymentStatus.PAID) {
+    return await confirmCODPayment(orderId, user);
+  }
+
+  if (targetStatus === PaymentStatus.REFUNDED) {
+    if (payment.status !== PaymentStatus.PAID) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        ERROR_CODE.BAD_REQUEST,
+        "Cannot refund an order that has not been paid.",
+      );
+    }
+    payment.status = PaymentStatus.REFUNDED;
+    await payment.save();
+    const refreshedOrder = await Order.findById(order._id)
+      .populate("payment")
+      .exec();
+    return { payment, order: refreshedOrder || order };
+  }
+
+  if (
+    targetStatus === PaymentStatus.UNPAID ||
+    targetStatus === PaymentStatus.PENDING
+  ) {
+    if (payment.status === PaymentStatus.PAID) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        ERROR_CODE.PAYMENT_ALREADY_COMPLETED,
+        PAYMENT_MESSAGES.PAYMENT_ALREADY_COMPLETED,
+      );
+    }
+    payment.status = targetStatus;
+    await payment.save();
+    const refreshedOrder = await Order.findById(order._id)
+      .populate("payment")
+      .exec();
+    return { payment, order: refreshedOrder || order };
+  }
+
+  payment.status = targetStatus;
+  await payment.save();
+  const refreshedOrder = await Order.findById(order._id)
+    .populate("payment")
+    .exec();
+  return { payment, order: refreshedOrder || order };
+};
+
 const paymentService = {
   createPayment,
   createStripeCheckoutSession,
@@ -895,6 +1033,7 @@ const paymentService = {
   handleStripeWebhook,
   verifyStripeCheckoutSession,
   confirmCODPayment,
+  updatePaymentStatus,
   getPaymentByOrderId,
 };
 

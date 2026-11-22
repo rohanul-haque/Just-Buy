@@ -5,6 +5,7 @@ import type {
   IOrderStatistics,
   OrderStatus,
   OrderType,
+  PaymentStatus,
 } from "@/types/order";
 
 export interface GetVendorOrdersParams {
@@ -94,6 +95,17 @@ export const orderService = {
     const response = await apiClient.patch<ApiResponse<any>>(
       `/orders/${orderId}/confirm-cod-payment`,
       {},
+    );
+    return response.data;
+  },
+
+  updatePaymentStatus: async (
+    orderId: string,
+    status: PaymentStatus,
+  ): Promise<ApiResponse<any>> => {
+    const response = await apiClient.patch<ApiResponse<any>>(
+      `/orders/${orderId}/payment/status`,
+      { status },
     );
     return response.data;
   },

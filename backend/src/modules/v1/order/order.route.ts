@@ -10,6 +10,7 @@ import {
   orderIdParamsSchema,
   orderQuerySchema,
   updateOrderStatusSchema,
+  updatePaymentStatusSchema,
 } from "@/modules/v1/order/order.validation";
 import { UserRole } from "@/modules/v1/user/user.constant";
 import express from "express";
@@ -96,6 +97,15 @@ router.patch(
   authorize(UserRole.VENDOR, UserRole.ADMIN),
   validateRequest(orderIdParamsSchema, "params"),
   orderController.confirmCODPayment,
+);
+
+router.patch(
+  "/:orderId/payment/status",
+  authenticate,
+  authorize(UserRole.VENDOR, UserRole.ADMIN),
+  validateRequest(orderIdParamsSchema, "params"),
+  validateRequest(updatePaymentStatusSchema, "body"),
+  orderController.updatePaymentStatus,
 );
 
 export default router;

@@ -1,4 +1,5 @@
 import { OrderStatus, OrderType } from "@/modules/v1/order/order.constant";
+import { PaymentStatus } from "@/modules/v1/payment/payment.constant";
 import { z } from "zod";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
@@ -73,6 +74,14 @@ export const updateOrderStatusSchema = z
       .trim()
       .max(500, "Note cannot exceed 500 characters")
       .optional(),
+  })
+  .strict();
+
+export const updatePaymentStatusSchema = z
+  .object({
+    status: z.enum(Object.values(PaymentStatus) as [string, ...string[]], {
+      message: "Invalid payment status",
+    }),
   })
   .strict();
 
