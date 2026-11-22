@@ -1,14 +1,24 @@
 import VendorLayout from "@/components/layout/VendorLayout";
 import DashboardPage from "@/pages/DashboardPage";
+import LoginPage from "@/pages/LoginPage";
 import ManageProductsPage from "@/pages/ManageProductsPage";
 import OrderListPage from "@/pages/OrderListPage";
 import SettingsPage from "@/pages/SettingsPage";
+import ProtectedRoute from "@/routes/ProtectedRoute";
 import { createBrowserRouter, Navigate } from "react-router";
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    Component: LoginPage,
+  },
+  {
     path: "/",
-    element: <VendorLayout />,
+    element: (
+      <ProtectedRoute>
+        <VendorLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -31,6 +41,10 @@ const router = createBrowserRouter([
         Component: SettingsPage,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <Navigate to="/dashboard" replace />,
   },
 ]);
 

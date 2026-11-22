@@ -1,4 +1,4 @@
-import authService from "@/api/services/auth.service";
+import authService, { type ILoginResponse } from "@/api/services/auth.service";
 import vendorService from "@/api/services/vendor.service";
 import type { IUser } from "@/types/user";
 import type { IVendor } from "@/types/vendor";
@@ -15,6 +15,10 @@ interface AuthContextType {
   vendorProfile: IVendor | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  login: (credentials: {
+    email: string;
+    password: string;
+  }) => Promise<ILoginResponse>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -36,7 +40,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       ]);
 
       if (userRes.status === "fulfilled" && userRes.value?.data) {
-        setUser(userRes.value.data);
+        const userData = userRes.value.data;
+        // Strict role verification: only VENDOR is authorized
+        if (userData.role === "VENDOR") {
+          setUser(userData);
+        } else {
+          setUser(null);
+          setVendorProfile(null);
+          localStorage.removeItem("jus_buy_vendor_token");
+          return;
+        }
+      } else {
+        setUser(null);
+        setVendorProfile(null);
+        return;
       }
 
       if (vendorRes.status === "fulfilled" && vendorRes.value?.data) {
@@ -44,9 +61,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (vendorRes.value.data.vendor) {
           setUser(vendorRes.value.data.vendor);
         }
+      } else {
+        setVendorProfile(null);
       }
     } catch {
-      // Keep existing state or silently ignore on initial load
+      setUser(null);
+      setVendorProfile(null);
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +88,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [fetchProfile]);
 
+  const login = async (credentials: { email: string; password: string }) => {
+    setIsLoading(true);
+    try {
+      const res = await authService.login(credentials);
+      const loggedUser = res.data?.user;
+
+      // Strict role verification: deny access if not VENDOR
+      if (!loggedUser || loggedUser.role !== "VENDOR") {
+        await authService.logout().catch(() => {});
+        setUser(null);
+        setVendorProfile(null);
+        localStorage.removeItem("jus_buy_vendor_token");
+        throw new Error(
+          "Access denied. Only registered vendor accounts can access the Vendor Dashboard.",
+        );
+      }
+
+      setUser(loggedUser);
+      await fetchProfile();
+      return res.data;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       await authService.logout();
@@ -81,8 +126,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: AuthContextType = {
     user,
     vendorProfile,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && user.role === "VENDOR",
     isLoading,
+    login,
     logout,
     refreshProfile: fetchProfile,
   };

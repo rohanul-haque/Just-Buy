@@ -25,9 +25,8 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const vendorName =
-    vendorProfile?.vendor?.name || user?.name || "Vendor";
-  const avatarUrl = vendorProfile?.profile?.url;
+  const vendorName = vendorProfile?.vendor?.name || user?.name || "";
+  const avatarUrl = vendorProfile?.profile?.url || null;
 
   return (
     <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between select-none">
@@ -58,7 +57,7 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
         {/* Two-Line Left-Aligned Welcome Section */}
         <div className="flex flex-col text-left">
           <h1 className="text-sm sm:text-base md:text-lg font-bold text-[#0F172A] leading-tight">
-            Welcome Back, {vendorName}
+            Welcome Back{vendorName ? `, ${vendorName}` : ""}
           </h1>
           <span className="text-xs md:text-sm text-[#4B5563] font-normal mt-0.5">
             {greeting}! Have a nice day.
@@ -70,13 +69,13 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
       <div className="flex items-center gap-3">
         <ProfileAvatar
           src={avatarUrl}
-          alt={vendorName}
+          alt={vendorName || "Vendor"}
           className="w-10 h-10 rounded-full border border-[#E5E7EB] shrink-0 shadow-xs"
         />
 
         <div className="hidden sm:flex flex-col text-left">
           <span className="text-sm font-semibold text-[#0F172A] leading-tight">
-            {vendorName}
+            {vendorName || "Vendor"}
           </span>
           <span className="text-xs text-[#4B5563] font-normal">
             Vendor

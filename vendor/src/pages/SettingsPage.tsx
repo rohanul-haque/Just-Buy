@@ -218,8 +218,8 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  const displayName = name || initialName || "Vendor";
-  const displayEmail = initialEmail || "vendor@jusbuy.com";
+  const displayName = name || initialName || "";
+  const displayEmail = initialEmail || "";
   const userRole = vendorProfile?.vendor?.role || user?.role || "VENDOR";
   const userStatus = vendorProfile?.vendor?.status || user?.status || "ACTIVE";
   // Vendor Approval Status dynamically reads from Vendor.status
@@ -244,7 +244,7 @@ export const SettingsPage: React.FC = () => {
             <div className="relative group">
               <ProfileAvatar
                 src={profilePreview}
-                alt={displayName}
+                alt={displayName || "Profile Photo"}
                 className="w-24 h-24 rounded-full border-2 border-[#E5E7EB] shadow-xs"
               />
               <Button
@@ -270,7 +270,7 @@ export const SettingsPage: React.FC = () => {
 
             <div className="text-center sm:text-left space-y-1.5">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h4 className="text-lg font-bold text-[#0F172A]">{displayName}</h4>
+                <h4 className="text-lg font-bold text-[#0F172A]">{displayName || "—"}</h4>
                 <span className="bg-[#EEF2FF] text-[#4F46E5] border border-[#C7D2FE] px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
                   {userRole}
                 </span>
@@ -284,7 +284,7 @@ export const SettingsPage: React.FC = () => {
                   {userStatus}
                 </span>
               </div>
-              <p className="text-sm text-[#4B5563]">{displayEmail}</p>
+              <p className="text-sm text-[#4B5563]">{displayEmail || "—"}</p>
             </div>
           </div>
 
