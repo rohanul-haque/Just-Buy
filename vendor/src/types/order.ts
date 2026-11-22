@@ -8,7 +8,12 @@ export type OrderStatus =
 
 export type OrderType = "COD" | "ONLINE";
 
-export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+export type PaymentStatus =
+  | "UNPAID"
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
+  | "REFUNDED";
 
 export interface IOrderItem {
   _id?: string;
@@ -21,9 +26,9 @@ export interface IOrderItem {
   quantity: number;
   size?: string;
   itemSubtotal: number;
-  commissionRate: number;
-  adminCommission: number;
-  vendorEarning: number;
+  commissionRate?: number;
+  adminCommission?: number;
+  vendorEarning?: number;
 }
 
 export interface IPayment {

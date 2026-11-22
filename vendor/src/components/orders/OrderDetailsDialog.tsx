@@ -34,9 +34,21 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
   const items = order.productItems || [];
   const vendorSubtotal = items.reduce(
-    (sum, item) => sum + (Number(item.itemSubtotal) || Number(item.unitPrice * item.quantity) || 0),
+    (sum, item) =>
+      sum +
+      (Number(item.itemSubtotal) ||
+        Number(item.unitPrice * item.quantity) ||
+        0),
     0,
   );
+
+  const formatCurrency = (amount: number | undefined | null) => {
+    const validAmount = Number(amount) || 0;
+    return `৳${validAmount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
 
   const getOrderStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -172,7 +184,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <div className="text-right">
               <span className="text-xs text-[#64748B] block">Vendor Items Amount:</span>
               <span className="text-lg font-bold text-[#4F46E5]">
-                ${vendorSubtotal.toFixed(2)}
+                {formatCurrency(vendorSubtotal)}
               </span>
             </div>
           </div>
@@ -207,17 +219,22 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                       {item.brand && <span>Brand: {item.brand}</span>}
                       {item.size && <span>Size: {item.size}</span>}
                       <span>Qty: {item.quantity}</span>
-                      <span>Unit: ${Number(item.unitPrice).toFixed(2)}</span>
+                      <span>Unit: {formatCurrency(item.unitPrice)}</span>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
                     <p className="text-sm font-bold text-[#0F172A]">
-                      ${(Number(item.itemSubtotal) || Number(item.unitPrice * item.quantity)).toFixed(2)}
+                      {formatCurrency(Number(item.itemSubtotal) || Number(item.unitPrice * item.quantity))}
                     </p>
-                    {item.vendorEarning !== undefined && (
+                    {item.adminCommission !== undefined && item.adminCommission !== null && (
+                      <p className="text-xs text-[#DC2626]">
+                        Commission: {formatCurrency(item.adminCommission)}
+                      </p>
+                    )}
+                    {item.vendorEarning !== undefined && item.vendorEarning !== null && (
                       <p className="text-xs text-[#059669]">
-                        Earn: ${Number(item.vendorEarning).toFixed(2)}
+                        Earn: {formatCurrency(item.vendorEarning)}
                       </p>
                     )}
                   </div>

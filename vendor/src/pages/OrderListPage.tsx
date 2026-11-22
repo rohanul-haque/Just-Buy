@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
-  ArrowUpDown,
   CheckCircle,
   Eye,
   Loader2,
+  MoreVertical,
   Package,
   RotateCcw,
   Search,
@@ -55,6 +55,9 @@ export const OrderListPage: React.FC = () => {
 
   // Status updating & Payment confirmation state
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [updatingType, setUpdatingType] = useState<"status" | "payment" | null>(
+    null,
+  );
 
   // Selected Order for Details Dialog
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
@@ -102,12 +105,21 @@ export const OrderListPage: React.FC = () => {
   }, [fetchOrders]);
 
   // Handle Order Status Transitions
-  const handleUpdateStatus = async (orderId: string, nextStatus: OrderStatus) => {
+  const handleUpdateStatus = async (
+    orderId: string,
+    nextStatus: OrderStatus,
+  ) => {
     setUpdatingOrderId(orderId);
+    setUpdatingType("status");
     try {
-      const response = await orderService.updateOrderStatus(orderId, nextStatus);
+      const response = await orderService.updateOrderStatus(
+        orderId,
+        nextStatus,
+      );
       if (response.success) {
-        toast.success(response.message || `Order status updated to ${nextStatus}!`);
+        toast.success(
+          response.message || `Order status updated to ${nextStatus}!`,
+        );
         await fetchOrders();
       } else {
         toast.error(response.message || "Failed to update order status.");
@@ -116,16 +128,20 @@ export const OrderListPage: React.FC = () => {
       toast.error(getApiErrorMessage(err));
     } finally {
       setUpdatingOrderId(null);
+      setUpdatingType(null);
     }
   };
 
   // Handle Cash On Delivery (COD) Payment Confirmation
   const handleConfirmCODPayment = async (orderId: string) => {
     setUpdatingOrderId(orderId);
+    setUpdatingType("payment");
     try {
       const response = await orderService.confirmCODPayment(orderId);
       if (response.success) {
-        toast.success(response.message || "COD payment confirmed successfully!");
+        toast.success(
+          response.message || "COD payment confirmed successfully!",
+        );
         await fetchOrders();
       } else {
         toast.error(response.message || "Failed to confirm COD payment.");
@@ -134,6 +150,7 @@ export const OrderListPage: React.FC = () => {
       toast.error(getApiErrorMessage(err));
     } finally {
       setUpdatingOrderId(null);
+      setUpdatingType(null);
     }
   };
 
@@ -143,13 +160,28 @@ export const OrderListPage: React.FC = () => {
     setIsDetailsOpen(true);
   };
 
+  // Currency formatting matching Admin conventions (BDT ৳)
+  const formatCurrency = (amount: number | undefined | null) => {
+    const validAmount = Number(amount) || 0;
+    return `৳${validAmount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
   // Filter orders by search query locally
   const filteredOrders = orders.filter((order) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     const orderNumber = (order.transactionNumber || order._id).toLowerCase();
-    const customerName = (order.buyer?.name || order.shippingAddress?.fullName || "").toLowerCase();
-    const productNames = (order.productItems || []).map((i) => i.name.toLowerCase()).join(" ");
+    const customerName = (
+      order.buyer?.name ||
+      order.shippingAddress?.fullName ||
+      ""
+    ).toLowerCase();
+    const productNames = (order.productItems || [])
+      .map((i) => i.name.toLowerCase())
+      .join(" ");
     return (
       orderNumber.includes(query) ||
       customerName.includes(query) ||
@@ -160,17 +192,41 @@ export const OrderListPage: React.FC = () => {
   const getOrderStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case "PENDING":
-        return <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">Pending</Badge>;
+        return (
+          <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">
+            Pending
+          </Badge>
+        );
       case "CONFIRMED":
-        return <Badge className="bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]">Confirmed</Badge>;
+        return (
+          <Badge className="bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]">
+            Confirmed
+          </Badge>
+        );
       case "PROCESSING":
-        return <Badge className="bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]">Processing</Badge>;
+        return (
+          <Badge className="bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]">
+            Processing
+          </Badge>
+        );
       case "SHIPPED":
-        return <Badge className="bg-[#ECFEFF] text-[#0891B2] border-[#A5F3FC]">Shipped</Badge>;
+        return (
+          <Badge className="bg-[#ECFEFF] text-[#0891B2] border-[#A5F3FC]">
+            Shipped
+          </Badge>
+        );
       case "DELIVERED":
-        return <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">Delivered</Badge>;
+        return (
+          <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">
+            Delivered
+          </Badge>
+        );
       case "CANCELLED":
-        return <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">Cancelled</Badge>;
+        return (
+          <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">
+            Cancelled
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -179,13 +235,35 @@ export const OrderListPage: React.FC = () => {
   const getPaymentStatusBadge = (status?: PaymentStatus) => {
     switch (status) {
       case "PAID":
-        return <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">Paid</Badge>;
+        return (
+          <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">
+            Paid
+          </Badge>
+        );
       case "PENDING":
-        return <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">Pending</Badge>;
+        return (
+          <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">
+            Pending
+          </Badge>
+        );
+      case "UNPAID":
+        return (
+          <Badge className="bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]">
+            Unpaid
+          </Badge>
+        );
       case "FAILED":
-        return <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">Failed</Badge>;
+        return (
+          <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">
+            Failed
+          </Badge>
+        );
       case "REFUNDED":
-        return <Badge className="bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]">Refunded</Badge>;
+        return (
+          <Badge className="bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]">
+            Refunded
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status || "Pending"}</Badge>;
     }
@@ -200,7 +278,8 @@ export const OrderListPage: React.FC = () => {
             Manage Orders
           </h2>
           <p className="text-sm text-[#64748B] mt-1">
-            Track and fulfill customer orders for your products ({totalOrders} total).
+            Track and fulfill customer orders for your products ({totalOrders}{" "}
+            total).
           </p>
         </div>
 
@@ -211,7 +290,9 @@ export const OrderListPage: React.FC = () => {
           disabled={isLoading}
           className="self-start sm:self-auto h-9 border-[#E5E7EB] text-[#374151] hover:bg-[#F8FAFC] cursor-pointer"
         >
-          <RotateCcw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`} />
+          <RotateCcw
+            className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -265,7 +346,9 @@ export const OrderListPage: React.FC = () => {
             </select>
 
             {/* Clear Filters */}
-            {(selectedStatus !== "ALL" || selectedOrderType !== "ALL" || searchQuery) && (
+            {(selectedStatus !== "ALL" ||
+              selectedOrderType !== "ALL" ||
+              searchQuery) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -289,12 +372,16 @@ export const OrderListPage: React.FC = () => {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center p-12 space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#6366F1]" />
-            <p className="text-sm font-medium text-[#64748B]">Loading vendor orders...</p>
+            <p className="text-sm font-medium text-[#64748B]">
+              Loading vendor orders...
+            </p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center p-12 space-y-3 text-center">
             <AlertCircle className="w-10 h-10 text-[#EF4444]" />
-            <p className="text-sm font-semibold text-[#0F172A]">Unable to load orders</p>
+            <p className="text-sm font-semibold text-[#0F172A]">
+              Unable to load orders
+            </p>
             <p className="text-xs text-[#64748B] max-w-md">{error}</p>
             <Button
               variant="outline"
@@ -308,9 +395,13 @@ export const OrderListPage: React.FC = () => {
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 space-y-3 text-center">
             <Package className="w-12 h-12 text-[#CBD5E1]" />
-            <p className="text-base font-semibold text-[#0F172A]">No orders found</p>
+            <p className="text-base font-semibold text-[#0F172A]">
+              No orders found
+            </p>
             <p className="text-xs text-[#64748B] max-w-sm">
-              {searchQuery || selectedStatus !== "ALL" || selectedOrderType !== "ALL"
+              {searchQuery ||
+              selectedStatus !== "ALL" ||
+              selectedOrderType !== "ALL"
                 ? "No orders match your selected filters. Try adjusting your search or filters."
                 : "You haven't received any customer orders yet. Newly placed orders for your products will appear here."}
             </p>
@@ -320,33 +411,47 @@ export const OrderListPage: React.FC = () => {
             <Table>
               <TableHeader className="bg-[#F8FAFC]">
                 <TableRow className="border-b border-[#E5E7EB]">
+                  {/* 1. Product Name */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 pl-6">
                     Product Name
                   </TableHead>
+                  {/* 2. Order ID */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
                     Order ID
                   </TableHead>
+                  {/* 3. Date */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
                     Date
                   </TableHead>
+                  {/* 4. Customer Name */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
                     Customer Name
                   </TableHead>
+                  {/* 5. Quantity */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
                     Quantity
                   </TableHead>
+                  {/* 6. Order Status */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
                     Order Status
                   </TableHead>
+                  {/* 7. Payment Method */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
                     Payment Method
                   </TableHead>
+                  {/* 8. Payment Status */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
                     Payment Status
                   </TableHead>
+                  {/* 9. Commission */}
+                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-right">
+                    Commission
+                  </TableHead>
+                  {/* 10. Amount */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-right">
                     Amount
                   </TableHead>
+                  {/* 11. Actions */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center pr-6">
                     Actions
                   </TableHead>
@@ -375,9 +480,29 @@ export const OrderListPage: React.FC = () => {
                     0,
                   );
 
+                  // Vendor stored commission from order item in database
+                  const hasCommissionData =
+                    items.length > 0 &&
+                    items.some(
+                      (it) =>
+                        it.adminCommission !== undefined &&
+                        it.adminCommission !== null,
+                    );
+                  const vendorCommission = hasCommissionData
+                    ? items.reduce(
+                        (sum, it) => sum + (Number(it.adminCommission) || 0),
+                        0,
+                      )
+                    : null;
+
                   const isCOD =
                     order.orderType === "COD" ||
                     order.payment?.paymentMethod === "COD";
+                  const isOnline =
+                    order.orderType === "ONLINE" ||
+                    order.payment?.paymentMethod === "STRIPE";
+                  const currentPaymentStatus = order.payment?.status;
+                  const isPaymentPaid = currentPaymentStatus === "PAID";
 
                   // Check permitted status transitions
                   const allowedTransitions =
@@ -387,16 +512,20 @@ export const OrderListPage: React.FC = () => {
                   const isEligibleForCODConfirm =
                     isCOD &&
                     order.status === "DELIVERED" &&
-                    order.payment?.status !== "PAID";
+                    !isPaymentPaid;
 
-                  const isRowUpdating = updatingOrderId === order._id;
+                  const isRowUpdatingStatus =
+                    updatingOrderId === order._id && updatingType === "status";
+                  const isRowUpdatingPayment =
+                    updatingOrderId === order._id && updatingType === "payment";
+                  const isRowBusy = updatingOrderId === order._id;
 
                   return (
                     <TableRow
                       key={order._id}
                       className="hover:bg-[#F8FAFC] transition-colors"
                     >
-                      {/* Product Name */}
+                      {/* 1. Product Name */}
                       <TableCell className="pl-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-md border border-[#E5E7EB] bg-[#F8FAFC] overflow-hidden shrink-0 flex items-center justify-center">
@@ -416,56 +545,198 @@ export const OrderListPage: React.FC = () => {
                             </p>
                             {extraItemsCount > 0 && (
                               <span className="text-xs text-[#6366F1] font-medium block">
-                                +{extraItemsCount} more item{extraItemsCount > 1 ? "s" : ""}
+                                +{extraItemsCount} more item
+                                {extraItemsCount > 1 ? "s" : ""}
                               </span>
                             )}
                           </div>
                         </div>
                       </TableCell>
 
-                      {/* Order ID */}
+                      {/* 2. Order ID */}
                       <TableCell className="text-xs font-mono font-semibold text-[#0F172A] py-4">
-                        #{order.transactionNumber || order._id.slice(-6).toUpperCase()}
+                        #
+                        {order.transactionNumber ||
+                          order._id.slice(-6).toUpperCase()}
                       </TableCell>
 
-                      {/* Date */}
+                      {/* 3. Date */}
                       <TableCell className="text-xs text-[#475569] py-4 whitespace-nowrap">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
 
-                      {/* Customer Name */}
+                      {/* 4. Customer Name */}
                       <TableCell className="text-xs font-medium text-[#0F172A] py-4">
-                        {order.buyer?.name || order.shippingAddress?.fullName || "Customer"}
+                        {order.buyer?.name ||
+                          order.shippingAddress?.fullName ||
+                          "Customer"}
                       </TableCell>
 
-                      {/* Quantity */}
+                      {/* 5. Quantity */}
                       <TableCell className="text-xs font-semibold text-[#0F172A] text-center py-4">
                         {totalQuantity}
                       </TableCell>
 
-                      {/* Order Status */}
-                      <TableCell className="text-center py-4">
-                        {getOrderStatusBadge(order.status)}
+                      {/* 6. Order Status with Three-Dot Menu */}
+                      <TableCell className="py-4">
+                        <div className="flex items-center justify-center gap-1">
+                          {getOrderStatusBadge(order.status)}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isRowBusy}
+                                className="h-7 w-7 p-0 rounded-md hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
+                                title="Update order status"
+                              >
+                                {isRowUpdatingStatus ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <MoreVertical className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-48 bg-white"
+                            >
+                              <DropdownMenuLabel className="text-xs text-[#64748B]">
+                                Change Order Status
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {allowedTransitions.length > 0 ? (
+                                allowedTransitions.map((nextStatus) => (
+                                  <DropdownMenuItem
+                                    key={nextStatus}
+                                    onClick={() =>
+                                      handleUpdateStatus(order._id, nextStatus)
+                                    }
+                                    className="text-xs cursor-pointer font-medium hover:bg-[#F8FAFC]"
+                                  >
+                                    Mark as {nextStatus}
+                                  </DropdownMenuItem>
+                                ))
+                              ) : (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  {order.status === "DELIVERED" ||
+                                  order.status === "CANCELLED"
+                                    ? "Terminal state (No transitions)"
+                                    : "No transitions available"}
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
 
-                      {/* Payment Method */}
+                      {/* 7. Payment Method */}
                       <TableCell className="text-xs text-[#475569] py-4">
                         {isCOD ? "Cash on Delivery" : "Online Payment"}
                       </TableCell>
 
-                      {/* Payment Status */}
-                      <TableCell className="text-center py-4">
-                        {getPaymentStatusBadge(order.payment?.status)}
+                      {/* 8. Payment Status with Three-Dot Menu */}
+                      <TableCell className="py-4">
+                        <div className="flex items-center justify-center gap-1">
+                          {getPaymentStatusBadge(currentPaymentStatus)}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isRowBusy}
+                                className="h-7 w-7 p-0 rounded-md hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
+                                title="Payment options"
+                              >
+                                {isRowUpdatingPayment ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <MoreVertical className="w-3.5 h-3.5" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="w-56 bg-white"
+                            >
+                              <DropdownMenuLabel className="text-xs text-[#64748B]">
+                                Payment Actions
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {isOnline ? (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  Online payment (Read-only)
+                                </DropdownMenuItem>
+                              ) : isPaymentPaid ? (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  Payment completed (Paid)
+                                </DropdownMenuItem>
+                              ) : isEligibleForCODConfirm ? (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleConfirmCODPayment(order._id)
+                                  }
+                                  className="text-xs font-medium cursor-pointer text-[#059669] hover:bg-[#ECFDF5] flex items-center gap-1.5"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  Mark as Paid
+                                </DropdownMenuItem>
+                              ) : isCOD ? (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  Mark as Paid (Deliver order first)
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  disabled
+                                  className="text-xs text-[#94A3B8]"
+                                >
+                                  No actions available
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
 
-                      {/* Amount */}
+                      {/* 9. Commission (from corresponding stored database order item) */}
+                      <TableCell className="text-right py-4">
+                        {vendorCommission !== null ? (
+                          order.status === "DELIVERED" ? (
+                            <span className="inline-flex items-center font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-sm border border-[#D1FAE5] text-xs">
+                              {formatCurrency(vendorCommission)}
+                            </span>
+                          ) : (
+                            <span className="text-xs font-semibold text-[#475569]">
+                              {formatCurrency(vendorCommission)}
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-xs text-[#94A3B8] font-medium">
+                            —
+                          </span>
+                        )}
+                      </TableCell>
+
+                      {/* 10. Amount */}
                       <TableCell className="text-sm font-bold text-[#0F172A] text-right py-4">
-                        ${vendorAmount.toFixed(2)}
+                        {formatCurrency(vendorAmount)}
                       </TableCell>
 
-                      {/* Actions */}
+                      {/* 11. Actions */}
                       <TableCell className="text-center pr-6 py-4">
-                        <div className="flex items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center">
                           {/* View Details */}
                           <Button
                             variant="ghost"
@@ -476,66 +747,6 @@ export const OrderListPage: React.FC = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-
-                          {/* Order Status Transitions Dropdown */}
-                          {allowedTransitions.length > 0 ? (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={isRowUpdating}
-                                  className="h-8 text-xs font-medium rounded-md border-[#E5E7EB] hover:bg-[#F8FAFC] cursor-pointer"
-                                >
-                                  {isRowUpdating ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  ) : (
-                                    <>
-                                      <span>Status</span>
-                                      <ArrowUpDown className="w-3 h-3 ml-1 text-[#94A3B8]" />
-                                    </>
-                                  )}
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-44 bg-white">
-                                <DropdownMenuLabel className="text-xs text-[#64748B]">
-                                  Update Order Status
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {allowedTransitions.map((nextStatus) => (
-                                  <DropdownMenuItem
-                                    key={nextStatus}
-                                    onClick={() => handleUpdateStatus(order._id, nextStatus)}
-                                    className="text-xs cursor-pointer font-medium"
-                                  >
-                                    Move to {nextStatus}
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          ) : (
-                            <span className="text-[11px] text-[#94A3B8] italic">
-                              Terminal
-                            </span>
-                          )}
-
-                          {/* Confirm COD Payment button (only if eligible) */}
-                          {isEligibleForCODConfirm && (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleConfirmCODPayment(order._id)}
-                              disabled={isRowUpdating}
-                              className="h-8 px-2 text-xs bg-[#059669] hover:bg-[#047857] text-white rounded-md cursor-pointer shadow-xs"
-                              title="Confirm Cash on Delivery Payment"
-                            >
-                              {isRowUpdating ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <CheckCircle className="w-3.5 h-3.5" />
-                              )}
-                            </Button>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
