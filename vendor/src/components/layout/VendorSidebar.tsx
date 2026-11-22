@@ -1,10 +1,11 @@
 import React from "react";
 import { NavLink } from "react-router";
 import {
+  ClipboardList,
   LayoutDashboard,
   Package,
-  ClipboardList,
   Settings,
+  Wallet,
 } from "lucide-react";
 import JusBuyLogo from "./JusBuyLogo";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
+  { label: "Earnings", to: "/earnings", icon: Wallet },
   { label: "Products", to: "/products", icon: Package },
   { label: "Order List", to: "/orders", icon: ClipboardList },
   { label: "Settings", to: "/settings", icon: Settings },

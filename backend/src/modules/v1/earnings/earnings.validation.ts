@@ -5,6 +5,7 @@ export const earningsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(10),
   skip: z.coerce.number().int().nonnegative().optional(),
   search: z.string().trim().optional(),
+  status: z.string().trim().optional(),
 });
 
 export const earningsOrderIdSchema = z.object({

@@ -1,6 +1,7 @@
 import VendorLayout from "@/components/layout/VendorLayout";
 import AddProductPage from "@/pages/AddProductPage";
 import DashboardPage from "@/pages/DashboardPage";
+import EarningsPage from "@/pages/EarningsPage";
 import EditProductPage from "@/pages/EditProductPage";
 import LoginPage from "@/pages/LoginPage";
 import OrderListPage from "@/pages/OrderListPage";
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         Component: DashboardPage,
+      },
+      {
+        path: "earnings",
+        Component: EarningsPage,
       },
       {
         path: "products",

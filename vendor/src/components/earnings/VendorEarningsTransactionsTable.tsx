@@ -1,0 +1,432 @@
+import React from "react";
+import { Eye, Receipt, Search, X } from "lucide-react";
+import ProfileAvatar from "@/components/ui/ProfileAvatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type {
+  IEarningsPagination,
+  IVendorEarningsTransaction,
+} from "@/types/earnings";
+
+interface VendorEarningsTransactionsTableProps {
+  transactions: IVendorEarningsTransaction[];
+  pagination: IEarningsPagination | null;
+  currentPage: number;
+  isLoading?: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (status: string) => void;
+  onPageChange: (newPage: number) => void;
+  onViewDetails: (orderId: string) => void;
+}
+
+export const VendorEarningsTransactionsTable: React.FC<
+  VendorEarningsTransactionsTableProps
+> = ({
+  transactions,
+  pagination,
+  currentPage,
+  isLoading = false,
+  searchQuery,
+  onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
+  onPageChange,
+  onViewDetails,
+}) => {
+  const total = pagination?.total ?? transactions.length;
+  const limit = pagination?.limit ?? 10;
+  const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(total / limit));
+
+  const startRecord = total === 0 ? 0 : (currentPage - 1) * limit + 1;
+  const endRecord = Math.min(currentPage * limit, total);
+
+  const formatCurrency = (val?: number | null) => {
+    return `৳${(Number(val) || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const formatDate = (val?: string | Date) => {
+    if (!val) return "N/A";
+    return new Date(val).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case "DELIVERED":
+        return (
+          <Badge className="bg-[#10B981]/10 text-[#10B981] border-transparent font-semibold">
+            Delivered
+          </Badge>
+        );
+      case "PENDING":
+        return (
+          <Badge className="bg-[#F59E0B]/10 text-[#D97706] border-transparent font-semibold">
+            Pending
+          </Badge>
+        );
+      case "PROCESSING":
+        return (
+          <Badge className="bg-[#0284C7]/10 text-[#0284C7] border-transparent font-semibold">
+            Processing
+          </Badge>
+        );
+      case "CONFIRMED":
+        return (
+          <Badge className="bg-[#4F46E5]/10 text-[#4F46E5] border-transparent font-semibold">
+            Confirmed
+          </Badge>
+        );
+      case "SHIPPED":
+        return (
+          <Badge className="bg-[#8B5CF6]/10 text-[#7C3AED] border-transparent font-semibold">
+            Shipped
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-transparent font-semibold">
+            Cancelled
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-[#6B7280]/10 text-[#4B5563] border-transparent font-semibold">
+            {status || "Unknown"}
+          </Badge>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Search and Filters Toolbar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-lg border border-[#E5E7EB] shadow-xs">
+        {/* Search Input */}
+        <div className="relative w-full sm:max-w-md">
+          <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search by transaction ID or customer name..."
+            className="w-full pl-9 pr-8 h-9 rounded-md bg-white border-[#E5E7EB] text-xs sm:text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-1 focus-visible:ring-[#4F46E5]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => onSearchChange("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#475569] p-0.5 rounded"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Status Filter */}
+        <div className="w-full sm:w-48 shrink-0">
+          <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+            <SelectTrigger className="h-9 text-xs sm:text-sm rounded-md border-[#E5E7EB] bg-white text-[#0F172A] focus:ring-[#4F46E5]">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL" className="text-xs sm:text-sm cursor-pointer">
+                All Status
+              </SelectItem>
+              <SelectItem value="DELIVERED" className="text-xs sm:text-sm cursor-pointer">
+                Delivered
+              </SelectItem>
+              <SelectItem value="PENDING" className="text-xs sm:text-sm cursor-pointer">
+                Pending
+              </SelectItem>
+              <SelectItem value="PROCESSING" className="text-xs sm:text-sm cursor-pointer">
+                Processing
+              </SelectItem>
+              <SelectItem value="CONFIRMED" className="text-xs sm:text-sm cursor-pointer">
+                Confirmed
+              </SelectItem>
+              <SelectItem value="SHIPPED" className="text-xs sm:text-sm cursor-pointer">
+                Shipped
+              </SelectItem>
+              <SelectItem value="CANCELLED" className="text-xs sm:text-sm cursor-pointer">
+                Cancelled
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Earnings History Table */}
+      <div className="rounded-lg border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+        {!isLoading && transactions.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="w-12 h-12 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] flex items-center justify-center mx-auto mb-3">
+              <Receipt className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-[#0F172A]">
+              No earnings records found
+            </h3>
+            <p className="text-sm text-[#4B5563] mt-1 max-w-sm mx-auto">
+              {searchQuery || statusFilter !== "ALL"
+                ? "No transactions match your search or filter criteria."
+                : "No earnings history recorded for your store yet."}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-[#F8FAFC]">
+                <TableRow className="border-b border-[#E5E7EB] hover:bg-transparent">
+                  {/* 1. Customer */}
+                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 pl-6 align-middle">
+                    Customer
+                  </TableHead>
+                  {/* 2. Date & Time */}
+                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                    Date & Time
+                  </TableHead>
+                  {/* 3. Amount */}
+                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                    Amount
+                  </TableHead>
+                  {/* 4. Vendor Commission */}
+                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                    Vendor Commission
+                  </TableHead>
+                  {/* 5. Order Status */}
+                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                    Order Status
+                  </TableHead>
+                  {/* 6. Actions */}
+                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 pr-6 text-right align-middle">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i} className="border-b border-[#E5E7EB]">
+                      <TableCell className="py-3.5 pl-6">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-9 w-9 rounded-full" />
+                          <Skeleton className="h-4 w-28 rounded-sm" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4">
+                        <Skeleton className="h-4 w-32 rounded-sm" />
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4">
+                        <Skeleton className="h-4 w-20 rounded-sm" />
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4">
+                        <Skeleton className="h-5 w-20 rounded-sm" />
+                      </TableCell>
+                      <TableCell className="py-3.5 px-4">
+                        <Skeleton className="h-5 w-20 rounded-md" />
+                      </TableCell>
+                      <TableCell className="py-3.5 pr-6 text-right">
+                        <Skeleton className="h-8 w-8 rounded-md ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  transactions.map((tx) => {
+                    const isDelivered = tx.status?.toUpperCase() === "DELIVERED";
+
+                    return (
+                      <TableRow
+                        key={tx._id}
+                        className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
+                      >
+                        {/* 1. Customer */}
+                        <TableCell className="py-3.5 pl-6 align-middle">
+                          <div className="flex items-center gap-3">
+                            <ProfileAvatar
+                              src={tx.buyerImage}
+                              alt={tx.buyerName}
+                              className="w-9 h-9 rounded-full border border-[#E5E7EB] shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-medium text-xs sm:text-sm text-[#0F172A] truncate">
+                                {tx.buyerName}
+                              </p>
+                              {tx.transactionId && (
+                                <p className="font-mono text-[10px] text-[#64748B] truncate mt-0.5">
+                                  {tx.transactionId}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        {/* 2. Date & Time */}
+                        <TableCell className="py-3.5 px-4 text-xs text-[#4B5563] align-middle whitespace-nowrap">
+                          {formatDate(tx.date)}
+                        </TableCell>
+
+                        {/* 3. Amount */}
+                        <TableCell className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-[#0F172A] align-middle">
+                          {formatCurrency(tx.amount)}
+                        </TableCell>
+
+                        {/* 4. Vendor Commission */}
+                        <TableCell className="py-3.5 px-4 text-xs sm:text-sm align-middle whitespace-nowrap">
+                          {isDelivered ? (
+                            <span className="inline-flex items-center font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-sm border border-[#D1FAE5]">
+                              {formatCurrency(tx.commission)}
+                            </span>
+                          ) : (
+                            <span className="text-[#9CA3AF] font-medium">
+                              ৳0.00
+                            </span>
+                          )}
+                        </TableCell>
+
+                        {/* 5. Order Status */}
+                        <TableCell className="py-3.5 px-4 align-middle">
+                          {getStatusBadge(tx.status)}
+                        </TableCell>
+
+                        {/* 6. Actions */}
+                        <TableCell className="py-3.5 pr-6 text-right align-middle">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onViewDetails(tx.orderId)}
+                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors cursor-pointer"
+                            title="View Earning Details"
+                            aria-label="View Earning Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-1 text-xs text-[#4B5563]">
+          <div>
+            Showing <span className="font-semibold text-[#0F172A]">{startRecord}</span>–<span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
+            <span className="font-semibold text-[#0F172A]">{total}</span> records
+          </div>
+
+          <Pagination className="justify-center sm:justify-end mx-0 w-auto">
+            <PaginationContent className="gap-1">
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                  disabled={currentPage <= 1 || isLoading}
+                  className={
+                    currentPage <= 1 || isLoading
+                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs h-8 px-2.5"
+                      : "cursor-pointer text-xs h-8 px-2.5"
+                  }
+                />
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  return (
+                    p === 1 ||
+                    p === totalPages ||
+                    Math.abs(p - currentPage) <= 1
+                  );
+                })
+                .reduce<(number | string)[]>((acc, curr, index, arr) => {
+                  if (
+                    index > 0 &&
+                    (curr as number) - (arr[index - 1] as number) > 1
+                  ) {
+                    acc.push(`ellipsis-${curr}`);
+                  }
+                  acc.push(curr);
+                  return acc;
+                }, [])
+                .map((item) => {
+                  if (typeof item === "string") {
+                    return (
+                      <PaginationItem key={item}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        isActive={currentPage === item}
+                        onClick={() => onPageChange(item)}
+                        className="h-8 w-8 text-xs cursor-pointer"
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage >= totalPages || isLoading}
+                  className={
+                    currentPage >= totalPages || isLoading
+                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs h-8 px-2.5"
+                      : "cursor-pointer text-xs h-8 px-2.5"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VendorEarningsTransactionsTable;
