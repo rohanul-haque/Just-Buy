@@ -1,6 +1,7 @@
 import VendorLayout from "@/components/layout/VendorLayout";
 import AddProductPage from "@/pages/AddProductPage";
 import DashboardPage from "@/pages/DashboardPage";
+import EditProductPage from "@/pages/EditProductPage";
 import LoginPage from "@/pages/LoginPage";
 import OrderListPage from "@/pages/OrderListPage";
 import ProductsPage from "@/pages/ProductsPage";
@@ -40,6 +41,14 @@ const router = createBrowserRouter([
       {
         path: "products/add",
         Component: AddProductPage,
+      },
+      {
+        path: "products/edit/:productId",
+        Component: EditProductPage,
+      },
+      {
+        path: "products/:productId/edit",
+        Component: EditProductPage,
       },
       {
         path: "orders",

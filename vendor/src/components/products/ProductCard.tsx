@@ -1,13 +1,18 @@
 import React from "react";
-import { Package } from "lucide-react";
+import { useNavigate } from "react-router";
+import { Package, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { IProduct } from "@/types/product";
 
 interface ProductCardProps {
   product: IProduct;
+  onEdit?: (product: IProduct) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onEdit }) => {
+  const navigate = useNavigate();
+
   const imageUrl = product.featureImage?.url || product.images?.[0]?.url;
   const categoryName =
     typeof product.category === "object" && product.category?.name
@@ -30,6 +35,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const soldPercent =
     totalInventory > 0 ? Math.round((salesCount / totalInventory) * 100) : 0;
   const stockPercent = totalInventory > 0 ? 100 - soldPercent : 0;
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit(product);
+    } else {
+      navigate(`/products/edit/${product._id}`);
+    }
+  };
 
   return (
     <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col justify-between overflow-hidden h-full">
@@ -93,8 +107,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         </div>
 
-        {/* Bottom: Sales & Remaining Stock + Horizontal Progress Bar */}
-        <div className="pt-3 border-t border-[#F1F5F9] space-y-2">
+        {/* Bottom: Sales & Remaining Stock + Progress Bar + Edit Button */}
+        <div className="pt-3 border-t border-[#F1F5F9] space-y-3">
           {/* Numerical Metrics */}
           <div className="flex items-center justify-between text-xs font-medium">
             <div className="flex items-center gap-1.5">
@@ -132,6 +146,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               />
             )}
           </div>
+
+          {/* Edit Product Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEditClick}
+            className="w-full h-8 text-xs font-semibold border-[#E5E7EB] text-[#374151] hover:text-[#6366F1] hover:bg-[#F8FAFC] flex items-center justify-center gap-1.5 cursor-pointer rounded-md transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5 text-[#6366F1]" />
+            Edit Product
+          </Button>
         </div>
       </CardContent>
     </Card>

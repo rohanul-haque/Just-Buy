@@ -25,10 +25,28 @@ export const productService = {
   },
 
   getProductById: async (id: string): Promise<ApiResponse<IProduct>> => {
-    const response = await apiClient.get<ApiResponse<IProduct>>(
-      `/products/${id}`,
-    );
-    return response.data;
+    try {
+      const response = await apiClient.get<ApiResponse<IProduct>>(
+        `/products/${id}`,
+      );
+      return response.data;
+    } catch (err) {
+      // Fallback for vendor's own products if public endpoint filtered inactive product
+      const myProductsRes = await apiClient.get<ApiResponse<IProduct[]>>(
+        "/products/my-products",
+        { params: { limit: 100 } },
+      );
+      const found = myProductsRes.data?.data?.find((p) => p._id === id);
+      if (found) {
+        return {
+          statusCode: 200,
+          success: true,
+          message: "Product retrieved successfully",
+          data: found,
+        };
+      }
+      throw err;
+    }
   },
 
   createProduct: async (data: FormData): Promise<ApiResponse<IProduct>> => {
