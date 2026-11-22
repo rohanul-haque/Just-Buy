@@ -69,7 +69,7 @@ export const VendorEarningsDetailsDialog: React.FC<
   }, [open, orderId]);
 
   const formatCurrency = (val?: number | null) => {
-    return `৳${(Number(val) || 0).toLocaleString("en-US", {
+    return `$${(Number(val) || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -393,7 +393,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                   <span className="font-bold text-base text-[#047857]">
                     {isDelivered
                       ? formatCurrency(details.summary.totalVendorEarnings)
-                      : `৳0.00 (${formatCurrency(details.summary.totalVendorEarnings)} on delivery)`}
+                      : `$0.00 (${formatCurrency(details.summary.totalVendorEarnings)} on delivery)`}
                   </span>
                 </div>
               </div>

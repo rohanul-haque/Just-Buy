@@ -14,7 +14,7 @@ export const VendorEarningsSummaryCards: React.FC<
   VendorEarningsSummaryCardsProps
 > = ({ summary, isLoading = false }) => {
   const formatCurrency = (val?: number | null) => {
-    return `৳${(Number(val) || 0).toLocaleString("en-US", {
+    return `$${(Number(val) || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -62,7 +62,7 @@ export const VendorEarningsSummaryCards: React.FC<
         iconBackgroundColor="bg-[#0284C7]"
       />
       <SummaryCard
-        title="All-Time Earnings"
+        title="Total Earnings"
         value={formatCurrency(safeSummary.allTimeEarnings)}
         icon={<GrMoney />}
         iconBackgroundColor="bg-[#4F46E5]"

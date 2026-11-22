@@ -69,7 +69,7 @@ export const VendorEarningsTransactionsTable: React.FC<
   const endRecord = Math.min(currentPage * limit, total);
 
   const formatCurrency = (val?: number | null) => {
-    return `৳${(Number(val) || 0).toLocaleString("en-US", {
+    return `$${(Number(val) || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -136,9 +136,9 @@ export const VendorEarningsTransactionsTable: React.FC<
   return (
     <div className="space-y-4">
       {/* Search and Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-lg border border-[#E5E7EB] shadow-xs">
-        {/* Search Input */}
-        <div className="relative w-full sm:max-w-md">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white p-4 rounded-lg border border-[#E5E7EB] shadow-xs">
+        {/* Search Input (Takes available horizontal space) */}
+        <div className="relative flex-1 w-full min-w-0">
           <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             type="text"
@@ -151,7 +151,7 @@ export const VendorEarningsTransactionsTable: React.FC<
             <button
               type="button"
               onClick={() => onSearchChange("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#475569] p-0.5 rounded"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#475569] p-0.5 rounded cursor-pointer"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
@@ -159,10 +159,10 @@ export const VendorEarningsTransactionsTable: React.FC<
           )}
         </div>
 
-        {/* Status Filter */}
-        <div className="w-full sm:w-48 shrink-0">
+        {/* Status Filter (Far right) */}
+        <div className="w-full sm:w-48 md:w-52 shrink-0">
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="h-9 text-xs sm:text-sm rounded-md border-[#E5E7EB] bg-white text-[#0F172A] focus:ring-[#4F46E5]">
+            <SelectTrigger className="h-9 w-full text-xs sm:text-sm rounded-md border-[#E5E7EB] bg-white text-[#0F172A] focus:ring-[#4F46E5]">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -315,7 +315,7 @@ export const VendorEarningsTransactionsTable: React.FC<
                             </span>
                           ) : (
                             <span className="text-[#9CA3AF] font-medium">
-                              ৳0.00
+                              $0.00
                             </span>
                           )}
                         </TableCell>
