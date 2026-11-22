@@ -226,115 +226,116 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Full-Width Clean Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] tracking-tight">
-            Products
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          {/* Add Product Button */}
-          <Button
-            onClick={() => navigate("/products/new")}
-            className="h-10 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold px-4 rounded-md shadow-xs flex items-center gap-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
-        </div>
-      </div>
-
-      {/* 2. Product Statistics Cards */}
+      {/* 1. Product Statistics Cards */}
       <ProductStatisticsCards
         statistics={statistics}
         isLoading={isStatsLoading}
         error={statsError}
       />
 
-      {/* 3. Filter & Search Bar with shadcn/ui controls */}
+      {/* 2. Combined Toolbar: Title, Search, Filters, and Add Product Button */}
       <Card className="p-4 border-[#E5E7EB] bg-white rounded-md shadow-xs">
-        <div className="flex flex-col md:flex-row items-center gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
-              type="text"
-              placeholder="Search products by name or brand..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10 rounded-md border-[#E5E7EB] text-sm text-[#0F172A] w-full"
-            />
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          {/* Left: Products Title */}
+          <div className="shrink-0 self-start lg:self-center">
+            <h2 className="text-xl md:text-2xl font-bold text-[#0F172A] tracking-tight">
+              Products
+            </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            {/* Category Filter Dropdown (shadcn Select) */}
-            <Select
-              value={selectedCategory}
-              onValueChange={(val) => {
-                setSelectedCategory(val);
-                setPage(1);
-              }}
-              disabled={isLoadingCategories}
-            >
-              <SelectTrigger className="h-10 w-[160px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="ALL" className="text-xs">
-                  All Categories
-                </SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat._id} value={cat._id} className="text-xs">
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Middle: Search and Filter Controls */}
+          <div className="flex flex-1 flex-col sm:flex-row items-center gap-2.5 w-full lg:max-w-3xl">
+            {/* Search Input */}
+            <div className="relative flex-1 w-full">
+              <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                type="text"
+                placeholder="Search products by name or brand..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-10 rounded-md border-[#E5E7EB] text-sm text-[#0F172A] w-full"
+              />
+            </div>
 
-            {/* Status Filter Dropdown (shadcn Select) */}
-            <Select
-              value={selectedStatus}
-              onValueChange={(val) => {
-                setSelectedStatus(val);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-10 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="ALL" className="text-xs">
-                  All Status
-                </SelectItem>
-                <SelectItem value="ACTIVE" className="text-xs">
-                  Active
-                </SelectItem>
-                <SelectItem value="INACTIVE" className="text-xs">
-                  Inactive
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Clear Filters Button */}
-            {(selectedCategory !== "ALL" ||
-              selectedStatus !== "ALL" ||
-              searchQuery) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSelectedCategory("ALL");
-                  setSelectedStatus("ALL");
-                  setSearchQuery("");
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              {/* Category Filter Dropdown (shadcn Select) */}
+              <Select
+                value={selectedCategory}
+                onValueChange={(val) => {
+                  setSelectedCategory(val);
                   setPage(1);
                 }}
-                className="text-xs text-[#EF4444] hover:bg-[#FEF2F2] h-10 px-2 cursor-pointer"
+                disabled={isLoadingCategories}
               >
-                Clear
-              </Button>
-            )}
+                <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="ALL" className="text-xs">
+                    All Categories
+                  </SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat._id} value={cat._id} className="text-xs">
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Status Filter Dropdown (shadcn Select) */}
+              <Select
+                value={selectedStatus}
+                onValueChange={(val) => {
+                  setSelectedStatus(val);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="h-10 w-[130px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="ALL" className="text-xs">
+                    All Status
+                  </SelectItem>
+                  <SelectItem value="ACTIVE" className="text-xs">
+                    Active
+                  </SelectItem>
+                  <SelectItem value="INACTIVE" className="text-xs">
+                    Inactive
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Clear Filters Button */}
+              {(selectedCategory !== "ALL" ||
+                selectedStatus !== "ALL" ||
+                searchQuery) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategory("ALL");
+                    setSelectedStatus("ALL");
+                    setSearchQuery("");
+                    setPage(1);
+                  }}
+                  className="text-xs text-[#EF4444] hover:bg-[#FEF2F2] h-10 px-2 cursor-pointer"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Add Product Button */}
+          <div className="shrink-0 self-end lg:self-center w-full sm:w-auto flex justify-end">
+            <Button
+              onClick={() => navigate("/products/new")}
+              className="h-10 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold px-4 rounded-md shadow-xs flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
           </div>
         </div>
       </Card>

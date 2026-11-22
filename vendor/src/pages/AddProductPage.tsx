@@ -7,8 +7,16 @@ import categoryService from "@/api/services/category.service";
 import productService from "@/api/services/product.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ICategory } from "@/types/category";
 
@@ -212,18 +220,21 @@ export const AddProductPage: React.FC = () => {
                     Loading categories...
                   </div>
                 ) : (
-                  <select
-                    id="category"
+                  <Select
                     value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full h-10 px-3 rounded-md border border-[#E5E7EB] bg-white text-sm text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
+                    onValueChange={(val) => setCategoryId(val)}
                   >
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat._id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger id="category" className="w-full h-10 text-sm text-[#0F172A] border-[#E5E7EB] bg-white">
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {categories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id} className="text-sm">
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
 
@@ -279,26 +290,27 @@ export const AddProductPage: React.FC = () => {
             </div>
 
             {/* Sizes */}
-            <div className="space-y-1.5 pt-2">
+            <div className="space-y-2 pt-2">
               <Label className="text-xs font-semibold text-[#374151]">
                 Available Sizes (Optional)
               </Label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-4 pt-1">
                 {AVAILABLE_SIZES.map((size) => {
-                  const isSelected = selectedSizes.includes(size);
+                  const isChecked = selectedSizes.includes(size);
                   return (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => handleSizeToggle(size)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-bold border transition-colors cursor-pointer ${
-                        isSelected
-                          ? "bg-[#6366F1] text-white border-[#6366F1]"
-                          : "bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]"
-                      }`}
-                    >
-                      {size}
-                    </button>
+                    <div key={size} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`add-size-${size}`}
+                        checked={isChecked}
+                        onCheckedChange={() => handleSizeToggle(size)}
+                      />
+                      <label
+                        htmlFor={`add-size-${size}`}
+                        className="text-xs font-medium text-[#374151] cursor-pointer select-none"
+                      >
+                        {size}
+                      </label>
+                    </div>
                   );
                 })}
               </div>

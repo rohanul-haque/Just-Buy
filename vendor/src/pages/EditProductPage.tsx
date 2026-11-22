@@ -7,8 +7,16 @@ import categoryService from "@/api/services/category.service";
 import productService from "@/api/services/product.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import type { ICategory } from "@/types/category";
@@ -313,25 +321,32 @@ export const EditProductPage: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information Card */}
         <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs">
-          <CardHeader className="pb-3 border-b border-[#F1F5F9] flex flex-row items-center justify-between">
+          <CardHeader className="pb-3 border-b border-[#F1F5F9] flex flex-row items-center justify-between gap-4">
             <CardTitle className="text-base font-bold text-[#0F172A]">
               Basic Information
             </CardTitle>
 
-            {/* Status Switch / Badge */}
+            {/* Product Status Select Dropdown beside Heading */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#64748B]">Listing Status:</span>
-              <button
-                type="button"
-                onClick={() => setIsActive(!isActive)}
-                className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer transition-colors border ${
-                  isActive
-                    ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
-                    : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
-                }`}
+              <Label htmlFor="product-status" className="text-xs text-[#64748B] font-medium whitespace-nowrap">
+                Product Status:
+              </Label>
+              <Select
+                value={isActive ? "ACTIVE" : "INACTIVE"}
+                onValueChange={(val) => setIsActive(val === "ACTIVE")}
               >
-                {isActive ? "Active (Listed)" : "Inactive (Draft)"}
-              </button>
+                <SelectTrigger id="product-status" className="h-9 w-[130px] text-xs font-semibold border-[#E5E7EB] bg-white">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="ACTIVE" className="text-xs text-[#059669] font-medium">
+                    Active
+                  </SelectItem>
+                  <SelectItem value="INACTIVE" className="text-xs text-[#DC2626] font-medium">
+                    Inactive
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
@@ -356,18 +371,21 @@ export const EditProductPage: React.FC = () => {
                 <Label htmlFor="category" className="text-xs font-semibold text-[#374151]">
                   Category <span className="text-[#EF4444]">*</span>
                 </Label>
-                <select
-                  id="category"
+                <Select
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full h-10 px-3 rounded-md border border-[#E5E7EB] bg-white text-sm text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#6366F1]"
+                  onValueChange={(val) => setCategoryId(val)}
                 >
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="category" className="w-full h-10 text-sm text-[#0F172A] border-[#E5E7EB] bg-white">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id} className="text-sm">
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Brand */}
@@ -422,26 +440,27 @@ export const EditProductPage: React.FC = () => {
             </div>
 
             {/* Sizes */}
-            <div className="space-y-1.5 pt-2">
+            <div className="space-y-2 pt-2">
               <Label className="text-xs font-semibold text-[#374151]">
                 Available Sizes (Optional)
               </Label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-4 pt-1">
                 {AVAILABLE_SIZES.map((size) => {
-                  const isSelected = selectedSizes.includes(size);
+                  const isChecked = selectedSizes.includes(size);
                   return (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => handleSizeToggle(size)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-bold border transition-colors cursor-pointer ${
-                        isSelected
-                          ? "bg-[#6366F1] text-white border-[#6366F1]"
-                          : "bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]"
-                      }`}
-                    >
-                      {size}
-                    </button>
+                    <div key={size} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`size-${size}`}
+                        checked={isChecked}
+                        onCheckedChange={() => handleSizeToggle(size)}
+                      />
+                      <label
+                        htmlFor={`size-${size}`}
+                        className="text-xs font-medium text-[#374151] cursor-pointer select-none"
+                      >
+                        {size}
+                      </label>
+                    </div>
                   );
                 })}
               </div>
