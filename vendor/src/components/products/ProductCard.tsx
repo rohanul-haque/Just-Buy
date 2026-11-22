@@ -1,22 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { Package, Pencil, Trash2 } from "lucide-react";
+import { Check, Loader2, MoreVertical, Package, Pencil, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { IProduct } from "@/types/product";
 
 interface ProductCardProps {
   product: IProduct;
   onEdit?: (product: IProduct) => void;
   onDelete?: (product: IProduct) => void;
+  onStatusChange?: (product: IProduct, isActive: boolean) => Promise<void>;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onEdit,
   onDelete,
+  onStatusChange,
 }) => {
   const navigate = useNavigate();
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const imageUrl = product.featureImage?.url || product.images?.[0]?.url;
   const categoryName =
@@ -57,6 +69,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const handleStatusSelect = async (newStatus: boolean) => {
+    if (newStatus === product.isActive || isUpdatingStatus) return;
+    if (onStatusChange) {
+      setIsUpdatingStatus(true);
+      try {
+        await onStatusChange(product, newStatus);
+      } finally {
+        setIsUpdatingStatus(false);
+      }
+    }
+  };
+
   return (
     <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col justify-between overflow-hidden h-full">
       <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-4">
@@ -78,19 +102,79 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               ) : (
                 <Package className="w-8 h-8 text-[#94A3B8]" />
               )}
-
-              {!product.isActive && (
-                <span className="absolute top-1 left-1 bg-[#EF4444] text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
-                  Inactive
-                </span>
-              )}
             </div>
 
             {/* Basic Information */}
             <div className="flex-1 min-w-0">
-              <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-[#6366F1] bg-[#EEF2FF] px-2 py-0.5 rounded-sm mb-1 truncate max-w-full">
-                {categoryName}
-              </span>
+              <div className="flex items-center justify-between gap-1 mb-1">
+                <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-[#6366F1] bg-[#EEF2FF] px-2 py-0.5 rounded-sm truncate max-w-[120px]">
+                  {categoryName}
+                </span>
+
+                {/* Status Badge with Dropdown Control */}
+                <div className="flex items-center gap-1 shrink-0">
+                  <Badge
+                    className={`text-[10px] font-bold px-2 py-0.5 ${
+                      product.isActive
+                        ? "bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]"
+                        : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
+                    }`}
+                  >
+                    {product.isActive ? "Active" : "Inactive"}
+                  </Badge>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={isUpdatingStatus}
+                        className="h-6 w-6 p-0 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] cursor-pointer"
+                        title="Change status"
+                      >
+                        {isUpdatingStatus ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 bg-white">
+                      <DropdownMenuLabel className="text-xs text-[#64748B]">
+                        Product Status
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleStatusSelect(true)}
+                        className={`text-xs cursor-pointer font-medium hover:bg-[#F8FAFC] flex items-center justify-between ${
+                          product.isActive
+                            ? "text-[#059669] font-bold bg-[#ECFDF5]"
+                            : ""
+                        }`}
+                      >
+                        <span>Active</span>
+                        {product.isActive && (
+                          <Check className="w-3.5 h-3.5 text-[#059669]" />
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleStatusSelect(false)}
+                        className={`text-xs cursor-pointer font-medium hover:bg-[#F8FAFC] flex items-center justify-between ${
+                          !product.isActive
+                            ? "text-[#DC2626] font-bold bg-[#FEF2F2]"
+                            : ""
+                        }`}
+                      >
+                        <span>Inactive</span>
+                        {!product.isActive && (
+                          <Check className="w-3.5 h-3.5 text-[#DC2626]" />
+                        )}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
               <h3
                 className="text-sm font-bold text-[#0F172A] truncate"
                 title={product.name}

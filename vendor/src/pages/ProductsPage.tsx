@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   AlertCircle,
   Loader2,
   Package,
   Plus,
-  RotateCcw,
   Search,
   Trash2,
 } from "lucide-react";
@@ -14,6 +13,7 @@ import { getApiErrorMessage } from "@/api/client";
 import categoryService from "@/api/services/category.service";
 import productService from "@/api/services/product.service";
 import ProductCard from "@/components/products/ProductCard";
+import ProductStatisticsCards from "@/components/products/ProductStatisticsCards";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -25,9 +25,25 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ICategory } from "@/types/category";
-import type { IProduct } from "@/types/product";
+import type { IProduct, IProductStatistics } from "@/types/product";
 
 export const ProductsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,16 +54,35 @@ export const ProductsPage: React.FC = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Statistics State
+  const [statistics, setStatistics] = useState<IProductStatistics | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
   // Filters & Pagination
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
 
+  // Request ID reference to prevent race conditions
+  const latestRequestIdRef = useRef<number>(0);
+
   // Delete Dialog State
   const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Debounce search query (400ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // 1. Fetch Categories for Filter Dropdown
   const fetchCategories = useCallback(async () => {
@@ -64,8 +99,26 @@ export const ProductsPage: React.FC = () => {
     }
   }, []);
 
-  // 2. Fetch Products
+  // 2. Fetch Product Statistics
+  const fetchStatistics = useCallback(async () => {
+    setIsStatsLoading(true);
+    setStatsError(null);
+    try {
+      const response = await productService.getVendorProductStatistics();
+      if (response.success && response.data) {
+        setStatistics(response.data);
+      }
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setStatsError(msg);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, []);
+
+  // 3. Fetch Products (Server-Side)
   const fetchProducts = useCallback(async () => {
+    const requestId = ++latestRequestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
@@ -77,11 +130,18 @@ export const ProductsPage: React.FC = () => {
       if (selectedCategory !== "ALL") {
         params.category = selectedCategory;
       }
-      if (searchQuery.trim()) {
-        params.search = searchQuery.trim();
+      if (selectedStatus !== "ALL") {
+        params.isActive = selectedStatus === "ACTIVE";
+      }
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       const response = await productService.getMyProducts(params);
+
+      // Guard against stale response
+      if (requestId !== latestRequestIdRef.current) return;
+
       if (response.success && response.data) {
         setProducts(response.data);
         if (response.pagination) {
@@ -97,21 +157,49 @@ export const ProductsPage: React.FC = () => {
         setTotalPages(1);
       }
     } catch (err) {
+      if (requestId !== latestRequestIdRef.current) return;
       const msg = getApiErrorMessage(err);
       setError(msg);
       toast.error(msg);
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [page, selectedCategory, searchQuery]);
+  }, [page, selectedCategory, selectedStatus, debouncedSearch]);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
   useEffect(() => {
+    fetchStatistics();
+  }, [fetchStatistics]);
+
+  useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Handle Product Status Change (Active / Inactive)
+  const handleStatusChange = async (product: IProduct, newStatus: boolean) => {
+    try {
+      const response = await productService.updateProductStatus(
+        product._id,
+        newStatus,
+      );
+      if (response.success) {
+        toast.success(
+          `Product marked as ${newStatus ? "Active" : "Inactive"} successfully`,
+        );
+        // Synchronize products and statistics
+        await Promise.all([fetchProducts(), fetchStatistics()]);
+      } else {
+        toast.error(response.message || "Failed to update product status.");
+      }
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    }
+  };
 
   // Handle Delete Confirmation
   const handleDeleteConfirm = async () => {
@@ -125,7 +213,7 @@ export const ProductsPage: React.FC = () => {
       if (response.success) {
         toast.success("Product deleted successfully");
         setProductToDelete(null);
-        await fetchProducts();
+        await Promise.all([fetchProducts(), fetchStatistics()]);
       } else {
         toast.error(response.message || "Failed to delete product.");
       }
@@ -138,34 +226,15 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Top Toolbar & Page Header */}
+      {/* 1. Full-Width Clean Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A] tracking-tight">
             Products
           </h2>
-          <p className="text-sm text-[#64748B] mt-1">
-            Manage your store catalog, pricing, and live inventory (
-            {totalProducts} total).
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          {/* Refresh Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetchProducts()}
-            disabled={isLoading}
-            className="h-10 border-[#E5E7EB] text-[#374151] hover:bg-[#F8FAFC] cursor-pointer"
-            title="Refresh Products"
-          >
-            <RotateCcw
-              className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-
           {/* Add Product Button */}
           <Button
             onClick={() => navigate("/products/new")}
@@ -177,7 +246,14 @@ export const ProductsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Filter & Search Bar */}
+      {/* 2. Product Statistics Cards */}
+      <ProductStatisticsCards
+        statistics={statistics}
+        isLoading={isStatsLoading}
+        error={statsError}
+      />
+
+      {/* 3. Filter & Search Bar with shadcn/ui controls */}
       <Card className="p-4 border-[#E5E7EB] bg-white rounded-md shadow-xs">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Search Input */}
@@ -187,40 +263,70 @@ export const ProductsPage: React.FC = () => {
               type="text"
               placeholder="Search products by name or brand..."
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-10 rounded-md border-[#E5E7EB] text-sm text-[#0F172A] w-full"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            {/* Category Filter Dropdown */}
-            <select
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Category Filter Dropdown (shadcn Select) */}
+            <Select
               value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
+              onValueChange={(val) => {
+                setSelectedCategory(val);
                 setPage(1);
               }}
               disabled={isLoadingCategories}
-              className="h-10 px-3 rounded-md border border-[#E5E7EB] bg-white text-xs font-medium text-[#374151] focus:outline-none focus:ring-1 focus:ring-[#6366F1] min-w-[160px]"
             >
-              <option value="ALL">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-10 w-[160px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="ALL" className="text-xs">
+                  All Categories
+                </SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat._id} value={cat._id} className="text-xs">
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Status Filter Dropdown (shadcn Select) */}
+            <Select
+              value={selectedStatus}
+              onValueChange={(val) => {
+                setSelectedStatus(val);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-10 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="ALL" className="text-xs">
+                  All Status
+                </SelectItem>
+                <SelectItem value="ACTIVE" className="text-xs">
+                  Active
+                </SelectItem>
+                <SelectItem value="INACTIVE" className="text-xs">
+                  Inactive
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Clear Filters Button */}
-            {(selectedCategory !== "ALL" || searchQuery) && (
+            {(selectedCategory !== "ALL" ||
+              selectedStatus !== "ALL" ||
+              searchQuery) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setSelectedCategory("ALL");
+                  setSelectedStatus("ALL");
                   setSearchQuery("");
                   setPage(1);
                 }}
@@ -233,7 +339,7 @@ export const ProductsPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Products Grid Layout */}
+      {/* 4. Products Grid Layout */}
       {/* Exactly 3 columns on Desktop, 2 on Tablet, 1 on Mobile */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -284,22 +390,29 @@ export const ProductsPage: React.FC = () => {
           </div>
           <div className="max-w-md space-y-1">
             <h3 className="text-base font-bold text-[#0F172A]">
-              {selectedCategory !== "ALL" || searchQuery
+              {selectedCategory !== "ALL" ||
+              selectedStatus !== "ALL" ||
+              searchQuery
                 ? "No products match your filter"
                 : "No products in your catalog"}
             </h3>
             <p className="text-xs text-[#64748B]">
-              {selectedCategory !== "ALL" || searchQuery
-                ? "Try clearing the search query or selecting 'All Categories' to view all your products."
+              {selectedCategory !== "ALL" ||
+              selectedStatus !== "ALL" ||
+              searchQuery
+                ? "Try clearing the search query or adjusting your filters to view more products."
                 : "You haven't added any products yet. Click 'Add Product' above to start listing items in your store."}
             </p>
           </div>
-          {selectedCategory !== "ALL" || searchQuery ? (
+          {selectedCategory !== "ALL" ||
+          selectedStatus !== "ALL" ||
+          searchQuery ? (
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
                 setSelectedCategory("ALL");
+                setSelectedStatus("ALL");
                 setSearchQuery("");
                 setPage(1);
               }}
@@ -324,42 +437,89 @@ export const ProductsPage: React.FC = () => {
               key={product._id}
               product={product}
               onDelete={(prod) => setProductToDelete(prod)}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>
       )}
 
-      {/* 4. Pagination */}
+      {/* 5. Server-Side Pagination with shadcn/ui Pagination Component */}
       {!isLoading && totalPages > 1 && (
-        <div className="flex items-center justify-between px-6 py-4 border border-[#E5E7EB] bg-white rounded-md shadow-xs">
-          <p className="text-xs text-[#64748B]">
-            Page {page} of {totalPages} ({totalProducts} products)
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border border-[#E5E7EB] bg-white rounded-md shadow-xs">
+          <p className="text-xs text-[#64748B] text-center sm:text-left">
+            Showing page <span className="font-semibold text-[#0F172A]">{page}</span> of{" "}
+            <span className="font-semibold text-[#0F172A]">{totalPages}</span>{" "}
+            ({totalProducts} total {totalProducts === 1 ? "product" : "products"})
           </p>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="h-8 text-xs rounded-md"
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="h-8 text-xs rounded-md"
-            >
-              Next
-            </Button>
-          </div>
+          <Pagination className="mx-0 w-auto justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className={
+                    page <= 1
+                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
+                      : "cursor-pointer text-xs"
+                  }
+                />
+              </PaginationItem>
+
+              {/* Page numbers logic */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  return (
+                    p === 1 ||
+                    p === totalPages ||
+                    Math.abs(p - page) <= 1
+                  );
+                })
+                .reduce<(number | string)[]>((acc, curr, index, arr) => {
+                  if (index > 0 && (curr as number) - (arr[index - 1] as number) > 1) {
+                    acc.push(`ellipsis-${curr}`);
+                  }
+                  acc.push(curr);
+                  return acc;
+                }, [])
+                .map((item) => {
+                  if (typeof item === "string") {
+                    return (
+                      <PaginationItem key={item}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        isActive={page === item}
+                        onClick={() => setPage(item)}
+                        className="h-8 w-8 text-xs cursor-pointer"
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className={
+                    page >= totalPages
+                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
+                      : "cursor-pointer text-xs"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
 
-      {/* 5. Delete Confirmation Dialog */}
+      {/* 6. Delete Confirmation Dialog */}
       <Dialog
         open={!!productToDelete}
         onOpenChange={(open) => {

@@ -80,6 +80,21 @@ const deleteMyProduct = asyncHandler(
   },
 );
 
+const getVendorProductStatistics = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await productService.getVendorProductStatistics(
+      req.user!.userId,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Vendor product statistics retrieved successfully",
+      data: result,
+    });
+  },
+);
+
 const getPublicProducts = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const result = await productService.getPublicProducts(req.query);
@@ -146,6 +161,7 @@ const productController = {
   getNewArrivals,
   getProductById,
   getRelatedProducts,
+  getVendorProductStatistics,
 };
 
 export default productController;

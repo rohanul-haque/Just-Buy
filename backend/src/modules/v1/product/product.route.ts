@@ -37,6 +37,14 @@ router.get(
   productController.getMyProducts,
 );
 
+router.get(
+  "/my-products/statistics",
+  authenticate,
+  authorize(UserRole.VENDOR),
+  requireApprovedVendor,
+  productController.getVendorProductStatistics,
+);
+
 router.patch(
   "/my-products/:productId",
   authenticate,

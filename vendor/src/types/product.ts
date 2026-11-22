@@ -40,6 +40,12 @@ export interface IProductQueryOptions {
   isActive?: boolean;
 }
 
+export interface IProductStatistics {
+  totalProducts: number;
+  activeProducts: number;
+  inactiveProducts: number;
+}
+
 export interface IPaginatedProductsResult {
   data: IProduct[];
   pagination: {

@@ -562,6 +562,28 @@ const getRelatedProducts = async (
   return related;
 };
 
+const getVendorProductStatistics = async (
+  userId: string,
+): Promise<{
+  totalProducts: number;
+  activeProducts: number;
+  inactiveProducts: number;
+}> => {
+  const vendor = await resolveApprovedVendor(userId);
+
+  const [totalProducts, activeProducts, inactiveProducts] = await Promise.all([
+    Product.countDocuments({ vendor: vendor._id }).exec(),
+    Product.countDocuments({ vendor: vendor._id, isActive: true }).exec(),
+    Product.countDocuments({ vendor: vendor._id, isActive: false }).exec(),
+  ]);
+
+  return {
+    totalProducts,
+    activeProducts,
+    inactiveProducts,
+  };
+};
+
 const productService = {
   createProduct,
   getMyProducts,
@@ -571,6 +593,7 @@ const productService = {
   getNewArrivals,
   getProductById,
   getRelatedProducts,
+  getVendorProductStatistics,
 };
 
 export default productService;
