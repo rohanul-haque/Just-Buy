@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
-  CheckCircle,
   Eye,
   Loader2,
   MoreVertical,
@@ -37,7 +36,6 @@ import {
   VALID_ORDER_STATUS_TRANSITIONS,
   type IOrder,
   type OrderStatus,
-  type PaymentStatus,
 } from "@/types/order";
 
 export const OrderListPage: React.FC = () => {
@@ -120,6 +118,9 @@ export const OrderListPage: React.FC = () => {
         toast.success(
           response.message || `Order status updated to ${nextStatus}!`,
         );
+        if (selectedOrder && selectedOrder._id === orderId && response.data) {
+          setSelectedOrder(response.data);
+        }
         await fetchOrders();
       } else {
         toast.error(response.message || "Failed to update order status.");
@@ -142,6 +143,9 @@ export const OrderListPage: React.FC = () => {
         toast.success(
           response.message || "COD payment confirmed successfully!",
         );
+        if (selectedOrder && selectedOrder._id === orderId && response.data) {
+          setSelectedOrder(response.data);
+        }
         await fetchOrders();
       } else {
         toast.error(response.message || "Failed to confirm COD payment.");
@@ -229,43 +233,6 @@ export const OrderListPage: React.FC = () => {
         );
       default:
         return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getPaymentStatusBadge = (status?: PaymentStatus) => {
-    switch (status) {
-      case "PAID":
-        return (
-          <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">
-            Paid
-          </Badge>
-        );
-      case "PENDING":
-        return (
-          <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">
-            Pending
-          </Badge>
-        );
-      case "UNPAID":
-        return (
-          <Badge className="bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]">
-            Unpaid
-          </Badge>
-        );
-      case "FAILED":
-        return (
-          <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">
-            Failed
-          </Badge>
-        );
-      case "REFUNDED":
-        return (
-          <Badge className="bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]">
-            Refunded
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status || "Pending"}</Badge>;
     }
   };
 
@@ -427,31 +394,23 @@ export const OrderListPage: React.FC = () => {
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
                     Customer Name
                   </TableHead>
-                  {/* 5. Quantity */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
-                    Quantity
-                  </TableHead>
-                  {/* 6. Order Status */}
+                  {/* 5. Order Status */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
                     Order Status
+                  </TableHead>
+                  {/* 6. Amount */}
+                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-right">
+                    Amount
                   </TableHead>
                   {/* 7. Payment Method */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
                     Payment Method
                   </TableHead>
-                  {/* 8. Payment Status */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
-                    Payment Status
+                  {/* 8. Transaction ID */}
+                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
+                    Transaction ID
                   </TableHead>
-                  {/* 9. Commission */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-right">
-                    Commission
-                  </TableHead>
-                  {/* 10. Amount */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-right">
-                    Amount
-                  </TableHead>
-                  {/* 11. Actions */}
+                  {/* 9. Actions */}
                   <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center pr-6">
                     Actions
                   </TableHead>
@@ -464,12 +423,6 @@ export const OrderListPage: React.FC = () => {
                   const primaryItem = items[0];
                   const extraItemsCount = items.length - 1;
 
-                  // Sum quantity of vendor's items in this order
-                  const totalQuantity = items.reduce(
-                    (sum, it) => sum + (Number(it.quantity) || 1),
-                    0,
-                  );
-
                   // Vendor relevant item amount
                   const vendorAmount = items.reduce(
                     (sum, it) =>
@@ -480,44 +433,28 @@ export const OrderListPage: React.FC = () => {
                     0,
                   );
 
-                  // Vendor stored commission from order item in database
-                  const hasCommissionData =
-                    items.length > 0 &&
-                    items.some(
-                      (it) =>
-                        it.adminCommission !== undefined &&
-                        it.adminCommission !== null,
-                    );
-                  const vendorCommission = hasCommissionData
-                    ? items.reduce(
-                        (sum, it) => sum + (Number(it.adminCommission) || 0),
-                        0,
-                      )
-                    : null;
-
                   const isCOD =
                     order.orderType === "COD" ||
                     order.payment?.paymentMethod === "COD";
-                  const isOnline =
-                    order.orderType === "ONLINE" ||
-                    order.payment?.paymentMethod === "STRIPE";
-                  const currentPaymentStatus = order.payment?.status;
-                  const isPaymentPaid = currentPaymentStatus === "PAID";
+
+                  // Shortened Transaction ID
+                  const rawTxId =
+                    order.transactionNumber ||
+                    (order.payment as any)?.stripePaymentIntentId ||
+                    (order.payment as any)?._id ||
+                    "";
+                  const shortTxId = rawTxId
+                    ? rawTxId.length > 8
+                      ? `${rawTxId.slice(0, 8)}...`
+                      : rawTxId
+                    : "—";
 
                   // Check permitted status transitions
                   const allowedTransitions =
                     VALID_ORDER_STATUS_TRANSITIONS[order.status] || [];
 
-                  // Check if eligible for COD payment confirmation
-                  const isEligibleForCODConfirm =
-                    isCOD &&
-                    order.status === "DELIVERED" &&
-                    !isPaymentPaid;
-
                   const isRowUpdatingStatus =
                     updatingOrderId === order._id && updatingType === "status";
-                  const isRowUpdatingPayment =
-                    updatingOrderId === order._id && updatingType === "payment";
                   const isRowBusy = updatingOrderId === order._id;
 
                   return (
@@ -527,34 +464,24 @@ export const OrderListPage: React.FC = () => {
                     >
                       {/* 1. Product Name */}
                       <TableCell className="pl-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-md border border-[#E5E7EB] bg-[#F8FAFC] overflow-hidden shrink-0 flex items-center justify-center">
-                            {primaryItem?.image ? (
-                              <img
-                                src={primaryItem.image}
-                                alt={primaryItem.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Package className="w-4 h-4 text-[#94A3B8]" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-[#0F172A] truncate max-w-[180px]">
-                              {primaryItem?.name || "Ordered Product"}
-                            </p>
-                            {extraItemsCount > 0 && (
-                              <span className="text-xs text-[#6366F1] font-medium block">
-                                +{extraItemsCount} more item
-                                {extraItemsCount > 1 ? "s" : ""}
-                              </span>
-                            )}
-                          </div>
+                        <div className="min-w-0">
+                          <p
+                            className="text-sm font-semibold text-[#0F172A] truncate max-w-[200px]"
+                            title={primaryItem?.name || "Ordered Product"}
+                          >
+                            {primaryItem?.name || "Ordered Product"}
+                          </p>
+                          {extraItemsCount > 0 && (
+                            <span className="text-xs text-[#6366F1] font-medium block mt-0.5">
+                              +{extraItemsCount} more item
+                              {extraItemsCount > 1 ? "s" : ""}
+                            </span>
+                          )}
                         </div>
                       </TableCell>
 
                       {/* 2. Order ID */}
-                      <TableCell className="text-xs font-mono font-semibold text-[#0F172A] py-4">
+                      <TableCell className="text-xs font-mono font-semibold text-[#0F172A] py-4 whitespace-nowrap">
                         #
                         {order.transactionNumber ||
                           order._id.slice(-6).toUpperCase()}
@@ -572,12 +499,7 @@ export const OrderListPage: React.FC = () => {
                           "Customer"}
                       </TableCell>
 
-                      {/* 5. Quantity */}
-                      <TableCell className="text-xs font-semibold text-[#0F172A] text-center py-4">
-                        {totalQuantity}
-                      </TableCell>
-
-                      {/* 6. Order Status with Three-Dot Menu */}
+                      {/* 5. Order Status with Three-Dot Menu */}
                       <TableCell className="py-4">
                         <div className="flex items-center justify-center gap-1">
                           {getOrderStatusBadge(order.status)}
@@ -633,108 +555,31 @@ export const OrderListPage: React.FC = () => {
                         </div>
                       </TableCell>
 
-                      {/* 7. Payment Method */}
-                      <TableCell className="text-xs text-[#475569] py-4">
-                        {isCOD ? "Cash on Delivery" : "Online Payment"}
-                      </TableCell>
-
-                      {/* 8. Payment Status with Three-Dot Menu */}
-                      <TableCell className="py-4">
-                        <div className="flex items-center justify-center gap-1">
-                          {getPaymentStatusBadge(currentPaymentStatus)}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={isRowBusy}
-                                className="h-7 w-7 p-0 rounded-md hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
-                                title="Payment options"
-                              >
-                                {isRowUpdatingPayment ? (
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                  <MoreVertical className="w-3.5 h-3.5" />
-                                )}
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="w-56 bg-white"
-                            >
-                              <DropdownMenuLabel className="text-xs text-[#64748B]">
-                                Payment Actions
-                              </DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              {isOnline ? (
-                                <DropdownMenuItem
-                                  disabled
-                                  className="text-xs text-[#94A3B8]"
-                                >
-                                  Online payment (Read-only)
-                                </DropdownMenuItem>
-                              ) : isPaymentPaid ? (
-                                <DropdownMenuItem
-                                  disabled
-                                  className="text-xs text-[#94A3B8]"
-                                >
-                                  Payment completed (Paid)
-                                </DropdownMenuItem>
-                              ) : isEligibleForCODConfirm ? (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleConfirmCODPayment(order._id)
-                                  }
-                                  className="text-xs font-medium cursor-pointer text-[#059669] hover:bg-[#ECFDF5] flex items-center gap-1.5"
-                                >
-                                  <CheckCircle className="w-3.5 h-3.5" />
-                                  Mark as Paid
-                                </DropdownMenuItem>
-                              ) : isCOD ? (
-                                <DropdownMenuItem
-                                  disabled
-                                  className="text-xs text-[#94A3B8]"
-                                >
-                                  Mark as Paid (Deliver order first)
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem
-                                  disabled
-                                  className="text-xs text-[#94A3B8]"
-                                >
-                                  No actions available
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </TableCell>
-
-                      {/* 9. Commission (from corresponding stored database order item) */}
-                      <TableCell className="text-right py-4">
-                        {vendorCommission !== null ? (
-                          order.status === "DELIVERED" ? (
-                            <span className="inline-flex items-center font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-sm border border-[#D1FAE5] text-xs">
-                              {formatCurrency(vendorCommission)}
-                            </span>
-                          ) : (
-                            <span className="text-xs font-semibold text-[#475569]">
-                              {formatCurrency(vendorCommission)}
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-xs text-[#94A3B8] font-medium">
-                            —
-                          </span>
-                        )}
-                      </TableCell>
-
-                      {/* 10. Amount */}
-                      <TableCell className="text-sm font-bold text-[#0F172A] text-right py-4">
+                      {/* 6. Amount */}
+                      <TableCell className="text-sm font-bold text-[#0F172A] text-right py-4 whitespace-nowrap">
                         {formatCurrency(vendorAmount)}
                       </TableCell>
 
-                      {/* 11. Actions */}
+                      {/* 7. Payment Method */}
+                      <TableCell className="text-xs text-[#475569] py-4 whitespace-nowrap">
+                        {isCOD ? "Cash on Delivery" : "Online Payment"}
+                      </TableCell>
+
+                      {/* 8. Transaction ID (shortened with tooltip) */}
+                      <TableCell className="text-xs font-mono text-[#0F172A] py-4 whitespace-nowrap">
+                        {rawTxId ? (
+                          <span
+                            title={rawTxId}
+                            className="cursor-help hover:text-[#6366F1] font-medium"
+                          >
+                            {shortTxId}
+                          </span>
+                        ) : (
+                          <span className="text-[#94A3B8]">—</span>
+                        )}
+                      </TableCell>
+
+                      {/* 9. Actions */}
                       <TableCell className="text-center pr-6 py-4">
                         <div className="flex items-center justify-center">
                           {/* View Details */}
@@ -793,6 +638,10 @@ export const OrderListPage: React.FC = () => {
         order={selectedOrder}
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
+        onConfirmCODPayment={handleConfirmCODPayment}
+        isConfirmingCOD={
+          updatingOrderId === selectedOrder?._id && updatingType === "payment"
+        }
       />
     </div>
   );

@@ -1,8 +1,11 @@
 import React from "react";
 import {
   Calendar,
+  CheckCircle,
   Clock,
   CreditCard,
+  Hash,
+  Loader2,
   Mail,
   MapPin,
   Package,
@@ -11,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -23,12 +27,16 @@ interface OrderDetailsDialogProps {
   order: IOrder | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onConfirmCODPayment?: (orderId: string) => Promise<void>;
+  isConfirmingCOD?: boolean;
 }
 
 export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
   order,
   open,
   onOpenChange,
+  onConfirmCODPayment,
+  isConfirmingCOD = false,
 }) => {
   if (!order) return null;
 
@@ -53,17 +61,41 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
   const getOrderStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case "PENDING":
-        return <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">Pending</Badge>;
+        return (
+          <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">
+            Pending
+          </Badge>
+        );
       case "CONFIRMED":
-        return <Badge className="bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]">Confirmed</Badge>;
+        return (
+          <Badge className="bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]">
+            Confirmed
+          </Badge>
+        );
       case "PROCESSING":
-        return <Badge className="bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]">Processing</Badge>;
+        return (
+          <Badge className="bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]">
+            Processing
+          </Badge>
+        );
       case "SHIPPED":
-        return <Badge className="bg-[#ECFEFF] text-[#0891B2] border-[#A5F3FC]">Shipped</Badge>;
+        return (
+          <Badge className="bg-[#ECFEFF] text-[#0891B2] border-[#A5F3FC]">
+            Shipped
+          </Badge>
+        );
       case "DELIVERED":
-        return <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">Delivered</Badge>;
+        return (
+          <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">
+            Delivered
+          </Badge>
+        );
       case "CANCELLED":
-        return <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">Cancelled</Badge>;
+        return (
+          <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">
+            Cancelled
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -72,19 +104,50 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
   const getPaymentStatusBadge = (status?: PaymentStatus) => {
     switch (status) {
       case "PAID":
-        return <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">Paid</Badge>;
+        return (
+          <Badge className="bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]">
+            Paid
+          </Badge>
+        );
       case "PENDING":
-        return <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">Pending</Badge>;
+        return (
+          <Badge className="bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]">
+            Pending
+          </Badge>
+        );
+      case "UNPAID":
+        return (
+          <Badge className="bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]">
+            Unpaid
+          </Badge>
+        );
       case "FAILED":
-        return <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">Failed</Badge>;
+        return (
+          <Badge className="bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]">
+            Failed
+          </Badge>
+        );
       case "REFUNDED":
-        return <Badge className="bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]">Refunded</Badge>;
+        return (
+          <Badge className="bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]">
+            Refunded
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status || "Pending"}</Badge>;
     }
   };
 
-  const isCOD = order.orderType === "COD" || order.payment?.paymentMethod === "COD";
+  const isCOD =
+    order.orderType === "COD" || order.payment?.paymentMethod === "COD";
+  const transactionId =
+    order.transactionNumber ||
+    (order.payment as any)?.stripePaymentIntentId ||
+    (order.payment as any)?._id ||
+    "";
+  const isPaymentPaid = order.payment?.status === "PAID";
+  const isEligibleForCODConfirm =
+    isCOD && order.status === "DELIVERED" && !isPaymentPaid;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -94,7 +157,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             <div>
               <DialogTitle className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
                 <Package className="w-5 h-5 text-[#6366F1]" />
-                Order #{order.transactionNumber || order._id.slice(-8).toUpperCase()}
+                Order #{order._id}
               </DialogTitle>
               <div className="flex items-center gap-2 text-xs text-[#64748B] mt-1">
                 <Calendar className="w-3.5 h-3.5" />
@@ -112,7 +175,72 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-6 pt-2">
-          {/* Customer & Shipping Information */}
+          {/* Section 1: Order & Financial Summary */}
+          <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-[#6366F1]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                    Payment Method:
+                  </span>
+                  <span className="text-sm font-semibold text-[#0F172A]">
+                    {isCOD ? "Cash on Delivery (COD)" : "Online Payment"}
+                  </span>
+                </div>
+                <div className="text-xs text-[#64748B] flex items-center gap-1.5 pt-0.5">
+                  <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
+                  <span>Payment Status:</span>
+                  {getPaymentStatusBadge(order.payment?.status)}
+                  {order.payment?.paidAt && (
+                    <span className="text-[#059669] ml-1">
+                      (Paid on{" "}
+                      {new Date(order.payment.paidAt).toLocaleDateString()})
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-left sm:text-right">
+                <span className="text-xs text-[#64748B] block">
+                  Vendor Items Amount:
+                </span>
+                <span className="text-lg font-bold text-[#4F46E5]">
+                  {formatCurrency(vendorSubtotal)}
+                </span>
+              </div>
+            </div>
+
+            {/* Full Transaction ID */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs">
+              <div className="flex items-center gap-1.5 text-[#64748B]">
+                <Hash className="w-3.5 h-3.5 text-[#94A3B8]" />
+                <span className="font-semibold">Full Transaction ID:</span>
+                <span className="font-mono text-[#0F172A] select-all font-semibold">
+                  {transactionId || "—"}
+                </span>
+              </div>
+
+              {/* COD Confirm Payment Action inside Dialog if eligible */}
+              {isEligibleForCODConfirm && onConfirmCODPayment && (
+                <Button
+                  size="sm"
+                  onClick={() => onConfirmCODPayment(order._id)}
+                  disabled={isConfirmingCOD}
+                  className="h-8 px-3 text-xs bg-[#059669] hover:bg-[#047857] text-white rounded-md cursor-pointer shadow-xs flex items-center gap-1.5"
+                >
+                  {isConfirmingCOD ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-3.5 h-3.5" />
+                  )}
+                  Confirm Payment Received
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Section 2: Customer & Shipping Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer Details */}
             <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] space-y-2">
@@ -120,7 +248,9 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                 <User className="w-3.5 h-3.5 text-[#6366F1]" /> Customer Details
               </h4>
               <p className="text-sm font-semibold text-[#0F172A]">
-                {order.buyer?.name || order.shippingAddress?.fullName || "Valued Customer"}
+                {order.buyer?.name ||
+                  order.shippingAddress?.fullName ||
+                  "Valued Customer"}
               </p>
               {order.buyer?.email && (
                 <p className="text-xs text-[#4B5563] flex items-center gap-1.5">
@@ -139,15 +269,20 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             {/* Shipping Address */}
             <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#6366F1]" /> Shipping Address
+                <MapPin className="w-3.5 h-3.5 text-[#6366F1]" /> Shipping
+                Address
               </h4>
               <p className="text-sm font-semibold text-[#0F172A]">
                 {order.shippingAddress?.fullName}
               </p>
               <p className="text-xs text-[#4B5563] leading-relaxed">
                 {order.shippingAddress?.address}
-                {order.shippingAddress?.city ? `, ${order.shippingAddress.city}` : ""}
-                {order.shippingAddress?.postalCode ? ` - ${order.shippingAddress.postalCode}` : ""}
+                {order.shippingAddress?.city
+                  ? `, ${order.shippingAddress.city}`
+                  : ""}
+                {order.shippingAddress?.postalCode
+                  ? ` - ${order.shippingAddress.postalCode}`
+                  : ""}
               </p>
               {order.deliveredAt && (
                 <p className="text-xs text-[#059669] flex items-center gap-1.5 mt-2">
@@ -158,38 +293,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
             </div>
           </div>
 
-          {/* Payment Summary */}
-          <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-[#6366F1]" />
-                <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
-                  Payment Method:
-                </span>
-                <span className="text-sm font-semibold text-[#0F172A]">
-                  {isCOD ? "Cash on Delivery (COD)" : "Online Payment"}
-                </span>
-              </div>
-              <div className="text-xs text-[#64748B] flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Payment Status: {getPaymentStatusBadge(order.payment?.status)}
-                {order.payment?.paidAt && (
-                  <span className="text-[#059669] ml-1">
-                    (Paid on {new Date(order.payment.paidAt).toLocaleDateString()})
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="text-right">
-              <span className="text-xs text-[#64748B] block">Vendor Items Amount:</span>
-              <span className="text-lg font-bold text-[#4F46E5]">
-                {formatCurrency(vendorSubtotal)}
-              </span>
-            </div>
-          </div>
-
-          {/* Ordered Products (Vendor Items Only) */}
+          {/* Section 3: Ordered Products (Vendor Items Only) */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
               <Package className="w-3.5 h-3.5 text-[#6366F1]" />
@@ -198,7 +302,10 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
             <div className="border border-[#E5E7EB] rounded-lg divide-y divide-[#E5E7EB] overflow-hidden">
               {items.map((item, idx) => (
-                <div key={item._id || idx} className="p-3.5 flex items-center gap-4 bg-white">
+                <div
+                  key={item._id || idx}
+                  className="p-3.5 flex items-center gap-4 bg-white"
+                >
                   <div className="w-14 h-14 rounded-md border border-[#E5E7EB] bg-[#F8FAFC] overflow-hidden shrink-0 flex items-center justify-center">
                     {item.image ? (
                       <img
@@ -218,25 +325,19 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                     <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B] mt-0.5">
                       {item.brand && <span>Brand: {item.brand}</span>}
                       {item.size && <span>Size: {item.size}</span>}
-                      <span>Qty: {item.quantity}</span>
-                      <span>Unit: {formatCurrency(item.unitPrice)}</span>
+                      <span>Quantity: {item.quantity}</span>
+                      <span>Unit Price: {formatCurrency(item.unitPrice)}</span>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
                     <p className="text-sm font-bold text-[#0F172A]">
-                      {formatCurrency(Number(item.itemSubtotal) || Number(item.unitPrice * item.quantity))}
+                      {formatCurrency(
+                        Number(item.itemSubtotal) ||
+                          Number(item.unitPrice * item.quantity),
+                      )}
                     </p>
-                    {item.adminCommission !== undefined && item.adminCommission !== null && (
-                      <p className="text-xs text-[#DC2626]">
-                        Commission: {formatCurrency(item.adminCommission)}
-                      </p>
-                    )}
-                    {item.vendorEarning !== undefined && item.vendorEarning !== null && (
-                      <p className="text-xs text-[#059669]">
-                        Earn: {formatCurrency(item.vendorEarning)}
-                      </p>
-                    )}
+                    <span className="text-[11px] text-[#64748B]">Subtotal</span>
                   </div>
                 </div>
               ))}
