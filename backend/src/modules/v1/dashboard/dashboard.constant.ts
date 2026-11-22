@@ -5,4 +5,8 @@ export const DASHBOARD_MESSAGES = {
   RECENT_USERS_RETRIEVED: "Recent users retrieved successfully",
   USER_DETAILS_RETRIEVED: "User details retrieved successfully",
   USER_NOT_FOUND: "User not found",
+  VENDOR_OVERVIEW_RETRIEVED: "Vendor dashboard overview retrieved successfully",
+  VENDOR_RECENT_SALES_RETRIEVED:
+    "Vendor recent product sales retrieved successfully",
+  VENDOR_NOT_FOUND: "Vendor profile not found",
 } as const;

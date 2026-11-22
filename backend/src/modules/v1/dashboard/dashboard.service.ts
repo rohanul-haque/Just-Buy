@@ -1,7 +1,7 @@
 import AppError from "@/utils/AppError";
 import ERROR_CODE from "@/utils/ERROR_CODES";
 import Buyer from "@/modules/v1/buyer/buyer.model";
-import { OrderStatus } from "@/modules/v1/order/order.constant";
+import { OrderStatus, OrderType } from "@/modules/v1/order/order.constant";
 import Order from "@/modules/v1/order/order.model";
 import Product from "@/modules/v1/product/product.model";
 import { AccountStatus, UserRole } from "@/modules/v1/user/user.constant";
@@ -14,9 +14,12 @@ import type {
   IMonthlyEarning,
   IOrderDistribution,
   IPaginatedRecentUsersResult,
+  IPaginatedVendorRecentSalesResult,
   IRecentUser,
   IRecentUsersQueryOptions,
   IUserDetails,
+  IVendorDashboardOverview,
+  IVendorRecentSale,
 } from "./dashboard.interface";
 import { status } from "http-status";
 import mongoose from "mongoose";
@@ -341,6 +344,314 @@ export const dashboardService = {
       status: user.status,
       createdAt: user.createdAt || new Date(),
       ...profileData,
+    };
+  },
+
+  getVendorDashboardOverview: async (
+    vendorUserId: string,
+  ): Promise<IVendorDashboardOverview> => {
+    const vendor = await Vendor.findOne({ vendor: vendorUserId }).exec();
+    if (!vendor) {
+      throw new AppError(
+        status.NOT_FOUND,
+        ERROR_CODE.NOT_FOUND,
+        DASHBOARD_MESSAGES.VENDOR_NOT_FOUND,
+      );
+    }
+
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1, 0, 0, 0, 0);
+    const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+
+    const [totalProducts, totalSalesResult, productCounts, salesCounts] =
+      await Promise.all([
+        // 1. Total Products
+        Product.countDocuments({ vendor: vendor._id }),
+
+        // 2. Total Sales: sum of quantity sold across non-cancelled orders
+        Order.aggregate([
+          {
+            $match: {
+              vendor: vendor._id,
+              status: { $ne: OrderStatus.CANCELLED },
+            },
+          },
+          {
+            $unwind: "$productItems",
+          },
+          {
+            $match: {
+              "productItems.vendor": vendor._id,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalSales: { $sum: "$productItems.quantity" },
+            },
+          },
+        ]),
+
+        // 3. Monthly Products for Area Chart in current year
+        Product.aggregate([
+          {
+            $match: {
+              vendor: vendor._id,
+              createdAt: { $gte: startOfYear, $lte: endOfYear },
+            },
+          },
+          {
+            $group: {
+              _id: { $month: "$createdAt" },
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+
+        // 4. Monthly Product Sales for Bar Chart in current year
+        Order.aggregate([
+          {
+            $match: {
+              vendor: vendor._id,
+              status: { $ne: OrderStatus.CANCELLED },
+              createdAt: { $gte: startOfYear, $lte: endOfYear },
+            },
+          },
+          {
+            $unwind: "$productItems",
+          },
+          {
+            $match: {
+              "productItems.vendor": vendor._id,
+            },
+          },
+          {
+            $group: {
+              _id: { $month: "$createdAt" },
+              count: { $sum: "$productItems.quantity" },
+            },
+          },
+        ]),
+      ]);
+
+    const totalSales = Number(totalSalesResult[0]?.totalSales || 0);
+
+    const MONTH_NAMES = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const monthlyProducts = MONTH_NAMES.map((month, idx) => {
+      const monthNumber = idx + 1;
+      const match = productCounts.find((r) => r._id === monthNumber);
+      return {
+        month,
+        monthNumber,
+        count: match ? Number(match.count) || 0 : 0,
+      };
+    });
+
+    const monthlySales = MONTH_NAMES.map((month, idx) => {
+      const monthNumber = idx + 1;
+      const match = salesCounts.find((r) => r._id === monthNumber);
+      return {
+        month,
+        monthNumber,
+        count: match ? Number(match.count) || 0 : 0,
+      };
+    });
+
+    return {
+      totalProducts,
+      totalSales,
+      monthlyProducts,
+      monthlySales,
+    };
+  },
+
+  getVendorRecentSales: async (
+    vendorUserId: string,
+    options: { page?: number; limit?: number },
+  ): Promise<IPaginatedVendorRecentSalesResult> => {
+    const vendor = await Vendor.findOne({ vendor: vendorUserId }).exec();
+    if (!vendor) {
+      throw new AppError(
+        status.NOT_FOUND,
+        ERROR_CODE.NOT_FOUND,
+        DASHBOARD_MESSAGES.VENDOR_NOT_FOUND,
+      );
+    }
+
+    const page = Math.max(1, Number(options.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(options.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const [salesAgg, totalAgg] = await Promise.all([
+      Order.aggregate([
+        {
+          $match: {
+            vendor: vendor._id,
+            status: { $ne: OrderStatus.CANCELLED },
+          },
+        },
+        {
+          $unwind: "$productItems",
+        },
+        {
+          $match: {
+            "productItems.vendor": vendor._id,
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "buyer",
+            foreignField: "_id",
+            as: "buyerDoc",
+          },
+        },
+        {
+          $unwind: {
+            path: "$buyerDoc",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "payments",
+            localField: "payment",
+            foreignField: "_id",
+            as: "paymentDoc",
+          },
+        },
+        {
+          $unwind: {
+            path: "$paymentDoc",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "buyers",
+            localField: "buyer",
+            foreignField: "buyer",
+            as: "buyerProfileDoc",
+          },
+        },
+        {
+          $unwind: {
+            path: "$buyerProfileDoc",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]),
+      Order.aggregate([
+        {
+          $match: {
+            vendor: vendor._id,
+            status: { $ne: OrderStatus.CANCELLED },
+          },
+        },
+        {
+          $unwind: "$productItems",
+        },
+        {
+          $match: {
+            "productItems.vendor": vendor._id,
+          },
+        },
+        {
+          $count: "total",
+        },
+      ]),
+    ]);
+
+    const total = Number(totalAgg[0]?.total || 0);
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    const sales: IVendorRecentSale[] = salesAgg.map((doc) => {
+      const item = doc.productItems;
+      const buyerName =
+        doc.buyerDoc?.name ||
+        doc.shippingAddress?.fullName ||
+        "Customer";
+      const buyerEmail = doc.buyerDoc?.email || "N/A";
+      const buyerImage = doc.buyerProfileDoc?.profile?.url || "";
+
+      const transactionId =
+        doc.transactionNumber ||
+        doc.paymentDoc?.stripePaymentIntentId ||
+        doc._id.toString();
+
+      const paymentStatus =
+        doc.paymentDoc?.status ||
+        (doc.orderType === OrderType.COD ? "PAID" : "PENDING");
+      const paymentMethod =
+        doc.paymentDoc?.paymentMethod || doc.orderType || "COD";
+
+      const amount = Number(
+        Number(item.itemSubtotal || item.unitPrice * item.quantity || 0).toFixed(
+          2,
+        ),
+      );
+
+      return {
+        orderId: doc._id.toString(),
+        transactionId,
+        orderStatus: doc.status,
+        paymentStatus,
+        paymentMethod,
+        createdAt: doc.createdAt,
+        product: {
+          productId: item.product?.toString() || "",
+          name: item.name,
+          image: item.image || "",
+          quantity: Number(item.quantity) || 1,
+          unitPrice: Number(item.unitPrice) || 0,
+          itemSubtotal: amount,
+          brand: item.brand,
+          size: item.size,
+        },
+        customer: {
+          _id: doc.buyerDoc?._id?.toString() || doc.buyer?.toString() || "",
+          name: buyerName,
+          email: buyerEmail,
+          profileImage: buyerImage,
+        },
+        amount,
+      };
+    });
+
+    return {
+      sales,
+      pagination: {
+        page,
+        limit,
+        skip,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
     };
   },
 };

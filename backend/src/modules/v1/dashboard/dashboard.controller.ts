@@ -86,6 +86,47 @@ export const dashboardController = {
       });
     },
   ),
+
+  getVendorDashboardOverview: asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const vendorUserId = (req.user as any).userId;
+      const overview =
+        await dashboardService.getVendorDashboardOverview(vendorUserId);
+
+      sendResponse(res, {
+        statusCode: status.OK,
+        success: true,
+        message: DASHBOARD_MESSAGES.VENDOR_OVERVIEW_RETRIEVED,
+        data: overview,
+      });
+    },
+  ),
+
+  getVendorRecentSales: asyncHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const vendorUserId = (req.user as any).userId;
+      const { page, limit } = req.query as {
+        page?: string;
+        limit?: string;
+      };
+
+      const result = await dashboardService.getVendorRecentSales(
+        vendorUserId,
+        {
+          page: page ? Number(page) : undefined,
+          limit: limit ? Number(limit) : undefined,
+        },
+      );
+
+      sendResponse(res, {
+        statusCode: status.OK,
+        success: true,
+        message: DASHBOARD_MESSAGES.VENDOR_RECENT_SALES_RETRIEVED,
+        data: result.sales,
+        pagination: result.pagination,
+      });
+    },
+  ),
 };
 
 export default dashboardController;
