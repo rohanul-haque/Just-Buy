@@ -27,6 +27,7 @@ import {
 import Payment from "@/modules/v1/payment/payment.model";
 import paymentService from "@/modules/v1/payment/payment.service";
 import Product from "@/modules/v1/product/product.model";
+import User from "@/modules/v1/user/user.model";
 import { UserRole, type TUserRole } from "@/modules/v1/user/user.constant";
 import { VendorStatus } from "@/modules/v1/vendor/vendor.constant";
 import Vendor from "@/modules/v1/vendor/vendor.model";
@@ -794,17 +795,68 @@ const getVendorOrders = async (
   const skipCount = options.skip ?? (page - 1) * limit;
 
   const filter: Record<string, any> = { vendor: vendor._id };
+
+  // Status Filter
   if (options.status) {
     filter.status = options.status;
   }
-  if (options.orderType) {
-    filter.orderType = options.orderType;
+
+  // Payment Method / Order Type Filter
+  const orderTypeFilter = options.orderType || options.paymentMethod;
+  if (orderTypeFilter) {
+    filter.orderType = orderTypeFilter;
   }
+
+  // Payment Status Filter
+  if (options.paymentStatus) {
+    const matchingPayments = await Payment.find({
+      status: options.paymentStatus as PaymentStatus,
+    })
+      .select("order")
+      .lean<{ order: mongoose.Types.ObjectId }[]>()
+      .exec();
+    const orderIds = matchingPayments.map((p) => p.order);
+    filter._id = { $in: orderIds };
+  }
+
+  // Search Filter (Transaction Number / Order ID, Shipping Address Full Name, Product Names, or Buyer Name)
+  if (options.search && options.search.trim()) {
+    const searchRegex = new RegExp(options.search.trim(), "i");
+    const matchingBuyers = await User.find({
+      name: searchRegex,
+    })
+      .select("_id")
+      .lean<{ _id: mongoose.Types.ObjectId }[]>()
+      .exec();
+    const buyerIds = matchingBuyers.map((b) => b._id);
+
+    const searchConditions: any[] = [
+      { transactionNumber: searchRegex },
+      { "shippingAddress.fullName": searchRegex },
+      { "productItems.name": searchRegex },
+    ];
+
+    if (buyerIds.length > 0) {
+      searchConditions.push({ buyer: { $in: buyerIds } });
+    }
+
+    if (filter._id) {
+      filter.$and = [{ _id: filter._id }, { $or: searchConditions }];
+      delete filter._id;
+    } else {
+      filter.$or = searchConditions;
+    }
+  }
+
+  // Sorting
+  const sortField = options.sortBy || "createdAt";
+  const sortDirection = options.sortOrder === "asc" ? 1 : -1;
+  const sortOptions: Record<string, 1 | -1> = { [sortField]: sortDirection };
 
   const [orders, total] = await Promise.all([
     Order.find(filter)
       .select("-shippingCharge")
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
       .skip(skipCount)
       .limit(limit)
       .populate("buyer", "name email")

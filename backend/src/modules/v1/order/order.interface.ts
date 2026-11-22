@@ -72,6 +72,11 @@ export interface IOrderQueryOptions {
   skip?: number;
   status?: OrderStatus;
   orderType?: OrderType;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
 export interface IPaginatedOrdersResult {

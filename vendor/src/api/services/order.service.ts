@@ -13,6 +13,11 @@ export interface GetVendorOrdersParams {
   limit?: number;
   status?: OrderStatus | string;
   orderType?: OrderType | string;
+  paymentStatus?: PaymentStatus | string;
+  paymentMethod?: OrderType | string;
+  search?: string;
+  sortBy?: "createdAt" | "totalAmount" | "subtotal" | "status" | string;
+  sortOrder?: "asc" | "desc";
 }
 
 export const orderService = {

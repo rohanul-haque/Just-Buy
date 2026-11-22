@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
+  ArrowUpDown,
   Check,
   Eye,
   Loader2,
@@ -26,12 +27,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -69,13 +80,26 @@ export const OrderListPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters and Pagination
+  // Filters, Search, Sorting and Pagination
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [selectedOrderType, setSelectedOrderType] = useState<string>("ALL");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+
+  // Debounce search input (400ms)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Status updating & Payment confirmation state
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -91,6 +115,9 @@ export const OrderListPage: React.FC = () => {
   const [statistics, setStatistics] = useState<IOrderStatistics | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
+
+  // Ref to track latest request to avoid race conditions
+  const latestRequestIdRef = useRef<number>(0);
 
   const fetchStatistics = useCallback(async () => {
     setIsStatsLoading(true);
@@ -109,12 +136,15 @@ export const OrderListPage: React.FC = () => {
   }, []);
 
   const fetchOrders = useCallback(async () => {
+    const requestId = ++latestRequestIdRef.current;
     setIsLoading(true);
     setError(null);
     try {
       const params: Record<string, any> = {
         page,
         limit: 10,
+        sortBy,
+        sortOrder,
       };
       if (selectedStatus !== "ALL") {
         params.status = selectedStatus;
@@ -122,8 +152,18 @@ export const OrderListPage: React.FC = () => {
       if (selectedOrderType !== "ALL") {
         params.orderType = selectedOrderType;
       }
+      if (selectedPaymentStatus !== "ALL") {
+        params.paymentStatus = selectedPaymentStatus;
+      }
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
 
       const response = await orderService.getVendorOrders(params);
+
+      // Guard against stale response
+      if (requestId !== latestRequestIdRef.current) return;
+
       if (response.success && response.data) {
         setOrders(response.data);
         if (response.pagination) {
@@ -137,13 +177,16 @@ export const OrderListPage: React.FC = () => {
         setOrders([]);
       }
     } catch (err) {
+      if (requestId !== latestRequestIdRef.current) return;
       const msg = getApiErrorMessage(err);
       setError(msg);
       toast.error(msg);
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [page, selectedStatus, selectedOrderType]);
+  }, [page, selectedStatus, selectedOrderType, selectedPaymentStatus, debouncedSearch, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchOrders();
@@ -255,26 +298,6 @@ export const OrderListPage: React.FC = () => {
     })}`;
   };
 
-  // Filter orders by search query locally
-  const filteredOrders = orders.filter((order) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    const orderNumber = (order.transactionNumber || order._id).toLowerCase();
-    const customerName = (
-      order.buyer?.name ||
-      order.shippingAddress?.fullName ||
-      ""
-    ).toLowerCase();
-    const productNames = (order.productItems || [])
-      .map((i) => i.name.toLowerCase())
-      .join(" ");
-    return (
-      orderNumber.includes(query) ||
-      customerName.includes(query) ||
-      productNames.includes(query)
-    );
-  });
-
   const getOrderStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case "PENDING":
@@ -383,7 +406,7 @@ export const OrderListPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Status Filter */}
             <Select
               value={selectedStatus}
@@ -392,7 +415,7 @@ export const OrderListPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="h-10 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+              <SelectTrigger className="h-10 w-[130px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -428,7 +451,7 @@ export const OrderListPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="h-10 w-[160px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+              <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
                 <SelectValue placeholder="All Payment Types" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -444,9 +467,75 @@ export const OrderListPage: React.FC = () => {
               </SelectContent>
             </Select>
 
+            {/* Payment Status Filter */}
+            <Select
+              value={selectedPaymentStatus}
+              onValueChange={(val) => {
+                setSelectedPaymentStatus(val);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-10 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectValue placeholder="Payment Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="ALL" className="text-xs">
+                  All Payment Status
+                </SelectItem>
+                <SelectItem value="UNPAID" className="text-xs">
+                  Unpaid
+                </SelectItem>
+                <SelectItem value="PENDING" className="text-xs">
+                  Pending
+                </SelectItem>
+                <SelectItem value="PAID" className="text-xs">
+                  Paid
+                </SelectItem>
+                <SelectItem value="FAILED" className="text-xs">
+                  Failed
+                </SelectItem>
+                <SelectItem value="REFUNDED" className="text-xs">
+                  Refunded
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Sort Dropdown */}
+            <Select
+              value={`${sortBy}_${sortOrder}`}
+              onValueChange={(val) => {
+                const [newSortBy, newSortOrder] = val.split("_");
+                setSortBy(newSortBy);
+                setSortOrder(newSortOrder as "asc" | "desc");
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-[#64748B]" />
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="createdAt_desc" className="text-xs">
+                  Date: Newest First
+                </SelectItem>
+                <SelectItem value="createdAt_asc" className="text-xs">
+                  Date: Oldest First
+                </SelectItem>
+                <SelectItem value="totalAmount_desc" className="text-xs">
+                  Amount: High to Low
+                </SelectItem>
+                <SelectItem value="totalAmount_asc" className="text-xs">
+                  Amount: Low to High
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
             {/* Clear Filters */}
             {(selectedStatus !== "ALL" ||
               selectedOrderType !== "ALL" ||
+              selectedPaymentStatus !== "ALL" ||
+              sortBy !== "createdAt" ||
+              sortOrder !== "desc" ||
               searchQuery) && (
               <Button
                 variant="ghost"
@@ -454,6 +543,9 @@ export const OrderListPage: React.FC = () => {
                 onClick={() => {
                   setSelectedStatus("ALL");
                   setSelectedOrderType("ALL");
+                  setSelectedPaymentStatus("ALL");
+                  setSortBy("createdAt");
+                  setSortOrder("desc");
                   setSearchQuery("");
                   setPage(1);
                 }}
@@ -469,11 +561,20 @@ export const OrderListPage: React.FC = () => {
       {/* 3. Main Orders Table */}
       <Card className="border-[#E5E7EB] bg-white rounded-md shadow-xs overflow-hidden">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center p-12 space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#6366F1]" />
-            <p className="text-sm font-medium text-[#64748B]">
-              Loading vendor orders...
-            </p>
+          <div className="p-6 space-y-4">
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-center pt-2">
+              <Loader2 className="w-5 h-5 animate-spin text-[#6366F1] mr-2" />
+              <p className="text-xs text-[#64748B]">
+                Loading orders from server...
+              </p>
+            </div>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center p-12 space-y-3 text-center">
@@ -491,7 +592,7 @@ export const OrderListPage: React.FC = () => {
               Retry
             </Button>
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 space-y-3 text-center">
             <Package className="w-12 h-12 text-[#CBD5E1]" />
             <p className="text-base font-semibold text-[#0F172A]">
@@ -500,8 +601,9 @@ export const OrderListPage: React.FC = () => {
             <p className="text-xs text-[#64748B] max-w-sm">
               {searchQuery ||
               selectedStatus !== "ALL" ||
-              selectedOrderType !== "ALL"
-                ? "No orders match your selected filters. Try adjusting your search or filters."
+              selectedOrderType !== "ALL" ||
+              selectedPaymentStatus !== "ALL"
+                ? "No orders match your selected search or filters. Try adjusting your query."
                 : "You haven't received any customer orders yet. Newly placed orders for your products will appear here."}
             </p>
           </div>
@@ -550,7 +652,7 @@ export const OrderListPage: React.FC = () => {
               </TableHeader>
 
               <TableBody className="divide-y divide-[#E5E7EB]">
-                {filteredOrders.map((order) => {
+                {orders.map((order) => {
                   const items = order.productItems || [];
                   const primaryItem = items[0];
                   const extraItemsCount = items.length - 1;
@@ -794,33 +896,79 @@ export const OrderListPage: React.FC = () => {
           </div>
         )}
 
-        {/* 4. Pagination */}
+        {/* 4. Server-Side Pagination using shadcn/ui Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-[#E5E7EB] bg-[#F8FAFC]">
-            <p className="text-xs text-[#64748B]">
-              Page {page} of {totalPages} ({totalOrders} orders)
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-[#E5E7EB] bg-[#F8FAFC]">
+            <p className="text-xs text-[#64748B] text-center sm:text-left">
+              Showing page <span className="font-semibold text-[#0F172A]">{page}</span> of{" "}
+              <span className="font-semibold text-[#0F172A]">{totalPages}</span>{" "}
+              ({totalOrders} total {totalOrders === 1 ? "order" : "orders"})
             </p>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="h-8 text-xs rounded-md"
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="h-8 text-xs rounded-md"
-              >
-                Next
-              </Button>
-            </div>
+            <Pagination className="mx-0 w-auto justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className={
+                      page <= 1
+                        ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
+                        : "cursor-pointer text-xs"
+                    }
+                  />
+                </PaginationItem>
+
+                {/* Page numbers logic */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => {
+                    return (
+                      p === 1 ||
+                      p === totalPages ||
+                      Math.abs(p - page) <= 1
+                    );
+                  })
+                  .reduce<(number | string)[]>((acc, curr, index, arr) => {
+                    if (index > 0 && (curr as number) - (arr[index - 1] as number) > 1) {
+                      acc.push(`ellipsis-${curr}`);
+                    }
+                    acc.push(curr);
+                    return acc;
+                  }, [])
+                  .map((item) => {
+                    if (typeof item === "string") {
+                      return (
+                        <PaginationItem key={item}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    return (
+                      <PaginationItem key={item}>
+                        <PaginationLink
+                          isActive={page === item}
+                          onClick={() => setPage(item)}
+                          className="h-8 w-8 text-xs cursor-pointer"
+                        >
+                          {item}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className={
+                      page >= totalPages
+                        ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
+                        : "cursor-pointer text-xs"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </Card>
