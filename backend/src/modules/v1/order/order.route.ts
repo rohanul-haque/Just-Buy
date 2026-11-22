@@ -50,6 +50,14 @@ router.get(
 );
 
 router.get(
+  "/vendor/statistics",
+  authenticate,
+  authorize(UserRole.VENDOR),
+  requireApprovedVendor,
+  orderController.getVendorOrderStatistics,
+);
+
+router.get(
   "/:orderId",
   authenticate,
   authorize(UserRole.BUYER, UserRole.VENDOR, UserRole.ADMIN),

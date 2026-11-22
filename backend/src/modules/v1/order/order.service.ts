@@ -834,6 +834,66 @@ const getVendorOrders = async (
   };
 };
 
+const getVendorOrderStatistics = async (
+  vendorUserId: string,
+): Promise<{
+  totalOrders: number;
+  cancelledOrders: number;
+  deliveredOrders: number;
+  shippingOrders: number;
+  onlinePayments: number;
+  offlinePayments: number;
+}> => {
+  const vendor = await Vendor.findOne({ vendor: vendorUserId }).exec();
+  if (!vendor) {
+    throw new AppError(
+      status.NOT_FOUND,
+      ERROR_CODE.SELLER_PROFILE_NOT_FOUND,
+      MESSAGES.SELLER_PROFILE_NOT_FOUND,
+    );
+  }
+
+  const [
+    totalOrders,
+    cancelledOrders,
+    deliveredOrders,
+    shippingOrders,
+    onlinePayments,
+    offlinePayments,
+  ] = await Promise.all([
+    Order.countDocuments({ vendor: vendor._id }).exec(),
+    Order.countDocuments({
+      vendor: vendor._id,
+      status: OrderStatus.CANCELLED,
+    }).exec(),
+    Order.countDocuments({
+      vendor: vendor._id,
+      status: OrderStatus.DELIVERED,
+    }).exec(),
+    Order.countDocuments({
+      vendor: vendor._id,
+      status: OrderStatus.SHIPPED,
+    }).exec(),
+    Order.countDocuments({
+      vendor: vendor._id,
+      orderType: OrderType.ONLINE,
+    }).exec(),
+    Order.countDocuments({
+      vendor: vendor._id,
+      orderType: OrderType.COD,
+    }).exec(),
+  ]);
+
+  return {
+    totalOrders,
+    cancelledOrders,
+    deliveredOrders,
+    shippingOrders,
+    onlinePayments,
+    offlinePayments,
+  };
+};
+
 const orderService = {
   createOrder,
   getMyOrders,
@@ -842,6 +902,7 @@ const orderService = {
   updateOrderStatus,
   getAllOrders,
   getVendorOrders,
+  getVendorOrderStatistics,
 };
 
 export default orderService;

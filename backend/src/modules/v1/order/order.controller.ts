@@ -131,6 +131,21 @@ const confirmCODPayment = asyncHandler(
   },
 );
 
+const getVendorOrderStatistics = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await orderService.getVendorOrderStatistics(
+      req.user!.userId,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: "Vendor order statistics retrieved successfully",
+      data: result,
+    });
+  },
+);
+
 const orderController = {
   createOrder,
   getMyOrders,
@@ -140,6 +155,7 @@ const orderController = {
   getAllOrders,
   getVendorOrders,
   confirmCODPayment,
+  getVendorOrderStatistics,
 };
 
 export default orderController;

@@ -1,6 +1,11 @@
 import apiClient from "@/api/client";
 import type { ApiResponse } from "@/types/api";
-import type { IOrder, OrderStatus, OrderType } from "@/types/order";
+import type {
+  IOrder,
+  IOrderStatistics,
+  OrderStatus,
+  OrderType,
+} from "@/types/order";
 
 export interface GetVendorOrdersParams {
   page?: number;
@@ -18,6 +23,55 @@ export const orderService = {
       { params },
     );
     return response.data;
+  },
+
+  getVendorOrderStatistics: async (): Promise<
+    ApiResponse<IOrderStatistics>
+  > => {
+    try {
+      const response = await apiClient.get<ApiResponse<IOrderStatistics>>(
+        "/orders/vendor/statistics",
+      );
+      if (response.data && response.data.success && response.data.data) {
+        return response.data;
+      }
+      throw new Error("Statistics endpoint returned empty data");
+    } catch {
+      // Fallback: Query vendor order totals in parallel
+      const [all, cancelled, delivered, shipped, online, cod] =
+        await Promise.all([
+          apiClient.get<ApiResponse<any>>("/orders/vendor/orders?limit=1"),
+          apiClient.get<ApiResponse<any>>(
+            "/orders/vendor/orders?status=CANCELLED&limit=1",
+          ),
+          apiClient.get<ApiResponse<any>>(
+            "/orders/vendor/orders?status=DELIVERED&limit=1",
+          ),
+          apiClient.get<ApiResponse<any>>(
+            "/orders/vendor/orders?status=SHIPPED&limit=1",
+          ),
+          apiClient.get<ApiResponse<any>>(
+            "/orders/vendor/orders?orderType=ONLINE&limit=1",
+          ),
+          apiClient.get<ApiResponse<any>>(
+            "/orders/vendor/orders?orderType=COD&limit=1",
+          ),
+        ]);
+
+      return {
+        success: true,
+        statusCode: 200,
+        message: "Vendor statistics fetched successfully",
+        data: {
+          totalOrders: all.data?.pagination?.total ?? 0,
+          cancelledOrders: cancelled.data?.pagination?.total ?? 0,
+          deliveredOrders: delivered.data?.pagination?.total ?? 0,
+          shippingOrders: shipped.data?.pagination?.total ?? 0,
+          onlinePayments: online.data?.pagination?.total ?? 0,
+          offlinePayments: cod.data?.pagination?.total ?? 0,
+        },
+      };
+    }
   },
 
   getOrderById: async (id: string): Promise<ApiResponse<IOrder>> => {

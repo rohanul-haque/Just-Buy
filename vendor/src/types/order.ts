@@ -72,6 +72,15 @@ export interface IOrder {
   updatedAt: string;
 }
 
+export interface IOrderStatistics {
+  totalOrders: number;
+  cancelledOrders: number;
+  deliveredOrders: number;
+  shippingOrders: number;
+  onlinePayments: number;
+  offlinePayments: number;
+}
+
 export const VALID_ORDER_STATUS_TRANSITIONS: Record<
   OrderStatus,
   OrderStatus[]

@@ -7,13 +7,14 @@ import {
   MoreHorizontal,
   MoreVertical,
   Package,
-  RotateCcw,
+  RefreshCw,
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
 import orderService from "@/api/services/order.service";
 import OrderDetailsDialog from "@/components/orders/OrderDetailsDialog";
+import OrderStatisticsCards from "@/components/orders/OrderStatisticsCards";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,6 +38,7 @@ import {
 import {
   VALID_ORDER_STATUS_TRANSITIONS,
   type IOrder,
+  type IOrderStatistics,
   type OrderStatus,
 } from "@/types/order";
 
@@ -62,6 +64,28 @@ export const OrderListPage: React.FC = () => {
   // Selected Order for Details Dialog
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Statistics State
+  const [statistics, setStatistics] = useState<IOrderStatistics | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchStatistics = useCallback(async () => {
+    setIsStatsLoading(true);
+    setStatsError(null);
+    try {
+      const response = await orderService.getVendorOrderStatistics();
+      if (response.success && response.data) {
+        setStatistics(response.data);
+      }
+    } catch (err) {
+      const msg = getApiErrorMessage(err);
+      setStatsError(msg);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -104,6 +128,21 @@ export const OrderListPage: React.FC = () => {
     fetchOrders();
   }, [fetchOrders]);
 
+  useEffect(() => {
+    fetchStatistics();
+  }, [fetchStatistics]);
+
+  // Combined Refresh Handler for both Orders Table and Statistics
+  const handleRefresh = async () => {
+    if (isRefreshing || isLoading || isStatsLoading) return;
+    setIsRefreshing(true);
+    try {
+      await Promise.all([fetchOrders(), fetchStatistics()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // Handle Order Status Transitions
   const handleUpdateStatus = async (
     orderId: string,
@@ -123,7 +162,7 @@ export const OrderListPage: React.FC = () => {
         if (selectedOrder && selectedOrder._id === orderId && response.data) {
           setSelectedOrder(response.data);
         }
-        await fetchOrders();
+        await Promise.all([fetchOrders(), fetchStatistics()]);
       } else {
         toast.error(response.message || "Failed to update order status.");
       }
@@ -148,7 +187,7 @@ export const OrderListPage: React.FC = () => {
         if (selectedOrder && selectedOrder._id === orderId && response.data) {
           setSelectedOrder(response.data);
         }
-        await fetchOrders();
+        await Promise.all([fetchOrders(), fetchStatistics()]);
       } else {
         toast.error(response.message || "Failed to confirm COD payment.");
       }
@@ -247,26 +286,32 @@ export const OrderListPage: React.FC = () => {
             Manage Orders
           </h2>
           <p className="text-sm text-[#64748B] mt-1">
-            Track and fulfill customer orders for your products ({totalOrders}{" "}
-            total).
+            Track and manage your customer orders by product.
           </p>
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          onClick={() => fetchOrders()}
-          disabled={isLoading}
+          onClick={handleRefresh}
+          disabled={isRefreshing || isLoading || isStatsLoading}
           className="self-start sm:self-auto h-9 border-[#E5E7EB] text-[#374151] hover:bg-[#F8FAFC] cursor-pointer"
         >
-          <RotateCcw
-            className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? "animate-spin" : ""}`}
+          <RefreshCw
+            className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>
       </div>
 
-      {/* 2. Search & Filter Bar */}
+      {/* 2. Order Statistics Cards */}
+      <OrderStatisticsCards
+        statistics={statistics}
+        isLoading={isStatsLoading}
+        error={statsError}
+      />
+
+      {/* 3. Search & Filter Bar */}
       <Card className="p-4 border-[#E5E7EB] bg-white rounded-md shadow-xs">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Search Input */}
