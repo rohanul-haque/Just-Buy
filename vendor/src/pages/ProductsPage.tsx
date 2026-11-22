@@ -234,26 +234,26 @@ export const ProductsPage: React.FC = () => {
       />
 
       {/* 2. Combined Toolbar: Title, Search, Filters, and Add Product Button */}
-      <Card className="p-4 border-[#E5E7EB] bg-white rounded-md shadow-xs">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+      <Card className="px-4 py-3 border-[#E5E7EB] bg-white rounded-lg shadow-xs">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-3.5">
           {/* Left: Products Title */}
           <div className="shrink-0 self-start lg:self-center">
-            <h2 className="text-xl md:text-2xl font-bold text-[#0F172A] tracking-tight">
+            <h2 className="text-lg md:text-xl font-bold text-[#0F172A] tracking-tight">
               Products
             </h2>
           </div>
 
           {/* Middle: Search and Filter Controls */}
-          <div className="flex flex-1 flex-col sm:flex-row items-center gap-2.5 w-full lg:max-w-3xl">
+          <div className="flex flex-1 flex-col sm:flex-row items-center gap-2 w-full lg:max-w-3xl">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
-              <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 type="text"
                 placeholder="Search products by name or brand..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 rounded-md border-[#E5E7EB] text-sm text-[#0F172A] w-full"
+                className="pl-8.5 h-8.5 rounded-md border-[#E5E7EB] text-xs text-[#0F172A] w-full"
               />
             </div>
 
@@ -267,7 +267,7 @@ export const ProductsPage: React.FC = () => {
                 }}
                 disabled={isLoadingCategories}
               >
-                <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectTrigger className="h-8.5 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -290,7 +290,7 @@ export const ProductsPage: React.FC = () => {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="h-10 w-[130px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectTrigger className="h-8.5 w-[120px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -319,7 +319,7 @@ export const ProductsPage: React.FC = () => {
                     setSearchQuery("");
                     setPage(1);
                   }}
-                  className="text-xs text-[#EF4444] hover:bg-[#FEF2F2] h-10 px-2 cursor-pointer"
+                  className="text-xs text-[#EF4444] hover:bg-[#FEF2F2] h-8.5 px-2 cursor-pointer"
                 >
                   Clear
                 </Button>
@@ -331,9 +331,9 @@ export const ProductsPage: React.FC = () => {
           <div className="shrink-0 self-end lg:self-center w-full sm:w-auto flex justify-end">
             <Button
               onClick={() => navigate("/products/new")}
-              className="h-10 bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold px-4 rounded-md shadow-xs flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
+              className="h-8.5 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-semibold px-3.5 rounded-md shadow-xs flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               Add Product
             </Button>
           </div>

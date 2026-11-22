@@ -35,18 +35,18 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   const content = (
     <Card
       className={cn(
-        "p-5 bg-white border border-[#E5E7EB] rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm",
+        "p-4 bg-white border border-[#E5E7EB] rounded-lg shadow-xs transition-all duration-200 hover:shadow-xs",
         onClick && "cursor-pointer",
         isActive && "border-[#4F46E5] ring-1 ring-[#4F46E5]",
         className,
       )}
       onClick={onClick}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3.5">
         {/* Left: Square icon container with rounded-md */}
         <div
           className={cn(
-            "w-12 h-12 rounded-md flex items-center justify-center shrink-0 shadow-xs [&>svg]:w-6 [&>svg]:h-6",
+            "w-11 h-11 rounded-md flex items-center justify-center shrink-0 shadow-xs [&>svg]:w-5 [&>svg]:h-5",
             !isCustomBg && iconBackgroundColor,
             iconColor,
           )}
@@ -62,7 +62,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block truncate">
             {title}
           </span>
-          <h3 className="text-2xl font-bold text-[#0F172A] leading-tight mt-1 truncate">
+          <h3 className="text-xl font-bold text-[#0F172A] leading-tight mt-0.5 truncate">
             {value}
           </h3>
           {subtitle && (
