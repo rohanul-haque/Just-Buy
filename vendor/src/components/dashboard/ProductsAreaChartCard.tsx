@@ -5,7 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { IMonthlyCount } from "@/types/dashboard";
 
 interface ProductsAreaChartCardProps {
-  totalProducts: number;
   data: IMonthlyCount[];
   isLoading?: boolean;
 }
@@ -26,7 +25,6 @@ const SHORT_MONTHS = [
 ];
 
 export const ProductsAreaChartCard: React.FC<ProductsAreaChartCardProps> = ({
-  totalProducts,
   data,
   isLoading = false,
 }) => {
@@ -101,18 +99,18 @@ export const ProductsAreaChartCard: React.FC<ProductsAreaChartCardProps> = ({
 
   return (
     <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs p-5 flex flex-col justify-between h-full">
-      {/* Top: Statistics Section */}
-      <div className="pb-4 border-b border-[#E5E7EB] flex items-center justify-between">
+      {/* Top: Section Header */}
+      <div className="pb-3 border-b border-[#E5E7EB] flex items-center justify-between">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#64748B] block">
-            Total Products
-          </span>
-          <span className="text-2xl font-bold text-[#0F172A] mt-0.5 block">
-            {totalProducts.toLocaleString("en-US")}
-          </span>
+          <h3 className="text-base font-bold text-[#0F172A]">
+            Monthly Product Statistics
+          </h3>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Store product catalog count per month
+          </p>
         </div>
-        <div className="w-10 h-10 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
-          <Package className="w-5 h-5" />
+        <div className="w-8 h-8 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+          <Package className="w-4 h-4" />
         </div>
       </div>
 

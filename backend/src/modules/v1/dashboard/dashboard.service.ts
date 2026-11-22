@@ -362,17 +362,20 @@ export const dashboardService = {
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1, 0, 0, 0, 0);
     const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+    const vendorObjId = new mongoose.Types.ObjectId(vendor._id.toString());
 
     const [totalProducts, totalSalesResult, productCounts, salesCounts] =
       await Promise.all([
         // 1. Total Products
-        Product.countDocuments({ vendor: vendor._id }),
+        Product.countDocuments({
+          $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
+        }),
 
         // 2. Total Sales: sum of quantity sold across non-cancelled orders
         Order.aggregate([
           {
             $match: {
-              vendor: vendor._id,
+              $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
               status: { $ne: OrderStatus.CANCELLED },
             },
           },
@@ -381,7 +384,10 @@ export const dashboardService = {
           },
           {
             $match: {
-              "productItems.vendor": vendor._id,
+              $or: [
+                { "productItems.vendor": vendorObjId },
+                { "productItems.vendor": vendor._id },
+              ],
             },
           },
           {
@@ -396,7 +402,7 @@ export const dashboardService = {
         Product.aggregate([
           {
             $match: {
-              vendor: vendor._id,
+              $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
               createdAt: { $gte: startOfYear, $lte: endOfYear },
             },
           },
@@ -412,7 +418,7 @@ export const dashboardService = {
         Order.aggregate([
           {
             $match: {
-              vendor: vendor._id,
+              $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
               status: { $ne: OrderStatus.CANCELLED },
               createdAt: { $gte: startOfYear, $lte: endOfYear },
             },
@@ -422,7 +428,10 @@ export const dashboardService = {
           },
           {
             $match: {
-              "productItems.vendor": vendor._id,
+              $or: [
+                { "productItems.vendor": vendorObjId },
+                { "productItems.vendor": vendor._id },
+              ],
             },
           },
           {
@@ -495,12 +504,13 @@ export const dashboardService = {
     const page = Math.max(1, Number(options.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(options.limit) || 10));
     const skip = (page - 1) * limit;
+    const vendorObjId = new mongoose.Types.ObjectId(vendor._id.toString());
 
     const [salesAgg, totalAgg] = await Promise.all([
       Order.aggregate([
         {
           $match: {
-            vendor: vendor._id,
+            $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
             status: { $ne: OrderStatus.CANCELLED },
           },
         },
@@ -509,7 +519,10 @@ export const dashboardService = {
         },
         {
           $match: {
-            "productItems.vendor": vendor._id,
+            $or: [
+              { "productItems.vendor": vendorObjId },
+              { "productItems.vendor": vendor._id },
+            ],
           },
         },
         {
@@ -567,7 +580,7 @@ export const dashboardService = {
       Order.aggregate([
         {
           $match: {
-            vendor: vendor._id,
+            $or: [{ vendor: vendorObjId }, { vendor: vendor._id }],
             status: { $ne: OrderStatus.CANCELLED },
           },
         },
@@ -576,7 +589,10 @@ export const dashboardService = {
         },
         {
           $match: {
-            "productItems.vendor": vendor._id,
+            $or: [
+              { "productItems.vendor": vendorObjId },
+              { "productItems.vendor": vendor._id },
+            ],
           },
         },
         {
