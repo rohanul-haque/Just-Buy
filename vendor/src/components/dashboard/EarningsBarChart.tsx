@@ -1,11 +1,9 @@
 import React from "react";
-import { TrendingUp, Wallet } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -59,10 +57,6 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
         <div className="py-6 h-[260px] flex items-center justify-center">
           <Skeleton className="h-full w-full rounded-md" />
         </div>
-        <div className="pt-4 border-t border-[#E5E7EB] space-y-2">
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-3 w-56" />
-        </div>
       </Card>
     );
   }
@@ -77,25 +71,18 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
     };
   });
 
-  const totalEarnings = chartData.reduce((acc, curr) => acc + curr.earnings, 0);
-
   return (
     <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs flex flex-col justify-between h-full pt-0">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-[#E5E7EB] py-5 px-6">
-        <div className="grid flex-1 gap-1">
-          <CardTitle className="text-base font-bold text-[#0F172A]">
-            Earnings Overview
-          </CardTitle>
-          <CardDescription className="text-xs text-[#64748B]">
-            Monthly earnings from delivered orders
-          </CardDescription>
-        </div>
-        <div className="w-9 h-9 rounded-md bg-[#ECFDF5] text-[#10B981] flex items-center justify-center shrink-0">
-          <Wallet className="w-4 h-4" />
-        </div>
+      <CardHeader className="border-b border-[#E5E7EB] py-5 px-6">
+        <CardTitle className="text-base font-bold text-[#0F172A]">
+          Earning Overview
+        </CardTitle>
+        <CardDescription className="text-xs text-[#64748B] mt-1">
+          Monthly earnings from delivered orders
+        </CardDescription>
       </CardHeader>
 
-      <CardContent className="px-3 pt-6 pb-2 sm:px-6">
+      <CardContent className="px-3 pt-6 pb-6 sm:px-6">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
@@ -156,16 +143,6 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
           </BarChart>
         </ChartContainer>
       </CardContent>
-
-      <CardFooter className="flex-col items-start gap-1.5 text-xs border-t border-[#E5E7EB] pt-4 px-6 pb-5">
-        <div className="flex gap-2 font-medium leading-none text-[#0F172A] items-center">
-          Total ${totalEarnings.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} earned this year
-          <TrendingUp className="h-3.5 w-3.5 text-[#10B981]" />
-        </div>
-        <div className="leading-none text-[#64748B]">
-          Showing delivered order earnings from January to December
-        </div>
-      </CardFooter>
     </Card>
   );
 };

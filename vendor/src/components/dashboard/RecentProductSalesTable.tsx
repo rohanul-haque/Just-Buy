@@ -2,7 +2,6 @@ import React from "react";
 import { Eye, Package, ShoppingBag } from "lucide-react";
 import ProfileAvatar from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -74,24 +73,9 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
   };
 
   return (
-    <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs p-5 space-y-4">
-      {/* Table Section Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
-        <div>
-          <h3 className="text-base font-bold text-[#0F172A]">
-            Recent Selling Products
-          </h3>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Real-time sales history of your store's delivered products across all completed customer orders.
-          </p>
-        </div>
-        <div className="text-xs font-medium text-[#64748B] bg-[#F8FAFC] px-2.5 py-1 rounded-md border border-[#E2E8F0]">
-          Total: <span className="font-bold text-[#0F172A]">{total}</span> sales
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* Table Content */}
-      <div className="rounded-md border border-[#E5E7EB] overflow-hidden">
+      <div className="rounded-md border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
         {!isLoading && sales.length === 0 ? (
           <div className="p-12 text-center">
             <div className="w-12 h-12 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] flex items-center justify-center mx-auto mb-3">
@@ -325,7 +309,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
           </Pagination>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -59,7 +58,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
   };
 
   return (
-    <Card className="rounded-md border border-[#E5E7EB] bg-white shadow-xs overflow-hidden">
+    <div className="rounded-md border border-[#E5E7EB] bg-white shadow-xs overflow-hidden">
       {isLoading ? (
         <div className="space-y-2.5 p-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -167,7 +166,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
           </Table>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 
