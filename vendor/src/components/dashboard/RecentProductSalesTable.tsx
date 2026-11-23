@@ -2,7 +2,6 @@ import React from "react";
 import { Eye, Package, ShoppingBag } from "lucide-react";
 import ProfileAvatar from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -74,9 +73,9 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
   };
 
   return (
-    <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs p-5 space-y-4">
-      {/* Table Content (External text removed) */}
-      <div className="rounded-md border border-[#E5E7EB] overflow-hidden">
+    <div className="space-y-4">
+      {/* Table Content — Rendered directly without surrounding Card wrapper */}
+      <div className="rounded-md border border-[#E5E7EB] overflow-hidden bg-white">
         {!isLoading && sales.length === 0 ? (
           <div className="p-12 text-center">
             <div className="w-12 h-12 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] flex items-center justify-center mx-auto mb-3">
@@ -310,7 +309,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
           </Pagination>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

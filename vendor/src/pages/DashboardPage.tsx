@@ -145,7 +145,7 @@ export const DashboardPage: React.FC = () => {
         aria-label="Monthly product and earnings analytics"
         className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch"
       >
-        {/* Chart 1: Production Overview (shadcn/ui Area Chart) */}
+        {/* Chart 1: Product Overview (shadcn/ui Area Chart) */}
         <ProductSellingAreaChart
           data={overview?.monthlyProductSales || []}
           isLoading={isLoadingOverview}

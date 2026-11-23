@@ -1,10 +1,8 @@
 import React from "react";
-import { Package } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -53,9 +51,8 @@ export const ProductSellingAreaChart: React.FC<ProductSellingAreaChartProps> = (
   if (isLoading) {
     return (
       <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs p-6 flex flex-col justify-between h-full">
-        <div className="space-y-2 pb-4 border-b border-[#E5E7EB]">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-4 w-64" />
+        <div className="pb-4 border-b border-[#E5E7EB]">
+          <Skeleton className="h-5 w-36" />
         </div>
         <div className="py-6 h-[260px] flex items-center justify-center">
           <Skeleton className="h-full w-full rounded-md" />
@@ -76,20 +73,11 @@ export const ProductSellingAreaChart: React.FC<ProductSellingAreaChartProps> = (
 
   return (
     <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs flex flex-col justify-between h-full pt-0">
-      {/* 1. Production Overview Header */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-[#E5E7EB] py-5 px-6">
-        <div className="grid flex-1 gap-1">
-          <CardTitle className="text-base font-bold text-[#0F172A]">
-            Production Overview
-          </CardTitle>
-          <CardDescription className="text-xs text-[#64748B]">
-            Monthly delivered product sales quantity
-          </CardDescription>
-        </div>
-        {/* Parcel/Package icon on the right side */}
-        <div className="w-9 h-9 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
-          <Package className="w-4 h-4" />
-        </div>
+      {/* 1. Product Overview Header */}
+      <CardHeader className="border-b border-[#E5E7EB] py-4 px-6">
+        <CardTitle className="text-base font-bold text-[#0F172A]">
+          Product Overview
+        </CardTitle>
       </CardHeader>
 
       <CardContent className="px-3 pt-6 pb-6 sm:px-6">
