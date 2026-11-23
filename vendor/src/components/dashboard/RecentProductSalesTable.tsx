@@ -75,22 +75,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
 
   return (
     <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs p-5 space-y-4">
-      {/* Table Section Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
-        <div>
-          <h3 className="text-base font-bold text-[#0F172A]">
-            Recent Selling Products
-          </h3>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Real-time sales history of your store's delivered products across all completed customer orders.
-          </p>
-        </div>
-        <div className="text-xs font-medium text-[#64748B] bg-[#F8FAFC] px-2.5 py-1 rounded-md border border-[#E2E8F0]">
-          Total: <span className="font-bold text-[#0F172A]">{total}</span> sales
-        </div>
-      </div>
-
-      {/* Table Content */}
+      {/* Table Content (External text removed) */}
       <div className="rounded-md border border-[#E5E7EB] overflow-hidden">
         {!isLoading && sales.length === 0 ? (
           <div className="p-12 text-center">
@@ -98,10 +83,10 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
               <ShoppingBag className="w-6 h-6" />
             </div>
             <h4 className="text-sm font-semibold text-[#0F172A]">
-              No selling products yet
+              No records found
             </h4>
             <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-              When customers purchase and receive your products, the sales history will appear here.
+              When orders are completed, records will appear here.
             </p>
           </div>
         ) : (
@@ -254,7 +239,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-[#4B5563]">
           <div>
             Showing <span className="font-semibold text-[#0F172A]">{startRecord}</span>–<span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
-            <span className="font-semibold text-[#0F172A]">{total}</span> sales
+            <span className="font-semibold text-[#0F172A]">{total}</span> records
           </div>
 
           <Pagination className="justify-center sm:justify-end mx-0 w-auto">

@@ -81,15 +81,17 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
 
   return (
     <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs flex flex-col justify-between h-full pt-0">
+      {/* 2. Earnings Overview Header */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-[#E5E7EB] py-5 px-6">
         <div className="grid flex-1 gap-1">
           <CardTitle className="text-base font-bold text-[#0F172A]">
             Earnings Overview
           </CardTitle>
           <CardDescription className="text-xs text-[#64748B]">
-            Monthly earnings from delivered orders
+            Monthly earnings from delivered products
           </CardDescription>
         </div>
+        {/* Earnings/Income icon on the right side */}
         <div className="w-9 h-9 rounded-md bg-[#ECFDF5] text-[#10B981] flex items-center justify-center shrink-0">
           <Wallet className="w-4 h-4" />
         </div>
@@ -157,9 +159,10 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
         </ChartContainer>
       </CardContent>
 
+      {/* 4. Earnings Overview — Updated Bottom Summary Content */}
       <CardFooter className="flex-col items-start gap-1.5 text-xs border-t border-[#E5E7EB] pt-4 px-6 pb-5">
         <div className="flex gap-2 font-medium leading-none text-[#0F172A] items-center">
-          Total ${totalEarnings.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} earned this year
+          Total ${totalEarnings.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Earned This Year
           <TrendingUp className="h-3.5 w-3.5 text-[#10B981]" />
         </div>
         <div className="leading-none text-[#64748B]">

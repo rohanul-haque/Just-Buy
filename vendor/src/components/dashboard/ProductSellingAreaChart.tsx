@@ -1,11 +1,10 @@
 import React from "react";
-import { Package, TrendingUp } from "lucide-react";
+import { Package } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -61,10 +60,6 @@ export const ProductSellingAreaChart: React.FC<ProductSellingAreaChartProps> = (
         <div className="py-6 h-[260px] flex items-center justify-center">
           <Skeleton className="h-full w-full rounded-md" />
         </div>
-        <div className="pt-4 border-t border-[#E5E7EB] space-y-2">
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-3 w-56" />
-        </div>
       </Card>
     );
   }
@@ -79,25 +74,25 @@ export const ProductSellingAreaChart: React.FC<ProductSellingAreaChartProps> = (
     };
   });
 
-  const totalProductsSold = chartData.reduce((acc, curr) => acc + curr.products, 0);
-
   return (
     <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs flex flex-col justify-between h-full pt-0">
+      {/* 1. Production Overview Header */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-[#E5E7EB] py-5 px-6">
         <div className="grid flex-1 gap-1">
           <CardTitle className="text-base font-bold text-[#0F172A]">
-            Product Selling Overview
+            Production Overview
           </CardTitle>
           <CardDescription className="text-xs text-[#64748B]">
             Monthly delivered product sales quantity
           </CardDescription>
         </div>
+        {/* Parcel/Package icon on the right side */}
         <div className="w-9 h-9 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
           <Package className="w-4 h-4" />
         </div>
       </CardHeader>
 
-      <CardContent className="px-3 pt-6 pb-2 sm:px-6">
+      <CardContent className="px-3 pt-6 pb-6 sm:px-6">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
@@ -187,16 +182,6 @@ export const ProductSellingAreaChart: React.FC<ProductSellingAreaChartProps> = (
           </AreaChart>
         </ChartContainer>
       </CardContent>
-
-      <CardFooter className="flex-col items-start gap-1.5 text-xs border-t border-[#E5E7EB] pt-4 px-6 pb-5">
-        <div className="flex gap-2 font-medium leading-none text-[#0F172A] items-center">
-          Total {totalProductsSold.toLocaleString("en-US")} products sold this year
-          <TrendingUp className="h-3.5 w-3.5 text-[#10B981]" />
-        </div>
-        <div className="leading-none text-[#64748B]">
-          Showing delivered product sales from January to December
-        </div>
-      </CardFooter>
     </Card>
   );
 };
