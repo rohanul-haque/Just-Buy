@@ -233,18 +233,11 @@ export const ProductsPage: React.FC = () => {
         error={statsError}
       />
 
-      {/* 2. Combined Toolbar: Title, Search, Filters, and Add Product Button */}
+      {/* 2. Combined Toolbar: Search, Filters, and Add Product Button */}
       <Card className="px-4 py-3 border-[#E5E7EB] bg-white rounded-lg shadow-xs">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-3.5">
-          {/* Left: Products Title */}
-          <div className="shrink-0 self-start lg:self-center">
-            <h2 className="text-lg md:text-xl font-bold text-[#0F172A] tracking-tight">
-              Products
-            </h2>
-          </div>
-
-          {/* Middle: Search and Filter Controls */}
-          <div className="flex flex-1 flex-col sm:flex-row items-center gap-2 w-full lg:max-w-3xl">
+          {/* Search and Filter Controls */}
+          <div className="flex flex-1 flex-col sm:flex-row items-center gap-2 w-full">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
               <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
