@@ -140,18 +140,18 @@ export const DashboardPage: React.FC = () => {
         )}
       </section>
 
-      {/* Section 2: Charts - Side by Side on Desktop using Chart.js */}
+      {/* Section 2: Charts - Side by Side on Desktop using shadcn/ui Chart Components */}
       <section
         aria-label="Monthly product and earnings analytics"
         className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch"
       >
-        {/* Chart 1: Product Selling Overview (Chart.js Area Chart) */}
+        {/* Chart 1: Product Selling Overview (shadcn/ui Area Chart) */}
         <ProductSellingAreaChart
           data={overview?.monthlyProductSales || []}
           isLoading={isLoadingOverview}
         />
 
-        {/* Chart 2: Earnings Overview (Chart.js Bar Chart) */}
+        {/* Chart 2: Earnings Overview (shadcn/ui Bar Chart) */}
         <EarningsBarChart
           data={overview?.monthlyEarnings || []}
           isLoading={isLoadingOverview}

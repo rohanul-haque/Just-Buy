@@ -28,6 +28,12 @@
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
 
+  --chart-1: #2563EB;
+  --chart-2: #7C3AED;
+  --chart-3: #10B981;
+  --chart-4: #F59E0B;
+  --chart-5: #EF4444;
+
   --radius: 0.5rem;
 }
 
@@ -63,6 +69,13 @@
   --color-destructive-foreground: hsl(var(--destructive-foreground));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+
+  /* shadcn/ui Chart Colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
   /* TPI CPC Radius Tokens - Standardized to MD (8px) */
   --radius-none: 0px;
