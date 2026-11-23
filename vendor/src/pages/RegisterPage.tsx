@@ -123,16 +123,16 @@ export const RegisterPage: React.FC = () => {
               Full Name
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-[#6366F1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <User className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 id="vendor-register-name"
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
+                placeholder="John Doe"
                 disabled={isSubmitting}
-                className="pl-10 h-11 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-[#4F46E5]/20 focus-visible:border-[#4F46E5]"
+                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
               />
             </div>
           </div>
@@ -145,16 +145,16 @@ export const RegisterPage: React.FC = () => {
               Vendor Email
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-[#6366F1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Mail className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 id="vendor-register-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your vendor email"
+                placeholder="vendor@example.com"
                 disabled={isSubmitting}
-                className="pl-10 h-11 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-[#4F46E5]/20 focus-visible:border-[#4F46E5]"
+                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
               />
             </div>
           </div>
