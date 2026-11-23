@@ -44,12 +44,71 @@ export function LoginForm() {
 
     loginMutation.mutate(values, {
       onSuccess: (response) => {
+        const loggedUser = response?.data?.user;
+        const userRole = loggedUser?.role;
+        const accessToken = response?.data?.accessToken;
+
+        // Manage cross-subdomain / cross-app token passing if token was provided in response
+        if (accessToken && typeof window !== "undefined") {
+          if (userRole === "ADMIN") {
+            try {
+              localStorage.setItem("jus_buy_admin_token", accessToken);
+            } catch {}
+          } else if (userRole === "VENDOR") {
+            try {
+              localStorage.setItem("jus_buy_vendor_token", accessToken);
+            } catch {}
+          }
+        }
+
         notify.success("Login successful. Welcome back!");
-        const destination =
-          searchParams.get("redirect") ||
-          response?.data?.redirectUrl ||
-          "/profile";
-        router.push(destination);
+
+        const redirectParam = searchParams.get("redirect");
+
+        // Role-based destination determination
+        if (userRole === "ADMIN") {
+          const adminBaseUrl =
+            process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:5173";
+          const adminPath =
+            redirectParam && !redirectParam.startsWith("http")
+              ? redirectParam
+              : "/dashboard";
+          const finalUrl = adminBaseUrl.endsWith("/")
+            ? `${adminBaseUrl.slice(0, -1)}${adminPath.startsWith("/") ? adminPath : `/${adminPath}`}`
+            : `${adminBaseUrl}${adminPath.startsWith("/") ? adminPath : `/${adminPath}`}`;
+          
+          if (accessToken) {
+            const separator = finalUrl.includes("?") ? "&" : "?";
+            window.location.href = `${finalUrl}${separator}token=${encodeURIComponent(accessToken)}`;
+          } else {
+            window.location.href = finalUrl;
+          }
+        } else if (userRole === "VENDOR") {
+          const vendorBaseUrl =
+            process.env.NEXT_PUBLIC_VENDOR_URL || "http://localhost:5174";
+          const vendorPath =
+            redirectParam && !redirectParam.startsWith("http")
+              ? redirectParam
+              : "/dashboard";
+          const finalUrl = vendorBaseUrl.endsWith("/")
+            ? `${vendorBaseUrl.slice(0, -1)}${vendorPath.startsWith("/") ? vendorPath : `/${vendorPath}`}`
+            : `${vendorBaseUrl}${vendorPath.startsWith("/") ? vendorPath : `/${vendorPath}`}`;
+
+          if (accessToken) {
+            const separator = finalUrl.includes("?") ? "&" : "?";
+            window.location.href = `${finalUrl}${separator}token=${encodeURIComponent(accessToken)}`;
+          } else {
+            window.location.href = finalUrl;
+          }
+        } else if (userRole === "BUYER") {
+          const destination =
+            redirectParam || response?.data?.redirectUrl || "/profile";
+          router.push(destination);
+        } else {
+          // Unsupported or unknown role - handle securely
+          setApiError("Unauthorized role detected. Access denied.");
+          notify.error("Unauthorized role detected. Access denied.");
+        }
       },
       onError: (err: ApiErrorResponse) => {
         if (

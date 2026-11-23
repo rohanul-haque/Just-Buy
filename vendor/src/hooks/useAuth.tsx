@@ -34,6 +34,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const fetchProfile = useCallback(async () => {
     try {
+      // Check if access token is passed via URL query params (e.g. from common frontend login)
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get("token");
+        if (tokenFromUrl) {
+          localStorage.setItem("jus_buy_vendor_token", tokenFromUrl);
+          // Clean the token parameter from URL without reloading
+          urlParams.delete("token");
+          const remainingQuery = urlParams.toString();
+          const cleanPath = `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ""}${window.location.hash}`;
+          window.history.replaceState({}, document.title, cleanPath);
+        }
+      }
+
       const [userRes, vendorRes] = await Promise.allSettled([
         authService.getMe(),
         vendorService.getOwnProfile(),
