@@ -6,14 +6,14 @@ import { LoadingSpinner } from "@/components/shared/loading-spinner";
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to your JustBuy account as Admin, Vendor, or Buyer.",
+  description: "Sign in to your JustBuy account to track orders and manage wishlist.",
 };
 
 export default function LoginPage() {
   return (
     <AuthCard
       title="Welcome back"
-      description="Enter your email address and password to sign in to your dashboard or account."
+      description="Enter your email address and password to sign in to your account."
     >
       <React.Suspense
         fallback={

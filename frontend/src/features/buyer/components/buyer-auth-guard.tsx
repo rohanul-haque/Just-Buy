@@ -22,15 +22,6 @@ export function BuyerAuthGuard({ children }: BuyerAuthGuardProps) {
   React.useEffect(() => {
     if (!isCheckingAuth && !user) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
-    } else if (!isCheckingAuth && user && user.role !== "BUYER") {
-      // If an Admin or Vendor navigates here, redirect them to their respective dashboard
-      if (user.role === "ADMIN") {
-        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:5173";
-        window.location.href = adminUrl;
-      } else if (user.role === "VENDOR") {
-        const vendorUrl = process.env.NEXT_PUBLIC_VENDOR_URL || "http://localhost:5174";
-        window.location.href = vendorUrl;
-      }
     }
   }, [isCheckingAuth, user, router, pathname]);
 

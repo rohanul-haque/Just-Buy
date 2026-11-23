@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowRight, Loader2, Lock, Mail } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -28,20 +28,6 @@ export const LoginPage: React.FC = () => {
     fromLocation && fromLocation.pathname !== "/login"
       ? `${fromLocation.pathname}${fromLocation.search || ""}`
       : "/dashboard";
-
-  // Common frontend login URL
-  const frontendLoginUrl = `${import.meta.env.VITE_FRONTEND_URL || "http://localhost:3000"}/login`;
-
-  // If unauthenticated or accessing this page, redirect to the unified frontend login page
-  useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== "VENDOR")) {
-      const currentOrigin = window.location.origin;
-      const targetParam = redirectPath.startsWith("http")
-        ? redirectPath
-        : `${currentOrigin}${redirectPath}`;
-      window.location.href = `${frontendLoginUrl}?redirect=${encodeURIComponent(targetParam)}`;
-    }
-  }, [isLoading, isAuthenticated, user, redirectPath, frontendLoginUrl]);
 
   // If already authenticated with VENDOR role, redirect to originally intended page
   if (!isLoading && isAuthenticated && user?.role === "VENDOR") {

@@ -36,8 +36,6 @@ const login = asyncHandler(
       message: MESSAGES.LOGIN_SUCCESS,
       data: {
         user: result.user,
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
         redirectUrl: result.redirectUrl,
       },
     });

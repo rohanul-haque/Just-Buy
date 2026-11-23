@@ -32,8 +32,6 @@ export interface LoginInput {
 
 export interface LoginResponseData {
   user: User;
-  accessToken?: string;
-  refreshToken?: string;
   redirectUrl?: string;
 }
 
