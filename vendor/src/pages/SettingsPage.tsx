@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  AlertCircle,
   Camera,
+  CheckCircle2,
+  Clock,
   FileText,
   Loader2,
   Mail,
@@ -223,6 +226,54 @@ export const SettingsPage: React.FC = () => {
           Manage your personal profile, business details, and verification documents.
         </p>
       </div>
+
+      {/* Account Verification & Approval Notice Banner */}
+      {vendorApprovalStatus === "PENDING" && (
+        <div className="p-4 rounded-md bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-[#D97706] flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-semibold text-[#92400E]">
+                Vendor Account Under Review (Pending Approval)
+              </h4>
+              <p className="text-xs text-[#B45309] mt-0.5">
+                Your account is currently pending admin review. Please complete and save all your profile details, business information, and National ID documents below. Once approved by the Admin, your Dashboard, Earnings, Products, and Orders will be fully unlocked.
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D] whitespace-nowrap self-start sm:self-center">
+            Pending Review
+          </span>
+        </div>
+      )}
+
+      {vendorApprovalStatus === "REJECTED" && (
+        <div className="p-4 rounded-md bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] flex items-start gap-3 shadow-xs">
+          <AlertCircle className="w-5 h-5 text-[#DC2626] flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="text-sm font-semibold text-[#991B1B]">
+              Application Rejected
+            </h4>
+            <p className="text-xs text-[#B91C1C] mt-0.5">
+              Your vendor application was not approved. Please verify your submitted information, re-upload clear identity documents, and save changes to resubmit your profile for admin review.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {vendorApprovalStatus === "APPROVED" && (
+        <div className="p-4 rounded-md bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] flex items-start gap-3 shadow-xs">
+          <CheckCircle2 className="w-5 h-5 text-[#059669] flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="text-sm font-semibold text-[#065F46]">
+              Account Approved & Active
+            </h4>
+            <p className="text-xs text-[#047857] mt-0.5">
+              Your vendor profile is verified and active. You have full access to manage products, view sales analytics, and process customer orders.
+            </p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSaveSettings} className="space-y-6">
         {/* Section 1: Personal Profile */}

@@ -50,8 +50,20 @@ export const LoginPage: React.FC = () => {
       await login({ email: trimmedEmail, password });
       toast.success("Welcome back to Jus Buy Vendor!");
       navigate(redirectPath, { replace: true });
-    } catch (err) {
+    } catch (err: any) {
       const msg = getApiErrorMessage(err);
+      const isUnverified =
+        err?.response?.data?.code === "AUTH_EMAIL_NOT_VERIFIED" ||
+        msg.toLowerCase().includes("verify your email");
+
+      if (isUnverified) {
+        toast.error("Please verify your email address before logging in.");
+        navigate(`/verify-otp?email=${encodeURIComponent(trimmedEmail)}`, {
+          state: { email: trimmedEmail },
+        });
+        return;
+      }
+
       setErrorMessage(msg);
       toast.error(msg);
     } finally {

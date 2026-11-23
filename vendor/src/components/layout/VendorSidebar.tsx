@@ -36,8 +36,15 @@ export const VendorSidebar: React.FC<VendorSidebarProps> = ({
   isCollapsed = false,
   onItemClick,
 }) => {
-  const { logout } = useAuth();
+  const { logout, vendorProfile } = useAuth();
   const navigate = useNavigate();
+
+  const isApproved = vendorProfile?.status === "APPROVED";
+
+  // Filter items: If not approved, only show Settings
+  const visibleNavItems = isApproved
+    ? navItems
+    : navItems.filter((item) => item.to === "/settings");
 
   const handleLogout = async () => {
     if (onItemClick) onItemClick();
@@ -65,7 +72,7 @@ export const VendorSidebar: React.FC<VendorSidebarProps> = ({
 
         {/* Navigation Items (Standardized with MD rounded corners) */}
         <nav className="space-y-1.5">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink

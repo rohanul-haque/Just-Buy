@@ -75,9 +75,12 @@ export const RegisterPage: React.FC = () => {
 
       toast.success(
         response.message ||
-          "Registration successful! Please verify your email or sign in.",
+          "Registration successful! Please verify your email with the 5-digit code.",
       );
-      navigate("/login", { replace: true });
+      navigate(`/verify-otp?email=${encodeURIComponent(trimmedEmail)}`, {
+        state: { email: trimmedEmail },
+        replace: true,
+      });
     } catch (err) {
       const msg = getApiErrorMessage(err);
       setErrorMessage(msg);
