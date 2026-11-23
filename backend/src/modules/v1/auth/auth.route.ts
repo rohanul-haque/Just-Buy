@@ -13,6 +13,7 @@ import {
   loginSchema,
   refreshTokenSchema,
   registerSchema,
+  registerVendorSchema,
   resetPasswordSchema,
 } from "@/modules/v1/auth/auth.validation";
 import express from "express";
@@ -24,6 +25,13 @@ router.post(
   registrationRateLimiter,
   validateRequest(registerSchema, "body"),
   authController.register,
+);
+
+router.post(
+  "/register/vendor",
+  registrationRateLimiter,
+  validateRequest(registerVendorSchema, "body"),
+  authController.registerVendor,
 );
 
 router.post(

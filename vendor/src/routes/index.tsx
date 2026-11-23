@@ -4,6 +4,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import EarningsPage from "@/pages/EarningsPage";
 import EditProductPage from "@/pages/EditProductPage";
 import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 import OrderListPage from "@/pages/OrderListPage";
 import ProductsPage from "@/pages/ProductsPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     Component: LoginPage,
+  },
+  {
+    path: "/register",
+    Component: RegisterPage,
   },
   {
     path: "/",

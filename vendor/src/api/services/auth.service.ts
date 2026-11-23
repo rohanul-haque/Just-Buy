@@ -9,7 +9,28 @@ export interface ILoginResponse {
   redirectUrl?: string;
 }
 
+export interface IRegisterVendorInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface IRegisterResponse {
+  user: IUser;
+  message: string;
+}
+
 export const authService = {
+  register: async (
+    data: IRegisterVendorInput,
+  ): Promise<ApiResponse<IUser>> => {
+    const response = await apiClient.post<ApiResponse<IUser>>(
+      "/auth/register/vendor",
+      data,
+    );
+    return response.data;
+  },
+
   login: async (credentials: {
     email: string;
     password: string;

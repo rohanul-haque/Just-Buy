@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import { getApiErrorMessage } from "@/api/client";
 import JusBuyLogo from "@/components/layout/JusBuyLogo";
 import { Badge } from "@/components/ui/badge";
@@ -146,11 +147,23 @@ export const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        <p className="mt-8 text-center text-xs text-[#4B5563]">
+        <div className="mt-6 pt-5 border-t border-[#E5E7EB] text-center text-xs text-[#4B5563]">
+          Don&apos;t have a vendor account?{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/register")}
+            className="font-semibold text-[#4F46E5] hover:underline cursor-pointer"
+          >
+            Create an Account
+          </button>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-[#4B5563]">
           Jus Buy Multi-Vendor Platform © {new Date().getFullYear()} • Secure
           Vendor Portal
         </p>
       </Card>
+      <Toaster richColors position="bottom-right" />
     </div>
   );
 };

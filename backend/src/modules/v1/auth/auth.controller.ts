@@ -23,6 +23,24 @@ const register = asyncHandler(
   },
 );
 
+const registerVendor = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    // Automatically enforce VENDOR role on the backend without trusting client role
+    const payload = {
+      ...req.body,
+      role: "VENDOR" as const,
+    };
+    const result = await authService.register(payload);
+
+    sendResponse(res, {
+      statusCode: status.CREATED,
+      success: true,
+      message: result.message,
+      data: result.user,
+    });
+  },
+);
+
 const login = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
     const clientIp = getClientIp(req);
@@ -149,6 +167,7 @@ const resetPassword = asyncHandler(
 
 const authController = {
   register,
+  registerVendor,
   login,
   logout,
   getMe,

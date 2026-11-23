@@ -51,7 +51,7 @@ export const VendorLayout: React.FC = () => {
       </div>
 
       {/* Global Toast Notifications */}
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="bottom-right" />
     </div>
   );
 };
