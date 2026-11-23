@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { getApiErrorMessage } from "@/api/client";
+import vendorService from "@/api/services/vendor.service";
+import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertCircle,
   Camera,
@@ -15,17 +21,16 @@ import {
   Upload,
   User,
 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { getApiErrorMessage } from "@/api/client";
-import vendorService from "@/api/services/vendor.service";
-import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
 
 export const SettingsPage: React.FC = () => {
-  const { user, vendorProfile, isLoading: isAuthLoading, refreshProfile } = useAuth();
+  const {
+    user,
+    vendorProfile,
+    isLoading: isAuthLoading,
+    refreshProfile,
+  } = useAuth();
 
   // Initial values derived from backend data
   // User model is the single source of truth for personal name and email
@@ -45,13 +50,19 @@ export const SettingsPage: React.FC = () => {
 
   // File Upload & Preview States
   const [profileFile, setProfileFile] = useState<File | null>(null);
-  const [profilePreview, setProfilePreview] = useState<string | null>(initialProfileUrl);
+  const [profilePreview, setProfilePreview] = useState<string | null>(
+    initialProfileUrl,
+  );
 
   const [nidFrontFile, setNidFrontFile] = useState<File | null>(null);
-  const [nidFrontPreview, setNidFrontPreview] = useState<string | null>(initialNidFrontUrl);
+  const [nidFrontPreview, setNidFrontPreview] = useState<string | null>(
+    initialNidFrontUrl,
+  );
 
   const [nidBackFile, setNidBackFile] = useState<File | null>(null);
-  const [nidBackPreview, setNidBackPreview] = useState<string | null>(initialNidBackUrl);
+  const [nidBackPreview, setNidBackPreview] = useState<string | null>(
+    initialNidBackUrl,
+  );
 
   // File Input References
   const profileInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +99,9 @@ export const SettingsPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error(`Please upload a valid image file for ${fieldLabel} (JPEG, PNG, WEBP).`);
+        toast.error(
+          `Please upload a valid image file for ${fieldLabel} (JPEG, PNG, WEBP).`,
+        );
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
@@ -193,7 +206,9 @@ export const SettingsPage: React.FC = () => {
     try {
       const response = await vendorService.updateOwnProfile(formData);
       if (response.success) {
-        toast.success(response.message || "Vendor settings updated successfully!");
+        toast.success(
+          response.message || "Vendor settings updated successfully!",
+        );
         setProfileFile(null);
         setNidFrontFile(null);
         setNidBackFile(null);
@@ -223,7 +238,8 @@ export const SettingsPage: React.FC = () => {
           Vendor Settings
         </h2>
         <p className="text-sm text-[#64748B] mt-1">
-          Manage your personal profile, business details, and verification documents.
+          Manage your personal profile, business details, and verification
+          documents.
         </p>
       </div>
 
@@ -237,7 +253,11 @@ export const SettingsPage: React.FC = () => {
                 Vendor Account Under Review (Pending Approval)
               </h4>
               <p className="text-xs text-[#B45309] mt-0.5">
-                Your account is currently pending admin review. Please complete and save all your profile details, business information, and National ID documents below. Once approved by the Admin, your Dashboard, Earnings, Products, and Orders will be fully unlocked.
+                Your account is currently pending admin review. Please complete
+                and save all your profile details, business information, and
+                National ID documents below. Once approved by the Admin, your
+                Dashboard, Earnings, Products, and Orders will be fully
+                unlocked.
               </p>
             </div>
           </div>
@@ -255,7 +275,9 @@ export const SettingsPage: React.FC = () => {
               Application Rejected
             </h4>
             <p className="text-xs text-[#B91C1C] mt-0.5">
-              Your vendor application was not approved. Please verify your submitted information, re-upload clear identity documents, and save changes to resubmit your profile for admin review.
+              Your vendor application was not approved. Please verify your
+              submitted information, re-upload clear identity documents, and
+              save changes to resubmit your profile for admin review.
             </p>
           </div>
         </div>
@@ -269,7 +291,9 @@ export const SettingsPage: React.FC = () => {
               Account Approved & Active
             </h4>
             <p className="text-xs text-[#047857] mt-0.5">
-              Your vendor profile is verified and active. You have full access to manage products, view sales analytics, and process customer orders.
+              Your vendor profile is verified and active. You have full access
+              to manage products, view sales analytics, and process customer
+              orders.
             </p>
           </div>
         </div>
@@ -299,7 +323,12 @@ export const SettingsPage: React.FC = () => {
                 type="file"
                 ref={profileInputRef}
                 onChange={(e) =>
-                  handleFileChange(e, setProfileFile, setProfilePreview, "Profile Photo")
+                  handleFileChange(
+                    e,
+                    setProfileFile,
+                    setProfilePreview,
+                    "Profile Photo",
+                  )
                 }
                 accept="image/png,image/jpeg,image/webp"
                 className="hidden"
@@ -308,7 +337,9 @@ export const SettingsPage: React.FC = () => {
 
             <div className="text-center sm:text-left space-y-1.5">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h4 className="text-lg font-bold text-[#0F172A]">{displayName || "—"}</h4>
+                <h4 className="text-lg font-bold text-[#0F172A]">
+                  {displayName || "—"}
+                </h4>
                 <span className="bg-[#EEF2FF] text-[#4F46E5] border border-[#C7D2FE] px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase">
                   {userRole}
                 </span>
@@ -479,10 +510,12 @@ export const SettingsPage: React.FC = () => {
         <Card className="rounded-md p-6 md:p-8 border-[#E5E7EB] bg-white space-y-6 shadow-xs">
           <div className="border-b border-[#F1F5F9] pb-4">
             <h3 className="text-sm font-semibold text-[#0F172A] flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#6366F1]" /> Verification Documents (National ID)
+              <ShieldCheck className="w-4 h-4 text-[#6366F1]" /> Verification
+              Documents (National ID)
             </h3>
             <p className="text-xs text-[#64748B] mt-1">
-              Upload clear photos or scans of your National ID (Front and Back sides).
+              Upload clear photos or scans of your National ID (Front and Back
+              sides).
             </p>
           </div>
 
@@ -518,7 +551,12 @@ export const SettingsPage: React.FC = () => {
                   type="file"
                   ref={nidFrontInputRef}
                   onChange={(e) =>
-                    handleFileChange(e, setNidFrontFile, setNidFrontPreview, "NID Front")
+                    handleFileChange(
+                      e,
+                      setNidFrontFile,
+                      setNidFrontPreview,
+                      "NID Front",
+                    )
                   }
                   accept="image/png,image/jpeg,image/webp"
                   className="hidden"
@@ -531,7 +569,9 @@ export const SettingsPage: React.FC = () => {
                   className="w-full h-9 text-xs rounded-md border-[#E5E7EB] text-[#374151] hover:bg-white cursor-pointer"
                 >
                   <Upload className="w-3.5 h-3.5 mr-1.5" />
-                  {nidFrontPreview ? "Change Front Image" : "Upload Front Image"}
+                  {nidFrontPreview
+                    ? "Change Front Image"
+                    : "Upload Front Image"}
                 </Button>
               </div>
             </div>
@@ -567,7 +607,12 @@ export const SettingsPage: React.FC = () => {
                   type="file"
                   ref={nidBackInputRef}
                   onChange={(e) =>
-                    handleFileChange(e, setNidBackFile, setNidBackPreview, "NID Back")
+                    handleFileChange(
+                      e,
+                      setNidBackFile,
+                      setNidBackPreview,
+                      "NID Back",
+                    )
                   }
                   accept="image/png,image/jpeg,image/webp"
                   className="hidden"
