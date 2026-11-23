@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Mail, PanelLeft } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
 import { getTimeBasedGreeting } from "@/utils/greeting";
@@ -26,7 +26,6 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
   }, []);
 
   const vendorName = vendorProfile?.vendor?.name || user?.name || "";
-  const vendorEmail = vendorProfile?.vendor?.email || user?.email || "";
   const avatarUrl = vendorProfile?.profile?.url || null;
 
   return (
@@ -66,7 +65,7 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: User Profile with Name and Email */}
+      {/* Right: User Profile */}
       <div className="flex items-center gap-3">
         <ProfileAvatar
           src={avatarUrl}
@@ -78,16 +77,9 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
           <span className="text-sm font-semibold text-[#0F172A] leading-tight">
             {vendorName || "Vendor"}
           </span>
-          {vendorEmail ? (
-            <span className="text-xs text-[#64748B] flex items-center gap-1 font-normal mt-0.5 max-w-[190px] truncate" title={vendorEmail}>
-              <Mail className="w-3.5 h-3.5 text-[#6366F1] flex-shrink-0" />
-              <span className="truncate">{vendorEmail}</span>
-            </span>
-          ) : (
-            <span className="text-xs text-[#4B5563] font-normal">
-              Vendor
-            </span>
-          )}
+          <span className="text-xs text-[#4B5563] font-normal">
+            Vendor
+          </span>
         </div>
       </div>
     </header>
