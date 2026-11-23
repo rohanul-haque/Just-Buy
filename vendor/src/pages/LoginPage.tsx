@@ -16,10 +16,21 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState("");
+  const queryEmail = new URLSearchParams(location.search).get("email") || "";
+  const stateEmail = (location.state as { email?: string })?.email || "";
+  const initialEmail = (stateEmail || queryEmail).trim();
+
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Sync email if query or state changes
+  React.useEffect(() => {
+    if (initialEmail && !email) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
 
   // Determine originally requested route if redirected by ProtectedRoute
   const fromLocation = (
@@ -104,16 +115,16 @@ export const LoginPage: React.FC = () => {
               Vendor Email
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-[#6366F1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <Input
                 id="vendor-login-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="vendor@example.com"
+                placeholder="Enter your vendor email"
                 disabled={isSubmitting || isLoading}
-                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
+                className="pl-10 h-11 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-[#4F46E5]/20 focus-visible:border-[#4F46E5]"
               />
             </div>
           </div>
@@ -126,7 +137,7 @@ export const LoginPage: React.FC = () => {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-[#6366F1] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <Input
                 id="vendor-login-password"
                 type="password"
@@ -135,7 +146,7 @@ export const LoginPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
                 disabled={isSubmitting || isLoading}
-                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
+                className="pl-10 h-11 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-[#4F46E5]/20 focus-visible:border-[#4F46E5]"
               />
             </div>
           </div>
