@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import React from "react";
-import { FcGoogle } from "react-icons/fc";
 
 export interface ProfileAvatarProps {
   src?: string | null;
@@ -16,7 +15,6 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   alt = "Profile Avatar",
   className,
   fallbackClassName,
-  iconClassName,
 }) => {
   return (
     <Avatar
@@ -34,12 +32,10 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       ) : null}
       <AvatarFallback
         className={cn(
-          "bg-white flex items-center justify-center rounded-full size-full select-none",
+          "bg-[#F1F5F9] flex items-center justify-center rounded-full size-full select-none",
           fallbackClassName,
         )}
-      >
-        <FcGoogle className={cn("w-3/5 h-3/5 shrink-0", iconClassName)} />
-      </AvatarFallback>
+      />
     </Avatar>
   );
 };
