@@ -8,8 +8,8 @@
  * Third-Party Modules
  */
 import dotenv from "dotenv";
-import path from "path";
 import ms from "ms";
+import path from "path";
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
@@ -117,6 +117,9 @@ const config = {
   LOGIN_MAX_ATTEMPTS: Number(process.env.LOGIN_MAX_ATTEMPTS) || 5,
   LOGIN_RATE_LIMIT_WINDOW: Number(process.env.LOGIN_RATE_LIMIT_WINDOW) || 900,
   LOGIN_LOCKOUT_DURATION: Number(process.env.LOGIN_LOCKOUT_DURATION) || 900,
+
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
+  GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-3.5-flash",
 
   REGISTER_MAX_ATTEMPTS: Number(process.env.REGISTER_MAX_ATTEMPTS) || 5,
   REGISTER_RATE_LIMIT_WINDOW:

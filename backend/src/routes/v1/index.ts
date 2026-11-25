@@ -3,6 +3,7 @@ import authRoutes from "@/modules/v1/auth/auth.route";
 import buyerRoutes from "@/modules/v1/buyer/buyer.route";
 import cartRoutes from "@/modules/v1/cart/cart.route";
 import categoryRoutes from "@/modules/v1/category/category.route";
+import chatbotRoutes from "@/modules/v1/chatbot/chatbot.route";
 import dashboardRoutes from "@/modules/v1/dashboard/dashboard.route";
 import earningsRoutes from "@/modules/v1/earnings/earnings.route";
 import orderRoutes from "@/modules/v1/order/order.route";
@@ -38,5 +39,6 @@ router.use("/admin/vendors", vendorRoutes);
 router.use("/admin/categories", categoryRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/reviews", reviewRoutes);
+router.use("/chatbot", chatbotRoutes);
 
 export default router;
