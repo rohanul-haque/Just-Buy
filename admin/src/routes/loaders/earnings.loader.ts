@@ -11,6 +11,7 @@ export const earningsLoader = async ({
     100,
     Math.max(1, Number(url.searchParams.get("limit")) || 10),
   );
+  const search = url.searchParams.get("search") || "";
 
   try {
     const [summaryRes, transactionsRes] = await Promise.all([
@@ -18,6 +19,7 @@ export const earningsLoader = async ({
       earningsService.getEarningsTransactions({
         page,
         limit,
+        search: search || undefined,
       }),
     ]);
 
@@ -25,7 +27,7 @@ export const earningsLoader = async ({
       summary: summaryRes.data || { todayIncome: 0, totalIncome: 0 },
       transactions: transactionsRes.data || [],
       pagination: transactionsRes.pagination || null,
-      search: "",
+      search,
       page,
     };
   } catch {
@@ -33,7 +35,7 @@ export const earningsLoader = async ({
       summary: { todayIncome: 0, totalIncome: 0 },
       transactions: [],
       pagination: null,
-      search: "",
+      search,
       page,
     };
   }

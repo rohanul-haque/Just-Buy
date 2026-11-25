@@ -1,5 +1,6 @@
 import config from "@/config";
 import stripe from "@/lib/stripe";
+import emailService from "@/modules/v1/auth/email/email.service";
 import Cart from "@/modules/v1/cart/cart.model";
 import {
   DEFAULT_COMMISSION_RATE,
@@ -311,6 +312,18 @@ const createOrder = async (
     }
   }
 
+  emailService
+    .sendOrderCreatedEmails({
+      orderId: newOrder._id.toString(),
+      buyerId: newOrder.buyer.toString(),
+      vendorId: ((newOrder.vendor as any)?._id || newOrder.vendor).toString(),
+      transactionNumber: newOrder.transactionNumber,
+      status: newOrder.status,
+      orderType: newOrder.orderType,
+      totalAmount: newOrder.totalAmount,
+    })
+    .catch(() => {});
+
   return {
     order: newOrder,
     payment: newPayment,
@@ -524,6 +537,19 @@ const cancelOrder = async (
     }
   }
 
+  emailService
+    .sendOrderStatusUpdatedEmail({
+      orderId: order._id.toString(),
+      buyerId: order.buyer.toString(),
+      vendorId: ((order.vendor as any)?._id || order.vendor).toString(),
+      transactionNumber: order.transactionNumber,
+      status: order.status,
+      orderType: order.orderType,
+      totalAmount: order.totalAmount,
+      updatedBy: "BUYER",
+    })
+    .catch(() => {});
+
   return (await order.populate([
     { path: "vendor", select: "location profile" },
     { path: "productItems.vendor", select: "location profile" },
@@ -719,6 +745,19 @@ const updateOrderStatus = async (
       }
     }
   }
+
+  emailService
+    .sendOrderStatusUpdatedEmail({
+      orderId: order._id.toString(),
+      buyerId: order.buyer.toString(),
+      vendorId: ((order.vendor as any)?._id || order.vendor).toString(),
+      transactionNumber: order.transactionNumber,
+      status: order.status,
+      orderType: order.orderType,
+      totalAmount: order.totalAmount,
+      updatedBy: user.role === UserRole.ADMIN ? "ADMIN" : "VENDOR",
+    })
+    .catch(() => {});
 
   return (await order.populate([
     { path: "vendor", select: "location profile" },

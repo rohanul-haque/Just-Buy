@@ -2,95 +2,96 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronRight, ShoppingCart, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import { useCategories } from "@/features/categories/hooks/use-categories";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const DEFAULT_CATEGORIES = [
+  { name: "Woman's Fashion", href: "/products?category=womans-fashion" },
+  { name: "Men's Fashion", href: "/products?category=mens-fashion" },
+  { name: "Electronics", href: "/products?category=electronics" },
+  { name: "Home & Lifestyle", href: "/products?category=home-lifestyle" },
+  { name: "Medicine", href: "/products?category=medicine" },
+  { name: "Sports & Outdoor", href: "/products?category=sports-outdoor" },
+  { name: "Baby's & Toys", href: "/products?category=babys-toys" },
+  { name: "Groceries & Pets", href: "/products?category=groceries-pets" },
+  { name: "Health & Beauty", href: "/products?category=health-beauty" },
+];
 
 export function HeroSection() {
   const { data: categories, isLoading } = useCategories();
 
-  const hasCategories = Boolean(categories && categories.length > 0);
+  // If backend categories exist, use them; otherwise use default mockup categories
+  const displayCategories =
+    categories && categories.length > 0
+      ? categories.slice(0, 12).map((cat) => ({
+          id: cat._id,
+          name: cat.name,
+          href: `/products?category=${encodeURIComponent(cat._id)}`,
+        }))
+      : DEFAULT_CATEGORIES.map((cat, idx) => ({
+          id: String(idx),
+          name: cat.name,
+          href: cat.href,
+        }));
 
   return (
-    <section className="pt-4 pb-8 sm:pb-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left Category Sidebar - Desktop: ONLY actual API categories */}
-        <aside className="hidden lg:block lg:col-span-3 border-r border-border pr-6">
+    <section className="pb-10 sm:pb-14">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-8 items-start">
+        {/* Left Category Sidebar with clean vertical divider - Desktop */}
+        <aside className="hidden lg:block lg:col-span-3 border-r border-gray-200/80 pr-6 pt-8 pb-4">
           {isLoading ? (
             <div className="space-y-3">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-7 w-full rounded-sm" />
+              {Array.from({ length: 12 }).map((_, i) => (
+                <Skeleton key={i} className="h-5 w-3/4 rounded-md" />
               ))}
             </div>
-          ) : hasCategories ? (
-            <nav className="flex flex-col space-y-1">
-              {categories!.slice(0, 9).map((cat) => (
+          ) : (
+            <nav className="flex flex-col space-y-2.5">
+              {displayCategories.map((cat) => (
                 <Link
-                  key={cat._id}
-                  href={`/products?category=${encodeURIComponent(cat._id)}`}
-                  className="group flex items-center justify-between py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                  key={cat.id}
+                  href={cat.href}
+                  className="text-[15px] font-medium text-black hover:text-[#fe6201] transition-colors leading-tight block"
                 >
-                  <span className="capitalize">{cat.name}</span>
-                  <ChevronRight className="size-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                  {cat.name}
                 </Link>
               ))}
             </nav>
-          ) : (
-            <div className="py-6 text-center text-xs text-muted-foreground">
-              No categories available
-            </div>
           )}
         </aside>
 
-        {/* Right Promo Banner matching Figma */}
-        <div className={hasCategories ? "lg:col-span-9" : "lg:col-span-12"}>
-          <div className="relative overflow-hidden rounded-2xl bg-neutral-950 text-white min-h-[300px] sm:min-h-[360px] md:min-h-[390px] flex items-center p-6 sm:p-10 lg:p-12 shadow-sm">
-            {/* Background Graphic Elements */}
-            <div className="absolute -top-12 -right-12 size-72 sm:size-96 rounded-full bg-amber-400/90 blur-xs pointer-events-none" />
-            <div className="absolute -bottom-20 right-48 size-60 rounded-full bg-amber-300/80 blur-xs pointer-events-none hidden sm:block" />
-            <div className="absolute top-1/2 left-1/3 -translate-y-1/2 size-40 rounded-full bg-amber-500/20 blur-2xl pointer-events-none" />
+        {/* Right Hero Section Banner matching uploaded mockup */}
+        <div className="lg:col-span-9 pt-6 lg:pt-8 lg:pl-6">
+          <div className="relative w-full aspect-[590/227] rounded-2xl overflow-hidden shadow-xs group bg-black">
+            <Link
+              href="/products"
+              className="block w-full h-full relative cursor-pointer"
+              aria-label="Shop Online Promo"
+            >
+              <Image
+                src="/hero-banner.png"
+                alt="Shop Online Hero Banner"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 75vw"
+                className="object-cover rounded-2xl transition-transform duration-300 group-hover:scale-[1.01]"
+              />
+            </Link>
+          </div>
 
-            {/* Content Area */}
-            <div className="relative z-10 max-w-lg space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-400/20 px-3 py-1 text-xs font-semibold text-amber-300 border border-amber-400/30">
-                <span>JustBuy Marketplace</span>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-xs uppercase tracking-widest text-amber-400 font-bold block">
-                  Authentic Verified Vendors
-                </span>
-                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight uppercase leading-none">
-                  SHOP <br className="hidden sm:inline" />
-                  <span className="text-amber-400">ONLINE</span>
-                </h1>
-              </div>
-
-              <p className="text-sm sm:text-base text-neutral-300 max-w-sm line-clamp-2">
-                Discover authentic products from verified vendors across the country.
-              </p>
-
-              <div className="pt-2 flex items-center gap-4">
+          {/* Responsive Mobile Category Scroll for small screens */}
+          <div className="lg:hidden mt-6">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-2 -mx-4 px-4">
+              {displayCategories.map((cat) => (
                 <Link
-                  href="/products"
-                  className="inline-flex items-center gap-2 rounded-md bg-amber-400 px-6 py-3 text-sm font-bold text-neutral-950 transition hover:bg-amber-300 shadow-md active:scale-95"
+                  key={cat.id}
+                  href={cat.href}
+                  className="shrink-0 px-3.5 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-800 hover:border-[#fe6201] hover:text-[#fe6201] transition-colors whitespace-nowrap"
                 >
-                  <ShoppingCart className="size-4" />
-                  <span>Shop Now</span>
-                  <ArrowRight className="size-4" />
+                  {cat.name}
                 </Link>
-                <Link
-                  href="/categories"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/90 underline-offset-4 hover:underline hover:text-white"
-                >
-                  <span>All Categories</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Decorative Shopping Cart Silhouette */}
-            <div className="absolute right-8 sm:right-16 md:right-24 bottom-6 sm:bottom-10 pointer-events-none opacity-20 sm:opacity-30">
-              <ShoppingCart className="size-44 sm:size-60 md:size-72 text-amber-950 stroke-[1.2]" />
+              ))}
             </div>
           </div>
         </div>
@@ -98,3 +99,5 @@ export function HeroSection() {
     </section>
   );
 }
+
+export default HeroSection;

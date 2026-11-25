@@ -53,7 +53,7 @@ export const DeleteCategoryDialog: React.FC<DeleteCategoryDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
+      <DialogContent className="sm:max-w-md p-6 bg-[#FFE7D9] rounded-xl border border-[#ffceb0]/80 shadow-lg font-sans">
         <DialogTitle className="sr-only">Delete Category</DialogTitle>
 
         <div className="flex flex-col items-center text-center space-y-4">
@@ -77,7 +77,7 @@ export const DeleteCategoryDialog: React.FC<DeleteCategoryDialogProps> = ({
               variant="outline"
               disabled={isDeleting}
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-10 rounded-md border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC]"
+              className="flex-1 h-10 rounded-md border-[#ffceb0]/80 text-[#0F172A] hover:bg-white/80"
             >
               Cancel
             </Button>

@@ -1,12 +1,11 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
 import { Container } from "@/components/layout/container";
-import { useCategories } from "@/features/categories/hooks/use-categories";
-import { CategoryCard } from "@/features/categories/components/category-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CategoryCard } from "@/features/categories/components/category-card";
+import { useCategories } from "@/features/categories/hooks/use-categories";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export default function CategoriesPage() {
   const { data: categories, isLoading, isError, error } = useCategories();
@@ -38,7 +37,8 @@ export default function CategoriesPage() {
             Explore All Categories
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl">
-            Browse our wide selection of departments and curated collections to find exactly what you need.
+            Browse our wide selection of departments and curated collections to
+            find exactly what you need.
           </p>
         </div>
 

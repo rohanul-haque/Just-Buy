@@ -25,7 +25,7 @@ export function VerifyOtpForm() {
   const [successMessage, setSuccessMessage] = React.useState<string | null>(
     null,
   );
-  const [cooldown, setCooldown] = React.useState(60);
+  const [cooldown, setCooldown] = React.useState(30);
 
   const verifyMutation = useVerifyOtp();
   const resendMutation = useResendOtp();
@@ -87,7 +87,7 @@ export function VerifyOtpForm() {
         onSuccess: () => {
           notify.success("Verification code resent to your email.");
           setSuccessMessage("A fresh 5-digit verification code has been sent to your email.");
-          setCooldown(60);
+          setCooldown(30);
         },
         onError: (err: ApiErrorResponse) => {
           const msg =
@@ -105,22 +105,10 @@ export function VerifyOtpForm() {
   return (
     <div className="space-y-6">
       {/* Target Email Banner */}
-      {emailParam ? (
+      {emailParam && (
         <div className="text-center text-sm text-muted-foreground bg-muted/40 p-3 rounded-lg border border-border">
           Verification code sent to:{" "}
           <strong className="text-foreground font-semibold">{emailParam}</strong>
-        </div>
-      ) : (
-        <div className="text-center text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
-          No email provided. Please{" "}
-          <Link href="/register" className="underline font-semibold">
-            register
-          </Link>{" "}
-          or{" "}
-          <Link href="/login" className="underline font-semibold">
-            sign in
-          </Link>
-          .
         </div>
       )}
 
@@ -160,15 +148,15 @@ export function VerifyOtpForm() {
         />
       </div>
 
-      {/* Verify Submit Button */}
+      {/* Verify Submit Button - always visible, enabled once all 5 digits are entered */}
       <Button
         type="button"
-        disabled={isPending || otp.length !== 5 || !emailParam}
+        disabled={isPending || otp.length !== 5}
         onClick={() => handleVerify(otp)}
-        className="w-full h-11 text-base font-semibold"
+        className="w-full h-11 text-base font-semibold bg-[#ff6200] hover:bg-[#e55800] active:bg-[#cc4e00] text-white border-0 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {verifyMutation.isPending ? (
-          <LoadingSpinner size="sm" label="Verifying..." />
+          <LoadingSpinner size="sm" label="Verifying..." className="text-white [&_svg]:text-white" />
         ) : (
           "Verify Account"
         )}
@@ -183,7 +171,7 @@ export function VerifyOtpForm() {
           size="sm"
           disabled={cooldown > 0 || isPending || !emailParam}
           onClick={handleResend}
-          className="gap-2 text-primary hover:text-primary/80 font-medium"
+          className="gap-2 text-[#ff6200] hover:text-[#e55800] font-medium"
         >
           {resendMutation.isPending ? (
             <LoadingSpinner size="sm" label="Sending..." />
@@ -200,7 +188,7 @@ export function VerifyOtpForm() {
 
       <div className="border-t border-border pt-4 text-center text-xs text-muted-foreground">
         Need to change your email?{" "}
-        <Link href="/register" className="text-primary hover:underline font-semibold">
+        <Link href="/register" className="text-[#ff6200] hover:underline font-semibold">
           Create a different account
         </Link>
       </div>

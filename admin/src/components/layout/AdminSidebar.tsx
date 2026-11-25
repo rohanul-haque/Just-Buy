@@ -1,18 +1,18 @@
-import React from "react";
-import { NavLink, useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Wallet,
-  Users,
+  LogOut,
+  Settings,
   Store,
   Tags,
-  Settings,
-  LogOut,
+  Users,
+  Wallet,
 } from "lucide-react";
+import React from "react";
+import { NavLink, useNavigate } from "react-router";
 import JusBuyLogo from "./JusBuyLogo";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface AdminSidebarProps {
   isCollapsed?: boolean;
@@ -49,7 +49,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <aside
-      className={`h-full bg-white border-r border-[#E5E7EB] flex flex-col justify-between transition-all duration-300 ease-in-out select-none ${
+      className={`h-full bg-[#CB4E01] text-white flex flex-col justify-between transition-all duration-300 ease-in-out select-none ${
         isCollapsed ? "w-20 px-2" : "w-64 px-4"
       } py-6`}
     >
@@ -57,15 +57,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <div>
         <div className="mb-8 px-2 flex items-center justify-between">
           {!isCollapsed ? (
-            <JusBuyLogo className="h-10" />
+            <JusBuyLogo className="h-11" variant="white" />
           ) : (
-            <div className="mx-auto">
-              <JusBuyLogo className="h-9 [&>div:last-child]:hidden" />
+            <div className="mx-auto flex justify-center">
+              <JusBuyLogo className="h-9 w-9 overflow-hidden" variant="white" />
             </div>
           )}
         </div>
 
-        {/* Navigation Items (Standardized with MD rounded corners) */}
+        {/* Navigation Items (White Pill for active, soft hover for others) */}
         <nav className="space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -78,9 +78,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   cn(
                     "flex items-center gap-3.5 px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-150",
                     isActive
-                      ? "bg-[#E0E7FF] text-[#4F46E5] font-semibold"
-                      : "text-[#1F2937] hover:bg-[#F8FAFC] hover:text-[#0F172A]",
-                    isCollapsed && "justify-center px-0"
+                      ? "bg-[#E9E9E9] text-[#CB4E01] font-bold shadow-xs"
+                      : "text-white/90 hover:bg-white/15 hover:text-white",
+                    isCollapsed && "justify-center px-0",
                   )
                 }
                 title={isCollapsed ? item.label : undefined}
@@ -89,7 +89,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   <>
                     <Icon
                       className={`w-5 h-5 flex-shrink-0 ${
-                        isActive ? "text-[#4F46E5]" : "text-[#4B5563]"
+                        isActive ? "text-[#CB4E01]" : "text-white"
                       }`}
                     />
                     {!isCollapsed && <span>{item.label}</span>}
@@ -102,17 +102,17 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </div>
 
       {/* Bottom Log Out Section */}
-      <div className="pt-4 border-t border-[#E5E7EB]">
+      <div className="pt-4 border-t border-white/20">
         <Button
           variant="ghost"
           onClick={handleLogout}
           className={cn(
-            "w-full flex items-center gap-3.5 px-4 py-2.5 rounded-md text-sm font-medium text-[#4B5563] hover:text-[#EF4444] hover:bg-[#F8FAFC] transition-colors cursor-pointer justify-start",
-            isCollapsed && "justify-center px-0"
+            "w-full flex items-center gap-3.5 px-4 py-2.5 rounded-md text-sm font-medium text-white/90 hover:text-white hover:bg-white/15 transition-colors cursor-pointer justify-start",
+            isCollapsed && "justify-center px-0",
           )}
           title={isCollapsed ? "Log Out" : undefined}
         >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
+          <LogOut className="w-5 h-5 flex-shrink-0 text-white" />
           {!isCollapsed && <span>Log Out</span>}
         </Button>
       </div>

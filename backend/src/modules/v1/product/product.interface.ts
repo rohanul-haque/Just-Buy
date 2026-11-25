@@ -55,6 +55,8 @@ export interface IProductQueryOptions {
   skip?: number;
   search?: string;
   category?: string;
+  minPrice?: number;
+  maxPrice?: number;
   isActive?: boolean;
 }
 

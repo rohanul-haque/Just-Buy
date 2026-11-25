@@ -9,6 +9,7 @@ import {
 import validateRequest from "@/middlewares/validateRequest";
 import authController from "@/modules/v1/auth/auth.controller";
 import {
+  changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   refreshTokenSchema,
@@ -61,6 +62,13 @@ router.post(
   "/reset-password",
   validateRequest(resetPasswordSchema, "body"),
   authController.resetPassword,
+);
+
+router.post(
+  "/change-password",
+  authenticate,
+  validateRequest(changePasswordSchema, "body"),
+  authController.changePassword,
 );
 
 export default router;

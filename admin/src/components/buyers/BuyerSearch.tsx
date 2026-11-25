@@ -66,7 +66,7 @@ export const BuyerSearch: React.FC<BuyerSearchProps> = ({
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder={placeholder}
-        className="pl-9 pr-8 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] placeholder:text-[#9CA3AF] focus-visible:ring-1 focus-visible:ring-[#4F46E5] focus-visible:border-[#4F46E5]"
+        className="pl-9 pr-8 h-10 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-sm text-[#0F172A] placeholder:text-[#9CA3AF] focus-visible:ring-1 focus-visible:ring-[#fe6201] focus-visible:border-[#fe6201] shadow-xs"
       />
       {searchTerm && (
         <button

@@ -1,29 +1,21 @@
 import { z } from "zod";
 
-export const registerFormSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(2, { message: "Name must be at least 2 characters" })
-      .max(100, { message: "Name cannot exceed 100 characters" }),
-    email: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .email({ message: "Invalid email address format" }),
-    password: z
-      .string()
-      .min(6, { message: "Password must be at least 6 characters" })
-      .max(128, { message: "Password cannot exceed 128 characters" }),
-    confirmPassword: z
-      .string()
-      .min(1, { message: "Please confirm your password" }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+export const registerFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, { message: "Name must be at least 2 characters" })
+    .max(100, { message: "Name cannot exceed 100 characters" }),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email({ message: "Invalid email address format" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" })
+    .max(128, { message: "Password cannot exceed 128 characters" }),
+});
 
 export type RegisterFormValues = z.infer<typeof registerFormSchema>;
 

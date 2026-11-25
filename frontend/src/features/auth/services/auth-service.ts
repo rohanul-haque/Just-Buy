@@ -93,6 +93,20 @@ export const authService = {
   },
 
   /**
+   * Change password for authenticated user
+   */
+  async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<ApiResponse<null>> {
+    const response = await api.post<ApiResponse<null>>(
+      "/auth/change-password",
+      payload,
+    );
+    return response.data;
+  },
+
+  /**
    * Log out authenticated user, revoking session and clearing cookies
    */
   async logout(): Promise<ApiResponse<null>> {

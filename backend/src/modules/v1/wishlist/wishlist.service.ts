@@ -10,7 +10,7 @@ const safeProductPopulation = {
   path: "products",
   match: { isActive: true },
   select:
-    "name price featureImage",
+    "name price featureImage rating numReviews",
 };
 
 const addProductToWishlist = async (

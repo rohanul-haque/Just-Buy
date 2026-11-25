@@ -23,26 +23,14 @@ export const DashboardSkeleton: React.FC = () => {
         ))}
       </div>
 
-      {/* Charts Skeleton: 2 Columns on desktop (8 / 4 span) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8">
-          <Card className="rounded-md border-[#E5E7EB] bg-white p-6 space-y-6">
-            <div className="pb-4 border-b border-[#E5E7EB]">
-              <Skeleton className="h-6 w-28" />
-            </div>
-            <Skeleton className="h-72 w-full rounded-md" />
-          </Card>
-        </div>
-        <div className="lg:col-span-4">
-          <Card className="rounded-md border-[#E5E7EB] bg-white p-6 space-y-6">
-            <div className="pb-4 border-b border-[#E5E7EB]">
-              <Skeleton className="h-6 w-20" />
-            </div>
-            <div className="flex items-center justify-center py-6">
-              <Skeleton className="h-44 w-44 rounded-full" />
-            </div>
-          </Card>
-        </div>
+      {/* Charts Skeleton: Full-width Monthly Earnings Overview */}
+      <div className="w-full">
+        <Card className="rounded-md border-[#E5E7EB] bg-white p-6 space-y-6">
+          <div className="pb-4 border-b border-[#E5E7EB]">
+            <Skeleton className="h-6 w-36" />
+          </div>
+          <Skeleton className="h-72 w-full rounded-md" />
+        </Card>
       </div>
 
       {/* Recent Users Table Skeleton */}

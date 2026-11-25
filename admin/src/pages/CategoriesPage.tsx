@@ -85,13 +85,15 @@ export const CategoriesPage: React.FC = () => {
           title="Active Categories"
           value={stats.activeCategories.toLocaleString("en-US")}
           icon={<FolderCheck />}
-          iconBackgroundColor="bg-[#10B981]"
+          iconBackgroundColor="bg-[#D2F6FF]"
+          iconColor="text-[#0284C7]"
         />
         <SummaryCard
           title="Inactive Categories"
           value={stats.inactiveCategories.toLocaleString("en-US")}
           icon={<FolderX />}
-          iconBackgroundColor="bg-[#EF4444]"
+          iconBackgroundColor="bg-[#FFCEB0]"
+          iconColor="text-[#EA580C]"
         />
       </div>
 
@@ -103,7 +105,7 @@ export const CategoriesPage: React.FC = () => {
         {/* Add Category Button */}
         <Button
           onClick={() => setIsAddOpen(true)}
-          className="h-10 px-5 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition-colors shadow-xs shrink-0"
+          className="h-10 px-5 rounded-md bg-[#e55801] hover:bg-[#CB4E01] text-white font-medium text-sm transition-colors shadow-xs shrink-0"
         >
           <Plus className="w-4 h-4 mr-1.5" />
           <span>Add Category</span>
@@ -118,7 +120,7 @@ export const CategoriesPage: React.FC = () => {
       {/* 4. Empty State */}
       {categories.length === 0 && !isLoading && (
         <Card className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-md border-[#E5E7EB] p-8 shadow-xs">
-          <Tags className="w-12 h-12 text-[#4F46E5] mb-3" />
+          <Tags className="w-12 h-12 text-[#CB4E01] mb-3" />
           <h3 className="text-base font-semibold text-[#0F172A] mb-1">
             {currentStatus === "active"
               ? "No active categories"
@@ -134,7 +136,7 @@ export const CategoriesPage: React.FC = () => {
           {currentStatus === "all" && (
             <Button
               onClick={() => setIsAddOpen(true)}
-              className="h-10 px-5 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white text-sm font-medium"
+              className="h-10 px-5 rounded-md bg-[#e55801] hover:bg-[#CB4E01] text-white text-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               <span>Add First Category</span>

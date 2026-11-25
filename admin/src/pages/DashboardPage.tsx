@@ -1,7 +1,6 @@
 import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton";
 import DashboardSummaryCards from "@/components/dashboard/DashboardSummaryCards";
 import MonthlyEarningsChart from "@/components/dashboard/MonthlyEarningsChart";
-import OrderDistributionChart from "@/components/dashboard/OrderDistributionChart";
 import RecentUsersTable from "@/components/dashboard/RecentUsersTable";
 import UserDetailsDialog from "@/components/dashboard/UserDetailsDialog";
 import type { DashboardLoaderData, IRecentUser } from "@/types/dashboard";
@@ -25,7 +24,6 @@ export const DashboardPage: React.FC = () => {
   };
 
   const monthlyEarnings = loaderData?.monthlyEarnings || [];
-  const orderDistribution = loaderData?.orderDistribution || [];
   const recentUsers = loaderData?.recentUsers || {
     users: [],
     pagination: {
@@ -45,21 +43,20 @@ export const DashboardPage: React.FC = () => {
         <DashboardSkeleton />
       ) : (
         <>
-          {/* 1. Summary Cards (Exactly 4 cards in responsive grid) */}
+          {/* 1. Summary Cards (Exactly 4 cards in responsive grid: Total Income, Total Sales, Total Users, Total Vendors) */}
           <section aria-label="Dashboard summary metrics">
             <DashboardSummaryCards summary={summary} />
           </section>
 
-          {/* 2. Monthly Earnings Bar Chart & Order Distribution Pie Chart */}
-          <section
-            aria-label="Dashboard analytics charts"
-            className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
-          >
-            <div className="lg:col-span-8 flex flex-col">
-              <MonthlyEarningsChart data={monthlyEarnings} />
-            </div>
-            <div className="lg:col-span-4 flex flex-col">
-              <OrderDistributionChart data={orderDistribution} />
+          {/* 2. Monthly Overview Bar Chart (Full width, single Earning metric) */}
+          <section aria-label="Monthly earnings overview">
+            <div className="w-full">
+              <MonthlyEarningsChart
+                data={monthlyEarnings}
+                title="Monthly Overview"
+                subtitle="Monthly earnings overview"
+                legendLabel="Earning ($)"
+              />
             </div>
           </section>
 

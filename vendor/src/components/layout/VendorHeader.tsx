@@ -29,7 +29,7 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
   const avatarUrl = vendorProfile?.profile?.url || null;
 
   return (
-    <header className="bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between select-none">
+    <header className="bg-[#CB4E01] text-white px-6 py-4 flex items-center justify-between select-none shadow-xs">
       {/* Left: Sidebar Toggle + Welcome Section */}
       <div className="flex items-center gap-4">
         {/* Desktop Collapse Toggle */}
@@ -37,10 +37,10 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="hidden md:flex rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
+          className="hidden md:flex rounded-md text-white hover:bg-white/15"
           aria-label="Toggle sidebar"
         >
-          <PanelLeft className="w-5 h-5" />
+          <PanelLeft className="w-5 h-5 text-white" />
         </Button>
 
         {/* Mobile Drawer Open Button */}
@@ -48,18 +48,18 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onOpenMobileSidebar}
-          className="flex md:hidden rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
+          className="flex md:hidden rounded-md text-white hover:bg-white/15"
           aria-label="Open mobile menu"
         >
-          <PanelLeft className="w-5 h-5" />
+          <PanelLeft className="w-5 h-5 text-white" />
         </Button>
 
         {/* Two-Line Left-Aligned Welcome Section */}
         <div className="flex flex-col text-left">
-          <h1 className="text-sm sm:text-base md:text-lg font-bold text-[#0F172A] leading-tight">
+          <h1 className="text-sm sm:text-base md:text-lg font-bold text-white leading-tight">
             Welcome Back{vendorName ? `, ${vendorName}` : ""}
           </h1>
-          <span className="text-xs md:text-sm text-[#4B5563] font-normal mt-0.5">
+          <span className="text-xs md:text-sm text-white/80 font-normal mt-0.5">
             {greeting}! Have a nice day.
           </span>
         </div>
@@ -70,14 +70,14 @@ export const VendorHeader: React.FC<VendorHeaderProps> = ({
         <ProfileAvatar
           src={avatarUrl}
           alt={vendorName || "Vendor"}
-          className="w-10 h-10 rounded-full border border-[#E5E7EB] shrink-0 shadow-xs"
+          className="w-10 h-10 rounded-full border-2 border-white/60 shrink-0 shadow-xs"
         />
 
         <div className="hidden sm:flex flex-col text-left">
-          <span className="text-sm font-semibold text-[#0F172A] leading-tight">
+          <span className="text-sm font-semibold text-white leading-tight">
             {vendorName || "Vendor"}
           </span>
-          <span className="text-xs text-[#4B5563] font-normal">
+          <span className="text-xs text-white/80 font-normal">
             Vendor
           </span>
         </div>

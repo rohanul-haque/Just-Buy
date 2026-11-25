@@ -96,10 +96,10 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-xl">
-        <DialogHeader className="border-b border-[#E5E7EB] pb-4">
-          <DialogTitle className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-[#4F46E5]" />
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] p-6 shadow-xl text-[#1F2937]">
+        <DialogHeader className="border-b border-[#ffceb0]/60 pb-4">
+          <DialogTitle className="text-xl font-bold text-[#1F2937] flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-[#fe6201]" />
             Product Sale Details
           </DialogTitle>
           <DialogDescription className="text-sm text-[#4B5563]">
@@ -109,15 +109,15 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
 
         <div className="space-y-5 pt-2">
           {/* Section A: Transaction & Order Summary */}
-          <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-4 space-y-3">
-            <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4 text-[#4F46E5]" />
+          <div className="bg-[#ffefe6] border border-[#ffceb0]/60 rounded-xl p-4 space-y-3">
+            <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4 text-[#fe6201]" />
               Order Information
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
               <div>
                 <span className="text-xs text-[#6B7280] block">Order ID</span>
-                <span className="font-mono text-xs font-semibold text-[#0F172A] break-all">
+                <span className="font-mono text-xs font-semibold text-[#1F2937] break-all">
                   {sale.orderId}
                 </span>
               </div>
@@ -125,7 +125,7 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
                 <span className="text-xs text-[#6B7280] block">
                   Transaction ID
                 </span>
-                <span className="font-mono text-xs font-semibold text-[#4F46E5] break-all">
+                <span className="font-mono text-xs font-semibold text-[#fe6201] break-all">
                   {sale.transactionId}
                 </span>
               </div>
@@ -139,7 +139,7 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
                 <span className="text-xs text-[#6B7280] block">
                   Payment Status
                 </span>
-                <span className="font-medium text-[#0F172A]">
+                <span className="font-medium text-[#1F2937]">
                   {sale.paymentStatus}
                 </span>
               </div>
@@ -147,13 +147,13 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
                 <span className="text-xs text-[#6B7280] block">
                   Payment Method
                 </span>
-                <span className="font-medium text-[#0F172A]">
+                <span className="font-medium text-[#1F2937]">
                   {sale.paymentMethod}
                 </span>
               </div>
               <div>
                 <span className="text-xs text-[#6B7280] block">Order Date</span>
-                <span className="font-medium text-[#0F172A] text-xs">
+                <span className="font-medium text-[#1F2937] text-xs">
                   {formatDate(sale.createdAt)}
                 </span>
               </div>
@@ -161,23 +161,23 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
           </div>
 
           {/* Section B: Customer Details */}
-          <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-4 space-y-3">
-            <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
-              <User className="w-4 h-4 text-[#4F46E5]" />
+          <div className="bg-[#ffefe6] border border-[#ffceb0]/60 rounded-xl p-4 space-y-3">
+            <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider flex items-center gap-1.5">
+              <User className="w-4 h-4 text-[#fe6201]" />
               Customer Information
             </h4>
             <div className="flex items-center gap-4">
               <ProfileAvatar
                 src={sale.customer.profileImage}
                 alt={sale.customer.name}
-                className="w-12 h-12 rounded-full border border-[#E5E7EB] shrink-0"
+                className="w-12 h-12 rounded-full border border-[#ffceb0]/80 shrink-0"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm flex-1">
                 <div>
                   <span className="text-xs text-[#6B7280] block">
                     Customer Name
                   </span>
-                  <span className="font-medium text-[#0F172A]">
+                  <span className="font-medium text-[#1F2937]">
                     {sale.customer.name}
                   </span>
                 </div>
@@ -185,7 +185,7 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
                   <span className="text-xs text-[#6B7280] block">
                     Email Address
                   </span>
-                  <span className="font-medium text-[#0F172A]">
+                  <span className="font-medium text-[#1F2937]">
                     {sale.customer.email}
                   </span>
                 </div>
@@ -195,26 +195,26 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
 
           {/* Section C: Product Information */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
-              <Package className="w-4 h-4 text-[#4F46E5]" />
+            <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider flex items-center gap-1.5">
+              <Package className="w-4 h-4 text-[#fe6201]" />
               Product Sold
             </h4>
-            <div className="border border-[#E5E7EB] rounded-md p-4 bg-white space-y-3">
+            <div className="border border-[#ffceb0]/60 rounded-xl p-4 bg-[#ffefe6] space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {sale.product.image ? (
                     <img
                       src={sale.product.image}
                       alt={sale.product.name}
-                      className="w-14 h-14 rounded-md object-cover border border-[#E5E7EB] shrink-0"
+                      className="w-14 h-14 rounded-md object-cover border border-[#ffceb0]/80 shrink-0"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 rounded-md bg-[#DDE0FF] text-[#4F46E5] flex items-center justify-center shrink-0">
                       <Package className="w-7 h-7" />
                     </div>
                   )}
                   <div>
-                    <h5 className="font-semibold text-sm text-[#0F172A]">
+                    <h5 className="font-semibold text-sm text-[#1F2937]">
                       {sale.product.name}
                     </h5>
                     <p className="text-xs text-[#64748B] mt-0.5">
@@ -230,7 +230,7 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
                   <span className="text-xs text-[#64748B] block">
                     {formatCurrency(sale.product.unitPrice)} × {sale.product.quantity}
                   </span>
-                  <span className="font-bold text-base text-[#0F172A]">
+                  <span className="font-bold text-base text-[#1F2937]">
                     {formatCurrency(sale.product.itemSubtotal)}
                   </span>
                 </div>
@@ -239,11 +239,11 @@ export const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
           </div>
 
           {/* Section D: Amount Summary */}
-          <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-4 flex items-center justify-between">
-            <span className="text-sm font-semibold text-[#0F172A]">
+          <div className="bg-[#ffefe6] border border-[#ffceb0]/60 rounded-xl p-4 flex items-center justify-between">
+            <span className="text-sm font-semibold text-[#1F2937]">
               Vendor Item Subtotal
             </span>
-            <span className="text-lg font-bold text-[#4F46E5]">
+            <span className="text-lg font-bold text-[#fe6201]">
               {formatCurrency(sale.amount)}
             </span>
           </div>

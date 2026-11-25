@@ -103,7 +103,9 @@ export const orderQuerySchema = z
       .enum(Object.values(OrderType) as [string, ...string[]])
       .optional(),
     search: z.string().trim().optional(),
-    sortBy: z.enum(["createdAt", "totalAmount", "subtotal", "status"]).optional(),
+    sortBy: z
+      .enum(["createdAt", "totalAmount", "subtotal", "status"])
+      .optional(),
     sortOrder: z.enum(["asc", "desc"]).optional(),
   })
   .strict();

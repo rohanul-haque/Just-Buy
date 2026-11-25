@@ -104,3 +104,15 @@ export const refreshTokenSchema = z
     refreshToken: z.string().optional(),
   })
   .optional();
+
+export const changePasswordSchema = z.object({
+  currentPassword: z
+    .string({ message: "Current password is required" })
+    .min(1, { message: "Current password is required" }),
+  newPassword: z
+    .string({ message: "New password is required" })
+    .min(6, { message: "New password must be at least 6 characters" })
+    .max(128, { message: "New password cannot exceed 128 characters" }),
+});
+
+export type TChangePasswordInput = z.infer<typeof changePasswordSchema>;

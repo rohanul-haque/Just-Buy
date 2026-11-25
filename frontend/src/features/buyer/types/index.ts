@@ -26,6 +26,7 @@ export interface BuyerProfile {
 }
 
 export interface UpdateBuyerProfileInput {
+  name?: string;
   phoneNumber?: string;
   gender?: GenderType;
   address?: string;

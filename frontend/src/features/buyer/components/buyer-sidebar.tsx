@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   User as UserIcon,
   Settings,
-  Package,
+  List,
   LogOut,
   Camera,
   Loader2,
@@ -33,8 +33,8 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
   const updateProfileMutation = useUpdateBuyerProfile();
   const logoutMutation = useLogout();
 
-  const displayName = profile?.buyer?.name || authUser?.name || "Buyer";
-  const displayEmail = profile?.buyer?.email || authUser?.email || "";
+  const displayName = profile?.buyer?.name || authUser?.name || "Cameron Williamson";
+  const displayEmail = profile?.buyer?.email || authUser?.email || "deanna.curtis@example.com";
   const avatarUrl = profile?.profile?.url || authUser?.avatar;
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +80,7 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
     {
       label: "Order History",
       href: "/orders",
-      icon: Package,
+      icon: List,
       isActive: pathname.startsWith("/orders"),
     },
   ];
@@ -88,18 +88,18 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col items-center sm:items-start w-full md:w-60 lg:w-64 shrink-0 space-y-6",
+        "flex flex-col items-center sm:items-start w-full md:w-56 lg:w-64 shrink-0 space-y-7",
         className,
       )}
     >
       {/* Profile Header Card */}
       <div className="flex flex-col items-center text-center w-full px-2">
-        <div className="relative group">
+        <div className="relative">
           <UserAvatar
             src={avatarUrl}
             name={displayName}
             size="lg"
-            className="size-20 border-2 border-primary/20 shadow-sm"
+            className="size-24 border border-neutral-200 shadow-2xs"
           />
 
           {/* Camera/Upload Overlay Badge */}
@@ -107,14 +107,14 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={updateProfileMutation.isPending}
-            className="absolute bottom-0 right-0 p-1.5 rounded-full bg-background border border-border shadow-xs hover:bg-muted text-foreground transition-colors disabled:opacity-50"
+            className="absolute bottom-0 right-0 p-1.5 rounded-full bg-white border border-neutral-400 shadow-xs hover:bg-neutral-50 text-neutral-700 transition-colors disabled:opacity-50 cursor-pointer"
             title="Upload profile photo"
             aria-label="Upload profile photo"
           >
             {updateProfileMutation.isPending ? (
-              <Loader2 className="size-3.5 animate-spin text-primary" />
+              <Loader2 className="size-3.5 animate-spin text-[#ff6200]" />
             ) : (
-              <Camera className="size-3.5 text-muted-foreground" />
+              <Camera className="size-3.5 text-neutral-600" />
             )}
           </button>
 
@@ -127,18 +127,18 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
           />
         </div>
 
-        <div className="mt-3 space-y-0.5">
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
+        <div className="mt-3.5 space-y-0.5">
+          <h2 className="text-base sm:text-lg font-medium text-neutral-900 tracking-tight">
             {displayName}
           </h2>
-          <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+          <p className="text-xs sm:text-sm text-neutral-400 truncate max-w-[210px]">
             {displayEmail}
           </p>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <nav className="flex flex-row md:flex-col gap-1.5 w-full overflow-x-auto pb-2 md:pb-0">
+      <nav className="flex flex-row md:flex-col gap-2 w-full overflow-x-auto pb-2 md:pb-0">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -146,13 +146,13 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
+                "flex items-center gap-3.5 px-4 py-3 rounded-md text-sm sm:text-base font-normal transition-all whitespace-nowrap",
                 item.isActive
-                  ? "bg-primary text-primary-foreground shadow-xs font-semibold"
-                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                  ? "bg-[#ff6200] text-white shadow-none"
+                  : "text-neutral-800 hover:bg-neutral-100",
               )}
             >
-              <Icon className="size-4 shrink-0" />
+              <Icon className="size-5 shrink-0 stroke-[1.8]" />
               <span>{item.label}</span>
             </Link>
           );
@@ -163,12 +163,12 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
           type="button"
           onClick={() => logoutMutation.mutate()}
           disabled={logoutMutation.isPending}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors whitespace-nowrap disabled:opacity-50 text-left"
+          className="flex items-center gap-3.5 px-4 py-3 rounded-md text-sm sm:text-base font-normal text-neutral-800 hover:bg-neutral-100 transition-colors whitespace-nowrap disabled:opacity-50 text-left cursor-pointer w-full"
         >
           {logoutMutation.isPending ? (
-            <Loader2 className="size-4 animate-spin shrink-0" />
+            <Loader2 className="size-5 animate-spin shrink-0 text-[#ff6200]" />
           ) : (
-            <LogOut className="size-4 shrink-0" />
+            <LogOut className="size-5 shrink-0 stroke-[1.8]" />
           )}
           <span>Log out</span>
         </button>
@@ -176,4 +176,3 @@ export function BuyerSidebar({ className }: BuyerSidebarProps) {
     </aside>
   );
 }
-

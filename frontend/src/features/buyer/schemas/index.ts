@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const updateBuyerProfileSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100).optional(),
   phoneNumber: z
     .string()
     .trim()

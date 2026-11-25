@@ -12,7 +12,8 @@ export const PRODUCT_KEYS = {
     [...PRODUCT_KEYS.all, "list", params] as const,
   newArrivals: (limit: number) =>
     [...PRODUCT_KEYS.all, "new-arrivals", limit] as const,
-  explore: (limit: number) => [...PRODUCT_KEYS.all, "explore", limit] as const,
+  explore: (limit: number, skip: number) =>
+    [...PRODUCT_KEYS.all, "explore", limit, skip] as const,
   detail: (productId: string) =>
     [...PRODUCT_KEYS.all, "detail", productId] as const,
   related: (productId: string, limit: number) =>
@@ -35,10 +36,10 @@ export function useNewArrivals(limit: number = 4) {
   });
 }
 
-export function useExploreProducts(limit: number = 8) {
+export function useExploreProducts(limit: number = 8, skip: number = 4) {
   return useQuery<Product[], Error>({
-    queryKey: PRODUCT_KEYS.explore(limit),
-    queryFn: () => productService.getExploreProducts(limit),
+    queryKey: PRODUCT_KEYS.explore(limit, skip),
+    queryFn: () => productService.getExploreProducts(limit, skip),
     staleTime: 1000 * 60 * 5,
   });
 }

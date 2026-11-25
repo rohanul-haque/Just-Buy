@@ -117,7 +117,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg overflow-hidden font-sans">
+      <DialogContent className="sm:max-w-md p-6 bg-[#FFE7D9] rounded-xl border border-[#ffceb0]/80 shadow-lg overflow-hidden font-sans">
         <DialogTitle className="sr-only">Add new category</DialogTitle>
 
         {/* Modal Header */}
@@ -126,7 +126,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
             variant="ghost"
             size="icon"
             onClick={handleClose}
-            className="w-8 h-8 rounded-md text-[#1F2937] hover:bg-[#F8FAFC]"
+            className="w-8 h-8 rounded-md text-[#1F2937] hover:bg-white/80"
             aria-label="Back"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -153,7 +153,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
               }}
               placeholder="Enter category name"
               disabled={isSubmitting}
-              className="w-full h-10 px-3 rounded-md border-[#E5E7EB] bg-white text-[#0F172A] text-sm"
+              className="w-full h-10 px-3 rounded-md border-[#ffceb0]/80 bg-white text-[#0F172A] text-sm"
             />
           </div>
 
@@ -172,11 +172,11 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
             >
               <SelectTrigger
                 id="category-status"
-                className="w-full h-10 px-3 rounded-md border-[#E5E7EB] bg-white text-[#0F172A] text-sm"
+                className="w-full h-10 px-3 rounded-md border-[#ffceb0]/80 bg-white text-[#0F172A] text-sm"
               >
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
-              <SelectContent className="rounded-md border-[#E5E7EB] bg-white shadow-md">
+              <SelectContent className="rounded-md border-[#ffceb0]/80 bg-white shadow-md">
                 <SelectItem value="active" className="text-sm">
                   <span className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -210,9 +210,9 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
             {!previewUrl ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-[#E5E7EB] bg-[#F8FAFC] rounded-md p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#F1F5F9] transition-colors"
+                className="w-full border-2 border-dashed border-[#ffceb0]/80 bg-white/80 rounded-md p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-[#F1F5F9] transition-colors"
               >
-                <div className="p-2.5 rounded-md bg-white border border-[#E5E7EB] text-[#4F46E5]">
+                <div className="p-2.5 rounded-md bg-white border border-[#ffceb0]/80 text-[#fe6201]">
                   <Upload className="w-5 h-5" />
                 </div>
                 <span className="text-sm font-medium text-[#111827]">
@@ -223,7 +223,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
                 </span>
               </div>
             ) : (
-              <div className="relative border border-[#E5E7EB] rounded-md p-2 bg-white flex items-center gap-3">
+              <div className="relative border border-[#ffceb0]/80 rounded-md p-2 bg-white flex items-center gap-3">
                 <img
                   src={previewUrl}
                   alt="Preview"
@@ -242,7 +242,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
                     variant="link"
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-0 h-auto text-xs text-[#4F46E5] hover:underline font-medium mt-1"
+                    className="p-0 h-auto text-xs text-[#fe6201] hover:underline font-medium mt-1"
                   >
                     Change image
                   </Button>
@@ -272,7 +272,7 @@ export const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-10 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition-colors"
+            className="w-full h-10 rounded-md bg-[#fe6201] hover:bg-[#e55801] text-white font-medium text-sm transition-colors"
           >
             {isSubmitting ? (
               <>

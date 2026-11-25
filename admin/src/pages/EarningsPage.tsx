@@ -1,19 +1,31 @@
+import EarningsSearch from "@/components/earnings/EarningsSearch";
+import EarningsStatusFilter from "@/components/earnings/EarningsStatusFilter";
 import EarningsSummaryCards from "@/components/earnings/EarningsSummaryCards";
 import EarningsTableSkeleton from "@/components/earnings/EarningsTableSkeleton";
 import EarningsTransactionsTable from "@/components/earnings/EarningsTransactionsTable";
 import OrderDetailsDialog from "@/components/earnings/OrderDetailsDialog";
 import type { EarningsLoaderData } from "@/types/earnings";
 import React, { useState } from "react";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useNavigation, useSearchParams } from "react-router";
 
 export const EarningsPage: React.FC = () => {
   const loaderData = useLoaderData() as EarningsLoaderData | undefined;
   const navigation = useNavigation();
+  const [searchParams] = useSearchParams();
 
   const summary = loaderData?.summary ?? { todayIncome: 0, totalIncome: 0 };
-  const transactions = loaderData?.transactions ?? [];
+  const allTransactions = loaderData?.transactions ?? [];
   const pagination = loaderData?.pagination ?? null;
   const currentPage = loaderData?.page ?? 1;
+
+  // Filter transactions by status if selected
+  const statusFilter = searchParams.get("status") || "ALL";
+  const transactions =
+    statusFilter === "ALL"
+      ? allTransactions
+      : allTransactions.filter(
+          (tx) => tx.status?.toUpperCase() === statusFilter.toUpperCase(),
+        );
 
   const isLoading = navigation.state === "loading";
 
@@ -29,7 +41,15 @@ export const EarningsPage: React.FC = () => {
           {/* 1. Earnings Summary Cards */}
           <EarningsSummaryCards summary={summary} />
 
-          {/* 2. Earnings Transactions Table with Pagination */}
+          {/* 2. Search Bar and Status Selector */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+            <div className="flex-1 w-full">
+              <EarningsSearch placeholder="Search by transaction ID or buyer name..." className="w-full" />
+            </div>
+            <EarningsStatusFilter />
+          </div>
+
+          {/* 3. Earnings Transactions Table with Pagination */}
           <EarningsTransactionsTable
             transactions={transactions}
             pagination={pagination}
@@ -40,7 +60,7 @@ export const EarningsPage: React.FC = () => {
         </>
       )}
 
-      {/* 3. Order Details Dialog */}
+      {/* 4. Order Details Dialog */}
       <OrderDetailsDialog
         open={!!selectedOrderId}
         orderId={selectedOrderId}

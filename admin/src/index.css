@@ -6,7 +6,8 @@
   --background: 0 0% 100%;
   --foreground: 222.2 47.4% 11.2%;
 
-  --primary: 243 75% 59%;
+  /* Orange Design System Core */
+  --primary: 23 99% 50%; /* #CB4E01 */
   --primary-foreground: 0 0% 100%;
 
   --secondary: 220 13% 18%;
@@ -15,24 +16,25 @@
   --muted: 210 40% 98%;
   --muted-foreground: 215 16% 47%;
 
-  --accent: 226 100% 94%;
-  --accent-foreground: 243 75% 59%;
+  --accent: 23 100% 95%; /* #ffefe6 Light */
+  --accent-foreground: 23 99% 50%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
   --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 243 75% 59%;
+  --ring: 23 99% 50%;
 
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
 
-  --chart-1: #2563EB;
-  --chart-2: #7C3AED;
-  --chart-3: #10B981;
-  --chart-4: #F59E0B;
-  --chart-5: #EF4444;
+  /* Chart Colors aligned with Orange System */
+  --chart-1: #cb4e01; /* Orange Normal */
+  --chart-2: #e55801; /* Orange Normal :hover */
+  --chart-3: #10b981; /* Green */
+  --chart-4: #ffceb0; /* Orange Light :active */
+  --chart-5: #bf4a01; /* Orange Dark */
 
   --radius: 0.5rem;
 }
@@ -40,21 +42,33 @@
 @theme inline {
   --font-sans: "Outfit", sans-serif;
 
-  /* TPI CPC Design System Direct Tokens */
-  --color-primary: #4F46E5;
-  --color-primary-60: #6366F1;
-  --color-primary-20: #E0E7FF;
-  --color-secondary: #1F2937;
-  --color-tertiary: #0F172A;
-  --color-neutral: #FFFFFF;
-  --color-surface: #FFFFFF;
-  --color-surface-muted: #F8FAFC;
+  /* Orange Design System Direct Tokens */
+  --color-orange-light: #ffefe6;
+  --color-orange-light-hover: #ffe7d9;
+  --color-orange-light-active: #ffceb0;
+  --color-orange-normal: #cb4e01;
+  --color-orange-normal-hover: #e55801;
+  --color-orange-normal-active: #cb4e01;
+  --color-orange-dark: #bf4a01;
+  --color-orange-dark-hover: #983b01;
+  --color-orange-dark-active: #722c00;
+  --color-orange-darker: #592200;
+
+  /* Theme Direct Tokens mapped to Orange System */
+  --color-primary: #cb4e01;
+  --color-primary-60: #e55801;
+  --color-primary-20: #ffefe6;
+  --color-secondary: #1f2937;
+  --color-tertiary: #0f172a;
+  --color-neutral: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
   --color-on-surface: #111827;
-  --color-on-surface-muted: #4B5563;
-  --color-border: #E5E7EB;
-  --color-border-soft: #E2E8F0;
-  --color-background: #FFFFFF;
-  --color-error: #EF4444;
+  --color-on-surface-muted: #4b5563;
+  --color-border: #e5e7eb;
+  --color-border-soft: #e2e8f0;
+  --color-background: #ffffff;
+  --color-error: #ef4444;
 
   /* shadcn/ui Compatibility Bindings */
   --color-card: hsl(var(--card));
@@ -77,7 +91,7 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* TPI CPC Radius Tokens - Standardized to MD (8px) */
+  /* Radius Tokens - Standardized to MD (8px) */
   --radius-none: 0px;
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -91,7 +105,7 @@
     font-family: "Outfit", sans-serif;
   }
   body {
-    background-color: #F8FAFC;
+    background-color: #f8fafc;
     color: #111827;
     font-family: "Outfit", sans-serif;
   }

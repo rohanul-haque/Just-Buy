@@ -57,10 +57,10 @@ export function UserAvatar({
           className="object-cover"
           onError={() => setImageError(true)}
         />
-      ) : initials ? (
-        <span className="font-semibold text-primary">{initials}</span>
       ) : (
-        <UserIcon className="size-1/2 text-muted-foreground" aria-hidden="true" />
+        <div className="size-full bg-[#fe6201] text-white flex items-center justify-center">
+          <UserIcon className="size-1/2 text-white" aria-hidden="true" />
+        </div>
       )}
     </div>
   );

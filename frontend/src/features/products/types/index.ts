@@ -9,9 +9,15 @@ export interface ProductImage {
 
 export interface ProductVendor {
   _id: string;
+  name?: string;
   shopName?: string;
   location?: string;
   profile?: { url?: string };
+  vendor?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+  };
 }
 
 export interface ProductCategory {
@@ -47,6 +53,8 @@ export interface ProductQueryParams {
   skip?: number;
   search?: string;
   category?: string;
+  minPrice?: number;
+  maxPrice?: number;
   isActive?: boolean;
 }
 

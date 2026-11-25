@@ -25,15 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import VendorPagination from "@/components/ui/vendor-pagination";
 import {
   Select,
   SelectContent,
@@ -234,19 +226,19 @@ export const ProductsPage: React.FC = () => {
       />
 
       {/* 2. Combined Toolbar: Search, Filters, and Add Product Button */}
-      <Card className="px-4 py-3 border-[#E5E7EB] bg-white rounded-lg shadow-xs">
+      <Card className="px-4 py-3 border-[#ffceb0]/60 bg-[#FFE7D9] rounded-xl shadow-xs">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-3.5">
           {/* Search and Filter Controls */}
           <div className="flex flex-1 flex-col sm:flex-row items-center gap-2 w-full">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
-              <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 type="text"
                 placeholder="Search products by name or brand..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8.5 h-8.5 rounded-md border-[#E5E7EB] text-xs text-[#0F172A] w-full"
+                className="pl-8.5 h-9 rounded-xl border border-[#ffceb0]/80 bg-[#ffefe6] text-xs text-[#1F2937] placeholder:text-[#94A3B8] w-full outline-none focus:outline-none focus:border-[#fe6201] focus-visible:outline-none focus-visible:ring-0 focus-visible:border-[#fe6201]"
               />
             </div>
 
@@ -260,15 +252,15 @@ export const ProductsPage: React.FC = () => {
                 }}
                 disabled={isLoadingCategories}
               >
-                <SelectTrigger className="h-8.5 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectTrigger className="h-9 w-[140px] text-xs font-medium text-[#1F2937] border border-[#ffceb0]/80 bg-[#ffefe6] rounded-xl focus:ring-[#fe6201]">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="ALL" className="text-xs">
+                <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                  <SelectItem value="ALL" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                     All Categories
                   </SelectItem>
                   {categories.map((cat) => (
-                    <SelectItem key={cat._id} value={cat._id} className="text-xs">
+                    <SelectItem key={cat._id} value={cat._id} className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                       {cat.name}
                     </SelectItem>
                   ))}
@@ -283,17 +275,17 @@ export const ProductsPage: React.FC = () => {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="h-8.5 w-[120px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+                <SelectTrigger className="h-9 w-[120px] text-xs font-medium text-[#1F2937] border border-[#ffceb0]/80 bg-[#ffefe6] rounded-xl focus:ring-[#fe6201]">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="ALL" className="text-xs">
+                <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                  <SelectItem value="ALL" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                     All Status
                   </SelectItem>
-                  <SelectItem value="ACTIVE" className="text-xs">
+                  <SelectItem value="ACTIVE" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                     Active
                   </SelectItem>
-                  <SelectItem value="INACTIVE" className="text-xs">
+                  <SelectItem value="INACTIVE" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                     Inactive
                   </SelectItem>
                 </SelectContent>
@@ -312,7 +304,7 @@ export const ProductsPage: React.FC = () => {
                     setSearchQuery("");
                     setPage(1);
                   }}
-                  className="text-xs text-[#EF4444] hover:bg-[#FEF2F2] h-8.5 px-2 cursor-pointer"
+                  className="text-xs text-[#DC2626] hover:bg-[#ffceb0]/60 h-9 px-2 cursor-pointer rounded-xl"
                 >
                   Clear
                 </Button>
@@ -324,7 +316,7 @@ export const ProductsPage: React.FC = () => {
           <div className="shrink-0 self-end lg:self-center w-full sm:w-auto flex justify-end">
             <Button
               onClick={() => navigate("/products/new")}
-              className="h-8.5 bg-[#6366F1] hover:bg-[#4F46E5] text-white text-xs font-semibold px-3.5 rounded-md shadow-xs flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
+              className="h-9 bg-[#fe6201] hover:bg-[#e55801] text-white text-xs font-semibold px-4 rounded-xl shadow-xs flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto"
             >
               <Plus className="w-3.5 h-3.5" />
               Add Product
@@ -439,77 +431,13 @@ export const ProductsPage: React.FC = () => {
 
       {/* 5. Server-Side Pagination with shadcn/ui Pagination Component */}
       {!isLoading && totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border border-[#E5E7EB] bg-white rounded-md shadow-xs">
-          <p className="text-xs text-[#64748B] text-center sm:text-left">
-            Showing page <span className="font-semibold text-[#0F172A]">{page}</span> of{" "}
-            <span className="font-semibold text-[#0F172A]">{totalPages}</span>{" "}
-            ({totalProducts} total {totalProducts === 1 ? "product" : "products"})
-          </p>
-
-          <Pagination className="mx-0 w-auto justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className={
-                    page <= 1
-                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
-                      : "cursor-pointer text-xs"
-                  }
-                />
-              </PaginationItem>
-
-              {/* Page numbers logic */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => {
-                  return (
-                    p === 1 ||
-                    p === totalPages ||
-                    Math.abs(p - page) <= 1
-                  );
-                })
-                .reduce<(number | string)[]>((acc, curr, index, arr) => {
-                  if (index > 0 && (curr as number) - (arr[index - 1] as number) > 1) {
-                    acc.push(`ellipsis-${curr}`);
-                  }
-                  acc.push(curr);
-                  return acc;
-                }, [])
-                .map((item) => {
-                  if (typeof item === "string") {
-                    return (
-                      <PaginationItem key={item}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
-                  }
-                  return (
-                    <PaginationItem key={item}>
-                      <PaginationLink
-                        isActive={page === item}
-                        onClick={() => setPage(item)}
-                        className="h-8 w-8 text-xs cursor-pointer"
-                      >
-                        {item}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                  className={
-                    page >= totalPages
-                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
-                      : "cursor-pointer text-xs"
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+        <div className="pt-2">
+          <VendorPagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            isLoading={isLoading}
+          />
         </div>
       )}
 
@@ -522,17 +450,17 @@ export const ProductsPage: React.FC = () => {
           }
         }}
       >
-        <DialogContent className="max-w-md bg-white p-6 rounded-lg">
+        <DialogContent className="max-w-md bg-[#FFE7D9] border border-[#ffceb0]/80 p-6 rounded-2xl shadow-xl">
           <DialogHeader className="space-y-2">
-            <div className="w-10 h-10 rounded-full bg-[#FEF2F2] flex items-center justify-center text-[#DC2626] mb-1">
-              <Trash2 className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full bg-[#ffefe6] border border-[#ffceb0] flex items-center justify-center text-[#DC2626] mb-1">
+              <Trash2 className="w-5 h-5 text-[#DC2626]" />
             </div>
-            <DialogTitle className="text-lg font-bold text-[#0F172A]">
+            <DialogTitle className="text-lg font-bold text-[#1F2937]">
               Delete Product
             </DialogTitle>
-            <DialogDescription className="text-xs text-[#64748B] leading-relaxed">
+            <DialogDescription className="text-xs text-[#4B5563] leading-relaxed">
               Are you sure you want to permanently delete{" "}
-              <span className="font-semibold text-[#0F172A]">
+              <span className="font-semibold text-[#1F2937]">
                 &quot;{productToDelete?.name}&quot;
               </span>
               ? This action cannot be undone and will remove this product and its photos from your store.
@@ -545,7 +473,7 @@ export const ProductsPage: React.FC = () => {
               variant="outline"
               disabled={isDeleting}
               onClick={() => setProductToDelete(null)}
-              className="border-[#E5E7EB] text-[#374151]"
+              className="border-[#ffceb0]/80 bg-[#ffefe6] text-[#1F2937] hover:bg-[#ffceb0]"
             >
               Cancel
             </Button>

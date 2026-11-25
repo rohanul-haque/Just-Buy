@@ -50,7 +50,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
     return (
       <Badge
         variant="outline"
-        className="bg-[#E0E7FF] text-[#4F46E5] border-[#C7D2FE] rounded-md font-semibold text-xs"
+        className="bg-[#ffefe6] text-[#CB4E01] border-[#ffceb0] rounded-md font-semibold text-xs"
       >
         Buyer
       </Badge>
@@ -58,7 +58,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
   };
 
   return (
-    <div className="rounded-md border border-[#E5E7EB] bg-white shadow-xs overflow-hidden">
+    <div className="rounded-xl border border-[#ffceb0]/60 bg-[#FFE7D9] shadow-xs overflow-hidden">
       {isLoading ? (
         <div className="space-y-2.5 p-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -73,26 +73,26 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
       ) : (
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-[#F8FAFC]">
-              <TableRow className="border-b border-[#E5E7EB]">
-                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+            <TableHeader className="bg-[#CB4E01] text-white">
+              <TableRow className="border-b border-[#CB4E01] hover:bg-[#CB4E01]">
+                <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                   Full Name
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+                <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                   Email
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+                <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                   Date
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+                <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                   Type
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 text-right align-middle">
+                <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 text-right align-middle">
                   Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="bg-[#FFE7D9]">
               {users.map((user) => {
                 const displayName =
                   user.fullName || user.name || "Anonymous User";
@@ -107,7 +107,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
                 return (
                   <TableRow
                     key={user._id}
-                    className="hover:bg-[#F8FAFC] transition-colors border-b border-[#E5E7EB]"
+                    className="hover:bg-[#ffceb0]/40 transition-colors border-b border-[#ffceb0]/40"
                   >
                     {/* Full Name with Avatar */}
                     <TableCell className="py-2 px-4 font-medium text-[#0F172A] align-middle">
@@ -119,7 +119,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
                             className="w-8 h-8 rounded-md object-cover border border-[#E5E7EB] shrink-0"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-md bg-[#E0E7FF] border border-[#C7D2FE] flex items-center justify-center text-[#4F46E5] font-bold text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-md bg-[#ffefe6] border border-[#ffceb0] flex items-center justify-center text-[#CB4E01] font-bold text-xs shrink-0">
                             {initials || "U"}
                           </div>
                         )}
@@ -152,7 +152,7 @@ export const RecentUsersTable: React.FC<RecentUsersTableProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={() => onViewDetails(user)}
-                        className="h-7.5 w-7.5 p-0 rounded-md border-[#E5E7EB] text-[#4F46E5] hover:bg-[#E0E7FF] hover:text-[#4338CA]"
+                        className="h-7.5 w-7.5 p-0 rounded-md border-[#E5E7EB] text-[#CB4E01] hover:bg-[#ffefe6] hover:text-[#cb4e01]"
                         title="View user details"
                         aria-label={`View details for ${displayName}`}
                       >

@@ -3,10 +3,12 @@ import { z } from "zod";
 import { Gender } from "@/modules/v1/buyer/buyer.constant";
 
 export const updateBuyerProfileSchema = z.object({
+  name: z.string().trim().min(1, { message: "Name cannot be empty" }).max(100).optional(),
   phoneNumber: z
     .string()
     .trim()
     .regex(/^[+0-9\s-]{7,20}$/, { message: "Invalid phone number format" })
+    .or(z.literal(""))
     .optional(),
   gender: z
     .enum(Object.values(Gender) as [string, ...string[]], {

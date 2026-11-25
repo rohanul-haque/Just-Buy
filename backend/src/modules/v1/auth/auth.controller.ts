@@ -165,6 +165,21 @@ const resetPassword = asyncHandler(
   },
 );
 
+const changePassword = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const result = await authService.changePassword(
+      req.user!.userId,
+      req.body,
+    );
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: result.message,
+    });
+  },
+);
+
 const authController = {
   register,
   registerVendor,
@@ -174,6 +189,7 @@ const authController = {
   refreshToken,
   forgotPassword,
   resetPassword,
+  changePassword,
 };
 
 export default authController;

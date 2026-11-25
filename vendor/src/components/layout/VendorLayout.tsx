@@ -14,7 +14,7 @@ export const VendorLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#F8FAFC] font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-white font-sans">
       {/* Desktop Sidebar — Always visible on the left side */}
       <div className="hidden md:flex flex-shrink-0 h-full">
         <VendorSidebar isCollapsed={isCollapsed} />
@@ -24,7 +24,7 @@ export const VendorLayout: React.FC = () => {
       <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
         <SheetContent
           side="left"
-          className="p-0 w-64 bg-white border-r border-[#E5E7EB]"
+          className="p-0 w-64 bg-[#CB4E01] border-r border-[#CB4E01]"
         >
           <SheetTitle className="sr-only">Vendor Navigation</SheetTitle>
           <VendorSidebar
@@ -35,7 +35,7 @@ export const VendorLayout: React.FC = () => {
       </Sheet>
 
       {/* Main Content Area on the right */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F8FAFC]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
         {/* Top Header */}
         <VendorHeader
           onToggleSidebar={toggleSidebar}
@@ -43,7 +43,7 @@ export const VendorLayout: React.FC = () => {
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#F8FAFC]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-white">
           <div className="space-y-6">
             <Outlet />
           </div>

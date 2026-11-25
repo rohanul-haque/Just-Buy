@@ -8,7 +8,7 @@ import { status } from "http-status";
 
 const safeCartProductPopulation = {
   path: "productItems.product",
-  select: "name price featureImage quantity",
+  select: "name price featureImage stock",
 };
 
 const addToCart = async (

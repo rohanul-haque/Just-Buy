@@ -26,32 +26,36 @@ export const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
       <SummaryCard
         title="Total Income"
         value={formattedIncome}
         icon={<GrMoney />}
-        iconBackgroundColor="bg-[#10B981]"
+        iconBackgroundColor="bg-[#DDE0FF]"
+        iconColor="text-[#4338CA]"
         link="/earnings"
       />
       <SummaryCard
-        title="Total Sales"
+        title="Total sales"
         value={formattedSales}
         icon={<ShoppingBag />}
-        iconBackgroundColor="bg-[#3B82F6]"
+        iconBackgroundColor="bg-[#D2F6FF]"
+        iconColor="text-[#0284C7]"
       />
       <SummaryCard
         title="Total Users"
         value={formattedUsers}
         icon={<Users />}
-        iconBackgroundColor="bg-[#8B5CF6]"
+        iconBackgroundColor="bg-[#DDE0FF]"
+        iconColor="text-[#4338CA]"
         link="/buyers"
       />
       <SummaryCard
         title="Total Vendors"
         value={formattedVendors}
         icon={<Store />}
-        iconBackgroundColor="bg-[#F97316]"
+        iconBackgroundColor="bg-[#FFCEB0]"
+        iconColor="text-[#EA580C]"
         link="/vendors"
       />
     </div>

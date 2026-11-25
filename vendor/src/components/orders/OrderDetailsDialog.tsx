@@ -154,16 +154,16 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6 bg-white">
-        <DialogHeader className="border-b border-[#F1F5F9] pb-4">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6 bg-[#FFE7D9] border border-[#ffceb0]/80 rounded-2xl shadow-xl">
+        <DialogHeader className="border-b border-[#ffceb0]/80 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <DialogTitle className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
-                <Package className="w-5 h-5 text-[#6366F1]" />
+              <DialogTitle className="text-xl font-bold text-[#1F2937] flex items-center gap-2">
+                <Package className="w-5 h-5 text-[#fe6201]" />
                 Order #{order._id}
               </DialogTitle>
-              <div className="flex items-center gap-2 text-xs text-[#64748B] mt-1">
-                <Calendar className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 text-xs text-[#6B7280] mt-1">
+                <Calendar className="w-3.5 h-3.5 text-[#fe6201]" />
                 <span>
                   Placed on {new Date(order.createdAt).toLocaleDateString()} at{" "}
                   {new Date(order.createdAt).toLocaleTimeString()}
@@ -177,26 +177,26 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 pt-2">
+        <div className="space-y-5 pt-2">
           {/* Section 1: Order & Financial Summary */}
-          <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+          <div className="p-4 rounded-xl bg-white/80 border border-[#ffceb0]/80 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#ffceb0]/60">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[#6366F1]" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                  <CreditCard className="w-4 h-4 text-[#fe6201]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#7C2D12]">
                     Payment Method:
                   </span>
-                  <span className="text-sm font-semibold text-[#0F172A]">
+                  <span className="text-sm font-semibold text-[#1F2937]">
                     {isCOD ? "Cash on Delivery (COD)" : "Online Payment"}
                   </span>
                 </div>
-                <div className="text-xs text-[#64748B] flex items-center gap-1.5 pt-0.5">
-                  <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
+                <div className="text-xs text-[#6B7280] flex items-center gap-1.5 pt-0.5">
+                  <Clock className="w-3.5 h-3.5 text-[#9CA3AF]" />
                   <span>Payment Status:</span>
                   {getPaymentStatusBadge(order.payment?.status)}
                   {order.payment?.paidAt && (
-                    <span className="text-[#059669] ml-1">
+                    <span className="text-[#059669] ml-1 font-medium">
                       (Paid on{" "}
                       {new Date(order.payment.paidAt).toLocaleDateString()})
                     </span>
@@ -205,10 +205,10 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
               </div>
 
               <div className="text-left sm:text-right">
-                <span className="text-xs text-[#64748B] block">
+                <span className="text-xs text-[#6B7280] block">
                   Vendor Items Amount:
                 </span>
-                <span className="text-lg font-bold text-[#4F46E5]">
+                <span className="text-lg font-bold text-[#fe6201]">
                   {formatCurrency(vendorSubtotal)}
                 </span>
               </div>
@@ -216,10 +216,10 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
             {/* Full Transaction ID */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs">
-              <div className="flex items-center gap-1.5 text-[#64748B]">
-                <Hash className="w-3.5 h-3.5 text-[#94A3B8]" />
-                <span className="font-semibold">Full Transaction ID:</span>
-                <span className="font-mono text-[#0F172A] select-all font-semibold">
+              <div className="flex items-center gap-1.5 text-[#6B7280]">
+                <Hash className="w-3.5 h-3.5 text-[#fe6201]" />
+                <span className="font-semibold text-[#7C2D12]">Full Transaction ID:</span>
+                <span className="font-mono text-[#1F2937] select-all font-semibold">
                   {transactionId || "—"}
                 </span>
               </div>
@@ -230,7 +230,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   size="sm"
                   onClick={() => onConfirmCODPayment(order._id)}
                   disabled={isConfirmingCOD}
-                  className="h-8 px-3 text-xs bg-[#059669] hover:bg-[#047857] text-white rounded-md cursor-pointer shadow-xs flex items-center gap-1.5"
+                  className="h-8 px-3 text-xs bg-[#fe6201] hover:bg-[#e05500] text-white rounded-xl cursor-pointer shadow-xs flex items-center gap-1.5"
                 >
                   {isConfirmingCOD ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -246,36 +246,35 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
           {/* Section 2: Customer & Shipping Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Customer Details */}
-            <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#6366F1]" /> Customer Details
+            <div className="p-4 rounded-xl bg-white/80 border border-[#ffceb0]/80 space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#7C2D12] flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-[#fe6201]" /> Customer Details
               </h4>
-              <p className="text-sm font-semibold text-[#0F172A]">
+              <p className="text-sm font-semibold text-[#1F2937]">
                 {order.buyer?.name ||
                   order.shippingAddress?.fullName ||
                   "Valued Customer"}
               </p>
               {order.buyer?.email && (
                 <p className="text-xs text-[#4B5563] flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#94A3B8]" />
+                  <Mail className="w-3.5 h-3.5 text-[#9CA3AF]" />
                   {order.buyer.email}
                 </p>
               )}
               {order.shippingAddress?.phoneNumber && (
                 <p className="text-xs text-[#4B5563] flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#94A3B8]" />
+                  <Phone className="w-3.5 h-3.5 text-[#9CA3AF]" />
                   {order.shippingAddress.phoneNumber}
                 </p>
               )}
             </div>
 
             {/* Shipping Address */}
-            <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E5E7EB] space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#6366F1]" /> Shipping
-                Address
+            <div className="p-4 rounded-xl bg-white/80 border border-[#ffceb0]/80 space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#7C2D12] flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-[#fe6201]" /> Shipping Address
               </h4>
-              <p className="text-sm font-semibold text-[#0F172A]">
+              <p className="text-sm font-semibold text-[#1F2937]">
                 {order.shippingAddress?.fullName}
               </p>
               <p className="text-xs text-[#4B5563] leading-relaxed">
@@ -288,7 +287,7 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   : ""}
               </p>
               {order.deliveredAt && (
-                <p className="text-xs text-[#059669] flex items-center gap-1.5 mt-2">
+                <p className="text-xs text-[#059669] flex items-center gap-1.5 mt-2 font-medium">
                   <Truck className="w-3.5 h-3.5" />
                   Delivered on {new Date(order.deliveredAt).toLocaleDateString()}
                 </p>
@@ -298,18 +297,18 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
 
           {/* Section 3: Ordered Products (Vendor Items Only) */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
-              <Package className="w-3.5 h-3.5 text-[#6366F1]" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#7C2D12] flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5 text-[#fe6201]" />
               Your Order Items ({items.length})
             </h4>
 
-            <div className="border border-[#E5E7EB] rounded-lg divide-y divide-[#E5E7EB] overflow-hidden">
+            <div className="border border-[#ffceb0]/80 rounded-xl divide-y divide-[#ffceb0]/60 overflow-hidden bg-white/80">
               {items.map((item, idx) => (
                 <div
                   key={item._id || idx}
-                  className="p-3.5 flex items-center gap-4 bg-white"
+                  className="p-3.5 flex items-center gap-4 bg-transparent hover:bg-[#FFE7D9]/40 transition-colors"
                 >
-                  <div className="w-14 h-14 rounded-md border border-[#E5E7EB] bg-[#F8FAFC] overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] overflow-hidden shrink-0 flex items-center justify-center">
                     {item.image ? (
                       <img
                         src={item.image}
@@ -317,15 +316,15 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Package className="w-6 h-6 text-[#94A3B8]" />
+                      <Package className="w-6 h-6 text-[#9CA3AF]" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#0F172A] truncate">
+                    <p className="text-sm font-semibold text-[#1F2937] truncate">
                       {item.name}
                     </p>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B] mt-0.5">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#6B7280] mt-0.5">
                       {item.brand && <span>Brand: {item.brand}</span>}
                       {item.size && <span>Size: {item.size}</span>}
                       <span>Quantity: {item.quantity}</span>
@@ -334,13 +333,13 @@ export const OrderDetailsDialog: React.FC<OrderDetailsDialogProps> = ({
                   </div>
 
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-[#0F172A]">
+                    <p className="text-sm font-bold text-[#fe6201]">
                       {formatCurrency(
                         Number(item.itemSubtotal) ||
                           Number(item.unitPrice * item.quantity),
                       )}
                     </p>
-                    <span className="text-[11px] text-[#64748B]">Subtotal</span>
+                    <span className="text-[11px] text-[#6B7280]">Subtotal</span>
                   </div>
                 </div>
               ))}

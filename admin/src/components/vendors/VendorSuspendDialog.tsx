@@ -67,7 +67,7 @@ export const VendorSuspendDialog: React.FC<VendorSuspendDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
+      <DialogContent className="sm:max-w-md p-6 bg-[#FFE7D9] rounded-xl border border-[#ffceb0]/80 shadow-lg font-sans">
         <DialogHeader className="flex flex-col items-center text-center space-y-3">
           <div
             className={`w-12 h-12 rounded-md flex items-center justify-center ${
@@ -110,7 +110,7 @@ export const VendorSuspendDialog: React.FC<VendorSuspendDialogProps> = ({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto rounded-md border-[#E5E7EB] text-[#1F2937] hover:bg-[#F8FAFC]"
+            className="w-full sm:w-auto rounded-md border-[#ffceb0]/80 text-[#1F2937] hover:bg-white/80"
           >
             Cancel
           </Button>

@@ -1,11 +1,10 @@
 "use client";
 
-import * as React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Folder } from "lucide-react";
 import type { Category } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
+import { Folder } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 interface CategoryCardProps {
   category: Category;
@@ -19,30 +18,33 @@ export function CategoryCard({ category, className }: CategoryCardProps) {
     <Link
       href={`/products?category=${encodeURIComponent(category._id)}`}
       className={cn(
-        "group flex flex-col items-center justify-center rounded-xl border border-border/70 bg-muted/30 p-4 transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:bg-primary/5 hover:shadow-xs aspect-square",
+        "group flex flex-col items-center transition-all duration-200 cursor-pointer",
         className,
       )}
     >
-      <div className="relative size-16 sm:size-20 mb-3 flex items-center justify-center overflow-hidden rounded-lg">
+      {/* Clean card with no background, just light border */}
+      <div className="relative aspect-square w-full rounded-xl border border-neutral-200 bg-white overflow-hidden flex items-center justify-center p-4 transition-all duration-200 hover:shadow-xs group-hover:border-neutral-300">
         {hasImage ? (
           <Image
             src={category.image!.url}
             alt={category.name}
             fill
             unoptimized
-            className="object-contain transition-transform duration-300 group-hover:scale-105"
+            className="object-contain mx-auto p-3 transition-transform duration-300 group-hover:scale-105 max-w-[120px] w-full"
           />
         ) : (
-          <div className="flex size-full items-center justify-center bg-muted text-muted-foreground group-hover:text-primary transition-colors">
-            <Folder className="size-8" />
+          <div className="flex size-full items-center justify-center text-gray-400 group-hover:text-[#ff6200] transition-colors">
+            <Folder className="size-12 stroke-[1.5]" />
           </div>
         )}
       </div>
 
-      <span className="text-xs sm:text-sm font-medium text-foreground transition-colors group-hover:text-primary text-center capitalize line-clamp-1">
+      {/* Label in brand orange text without underline on hover */}
+      <span className="text-sm sm:text-base font-semibold text-[#ff6200] text-center mt-3 capitalize line-clamp-1 transition-colors">
         {category.name}
       </span>
     </Link>
   );
 }
 
+export default CategoryCard;

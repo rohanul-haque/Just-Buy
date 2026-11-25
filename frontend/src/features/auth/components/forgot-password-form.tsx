@@ -75,9 +75,9 @@ export function ForgotPasswordForm() {
 
         <div className="pt-2">
           <Link href="/login">
-            <Button variant="outline" className="w-full gap-2">
+            <Button className="w-full h-11 text-base font-semibold gap-2 bg-[#ff6200] hover:bg-[#e55800] active:bg-[#cc4e00] text-white border-0 transition-colors cursor-pointer">
               <ArrowLeft className="size-4" />
-              <span>Back to Sign In</span>
+              <span>Back to Login</span>
             </Button>
           </Link>
         </div>
@@ -118,10 +118,10 @@ export function ForgotPasswordForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="w-full h-11 text-base font-semibold mt-2"
+        className="w-full h-11 text-base font-semibold mt-2 bg-[#ff6200] hover:bg-[#e55800] active:bg-[#cc4e00] text-white border-0 transition-colors cursor-pointer"
       >
         {isPending ? (
-          <LoadingSpinner size="sm" label="Sending reset link..." />
+          <LoadingSpinner size="sm" label="Sending reset link..." className="text-white [&_svg]:text-white" />
         ) : (
           "Send Reset Link"
         )}
@@ -130,10 +130,10 @@ export function ForgotPasswordForm() {
       <div className="text-center pt-2">
         <Link
           href="/login"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#ff6200] hover:underline transition-colors"
         >
           <ArrowLeft className="size-3.5" />
-          <span>Back to Sign In</span>
+          <span>Back to Login</span>
         </Link>
       </div>
     </form>

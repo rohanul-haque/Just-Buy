@@ -180,6 +180,16 @@ const getMyProducts = async (
     filter.category = options.category;
   }
 
+  if (options.minPrice !== undefined || options.maxPrice !== undefined) {
+    filter.price = {};
+    if (options.minPrice !== undefined) {
+      filter.price.$gte = options.minPrice;
+    }
+    if (options.maxPrice !== undefined) {
+      filter.price.$lte = options.maxPrice;
+    }
+  }
+
   if (options.isActive !== undefined) {
     filter.isActive = options.isActive;
   }
@@ -453,6 +463,16 @@ const getPublicProducts = async (
     filter.category = options.category;
   }
 
+  if (options.minPrice !== undefined || options.maxPrice !== undefined) {
+    filter.price = {};
+    if (options.minPrice !== undefined) {
+      filter.price.$gte = options.minPrice;
+    }
+    if (options.maxPrice !== undefined) {
+      filter.price.$lte = options.maxPrice;
+    }
+  }
+
   const page = Math.max(1, options.page || PRODUCT_DEFAULT_PAGE);
   const limit = Math.max(1, options.limit || PRODUCT_DEFAULT_LIMIT);
   const skipCount =
@@ -467,7 +487,11 @@ const getPublicProducts = async (
       .populate("category", "name image")
       .populate({
         path: "vendor",
-        select: "profile location",
+        select: "profile location vendor",
+        populate: {
+          path: "vendor",
+          select: "name",
+        },
       })
       .exec(),
   ]);
@@ -498,7 +522,11 @@ const getNewArrivals = async (
     .populate("category", "name image")
     .populate({
       path: "vendor",
-      select: "profile location",
+      select: "profile location vendor",
+      populate: {
+        path: "vendor",
+        select: "name",
+      },
     })
     .exec();
 
@@ -513,7 +541,11 @@ const getProductById = async (productId: string): Promise<IProduct> => {
     .populate("category", "name image")
     .populate({
       path: "vendor",
-      select: "profile location",
+      select: "profile location vendor",
+      populate: {
+        path: "vendor",
+        select: "name",
+      },
     })
     .exec();
 

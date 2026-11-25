@@ -146,7 +146,7 @@ export function LoginForm() {
           <Label htmlFor="password">Password</Label>
           <Link
             href="/forgot-password"
-            className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            className="text-xs font-medium text-[#ff6200] hover:underline transition-colors"
           >
             Forgot password?
           </Link>
@@ -169,12 +169,12 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="w-full h-11 text-base font-semibold mt-2"
+        className="w-full h-11 text-base font-semibold mt-2 bg-[#ff6200] hover:bg-[#e55800] active:bg-[#cc4e00] text-white border-0 transition-colors cursor-pointer"
       >
         {isPending ? (
-          <LoadingSpinner size="sm" label="Signing in..." />
+          <LoadingSpinner size="sm" label="Logging in..." className="text-white [&_svg]:text-white" />
         ) : (
-          "Sign In"
+          "Login"
         )}
       </Button>
 
@@ -182,9 +182,9 @@ export function LoginForm() {
         <span className="text-muted-foreground">Don&apos;t have an account? </span>
         <Link
           href="/register"
-          className="font-semibold text-primary hover:underline"
+          className="font-semibold text-[#ff6200] hover:underline"
         >
-          Create an Account
+          Create Account
         </Link>
       </div>
     </form>

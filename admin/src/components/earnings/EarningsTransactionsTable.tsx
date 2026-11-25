@@ -14,12 +14,7 @@ import type {
   IEarningsPagination,
   IEarningsTransaction,
 } from "@/types/earnings";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  Receipt,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Receipt } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "react-router";
 
@@ -113,7 +108,7 @@ export const EarningsTransactionsTable: React.FC<
         );
       case "CONFIRMED":
         return (
-          <Badge className="bg-[#4F46E5]/10 text-[#4F46E5] border-transparent font-semibold">
+          <Badge className="bg-[#CB4E01]/10 text-[#CB4E01] border-transparent font-semibold">
             Confirmed
           </Badge>
         );
@@ -156,126 +151,126 @@ export const EarningsTransactionsTable: React.FC<
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+      <div className="rounded-xl border border-[#ffceb0]/60 bg-[#FFE7D9] overflow-hidden shadow-xs">
         <Table>
-          <TableHeader className="bg-[#F8FAFC]">
-            <TableRow className="border-b border-[#E5E7EB] hover:bg-transparent">
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 pl-6 align-middle">
+          <TableHeader className="bg-[#fe6201] text-white">
+            <TableRow className="border-b border-[#fe6201] hover:bg-[#fe6201]">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 pl-6 align-middle">
                 Transaction ID
               </TableHead>
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 px-4 align-middle">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 px-4 align-middle">
                 Name
               </TableHead>
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 px-4 align-middle">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 px-4 align-middle">
                 Amount
               </TableHead>
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 px-4 align-middle">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 px-4 align-middle">
                 Commission
               </TableHead>
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 px-4 align-middle">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 px-4 align-middle">
                 Order Type
               </TableHead>
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 px-4 align-middle">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 px-4 align-middle">
                 Date
               </TableHead>
-              <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-9 py-2 pr-6 text-right align-middle">
+              <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2 pr-6 text-right align-middle">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
 
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i} className="border-b border-[#E5E7EB]">
-                  <TableCell className="py-3 pl-6">
-                    <Skeleton className="h-6 w-24 rounded-sm" />
-                  </TableCell>
-                  <TableCell className="py-3 px-4">
-                    <Skeleton className="h-4 w-28 rounded-sm" />
-                  </TableCell>
-                  <TableCell className="py-3 px-4">
-                    <Skeleton className="h-4 w-16 rounded-sm" />
-                  </TableCell>
-                  <TableCell className="py-3 px-4">
-                    <Skeleton className="h-5 w-16 rounded-sm" />
-                  </TableCell>
-                  <TableCell className="py-3 px-4">
-                    <Skeleton className="h-5 w-20 rounded-md" />
-                  </TableCell>
-                  <TableCell className="py-3 px-4">
-                    <Skeleton className="h-4 w-20 rounded-sm" />
-                  </TableCell>
-                  <TableCell className="py-3 pr-6 text-right">
-                    <Skeleton className="h-8 w-8 rounded-md ml-auto" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              transactions.map((tx) => {
-                const isDelivered = tx.status?.toUpperCase() === "DELIVERED";
-
-                return (
-                  <TableRow
-                    key={tx._id}
-                    className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
-                  >
-                    {/* 1. Transaction ID */}
-                    <TableCell className="py-3 pl-6 align-middle">
-                      <span className="font-mono text-xs font-semibold text-[#0F172A] bg-[#F1F5F9] px-2 py-1 rounded-sm border border-[#E2E8F0]">
-                        {tx.transactionId}
-                      </span>
+          <TableBody className="bg-[#FFE7D9]">
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-b border-[#ffceb0]/40">
+                    <TableCell className="py-3 pl-6">
+                      <Skeleton className="h-6 w-24 rounded-sm" />
                     </TableCell>
-
-                    {/* 2. Name */}
-                    <TableCell className="py-3 px-4 text-sm font-medium text-[#0F172A] align-middle">
-                      {tx.buyerName}
+                    <TableCell className="py-3 px-4">
+                      <Skeleton className="h-4 w-28 rounded-sm" />
                     </TableCell>
-
-                    {/* 3. Amount */}
-                    <TableCell className="py-3 px-4 text-sm font-semibold text-[#0F172A] align-middle">
-                      {formatCurrency(tx.amount)}
+                    <TableCell className="py-3 px-4">
+                      <Skeleton className="h-4 w-16 rounded-sm" />
                     </TableCell>
-
-                    {/* 4. Commission (Only Delivered orders show realized commission, otherwise ৳0.00) */}
-                    <TableCell className="py-3 px-4 text-sm align-middle">
-                      {isDelivered ? (
-                        <span className="inline-flex items-center font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-sm border border-[#D1FAE5]">
-                          {formatCurrency(tx.commission)}
-                        </span>
-                      ) : (
-                        <span className="text-[#9CA3AF] font-medium">৳0.00</span>
-                      )}
+                    <TableCell className="py-3 px-4">
+                      <Skeleton className="h-5 w-16 rounded-sm" />
                     </TableCell>
-
-                    {/* 5. Order Type (Current Order Status Badge) */}
-                    <TableCell className="py-3 px-4 align-middle">
-                      {getStatusBadge(tx.status)}
+                    <TableCell className="py-3 px-4">
+                      <Skeleton className="h-5 w-20 rounded-md" />
                     </TableCell>
-
-                    {/* 6. Date */}
-                    <TableCell className="py-3 px-4 text-sm text-[#4B5563] align-middle">
-                      {formatDate(tx.date)}
+                    <TableCell className="py-3 px-4">
+                      <Skeleton className="h-4 w-20 rounded-sm" />
                     </TableCell>
-
-                    {/* 7. Actions */}
-                    <TableCell className="py-3 pr-6 text-right align-middle">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onViewDetails(tx.orderId)}
-                        className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
-                        title="View order details"
-                        aria-label="View order details"
-                      >
-                        <Info className="w-4 h-4" />
-                      </Button>
+                    <TableCell className="py-3 pr-6 text-right">
+                      <Skeleton className="h-8 w-8 rounded-md ml-auto" />
                     </TableCell>
                   </TableRow>
-                );
-              })
-            )}
+                ))
+              : transactions.map((tx) => {
+                  const isDelivered = tx.status?.toUpperCase() === "DELIVERED";
+
+                  return (
+                    <TableRow
+                      key={tx._id}
+                      className="border-b border-[#ffceb0]/40 hover:bg-[#ffceb0]/40 transition-colors"
+                    >
+                      {/* 1. Transaction ID */}
+                      <TableCell className="py-3 pl-6 align-middle">
+                        <span className="font-mono text-xs font-semibold text-[#0F172A] bg-white/70 px-2 py-1 rounded-sm border border-[#ffceb0]/60">
+                          {tx.transactionId}
+                        </span>
+                      </TableCell>
+
+                      {/* 2. Name */}
+                      <TableCell className="py-3 px-4 text-sm font-medium text-[#0F172A] align-middle">
+                        {tx.buyerName}
+                      </TableCell>
+
+                      {/* 3. Amount */}
+                      <TableCell className="py-3 px-4 text-sm font-semibold text-[#0F172A] align-middle">
+                        {formatCurrency(tx.amount)}
+                      </TableCell>
+
+                      {/* 4. Commission (Only Delivered orders show realized commission, otherwise ৳0.00) */}
+                      <TableCell className="py-3 px-4 text-sm align-middle">
+                        {isDelivered ? (
+                          <span className="inline-flex items-center font-bold text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-sm border border-[#D1FAE5]">
+                            {formatCurrency(tx.commission)}
+                          </span>
+                        ) : (
+                          <span className="text-[#9CA3AF] font-medium">
+                            ৳0.00
+                          </span>
+                        )}
+                      </TableCell>
+
+                      {/* 5. Order Type (Current Order Status Badge) */}
+                      <TableCell className="py-3 px-4 align-middle">
+                        {getStatusBadge(tx.status)}
+                      </TableCell>
+
+                      {/* 6. Date */}
+                      <TableCell className="py-3 px-4 text-sm text-[#4B5563] align-middle">
+                        {formatDate(tx.date)}
+                      </TableCell>
+
+                      {/* 7. Actions */}
+                      <TableCell className="py-3 pr-6 text-right align-middle">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onViewDetails(tx.orderId)}
+                          className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#fe6201] hover:bg-[#ffceb0]/60 transition-colors"
+                          title="View order details"
+                          aria-label="View order details"
+                        >
+                          <Info className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
           </TableBody>
         </Table>
       </div>
@@ -284,8 +279,11 @@ export const EarningsTransactionsTable: React.FC<
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-[#4B5563]">
           <div>
-            Showing <span className="font-semibold text-[#0F172A]">{startRecord}</span>–<span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
-            <span className="font-semibold text-[#0F172A]">{total}</span> transactions
+            Showing{" "}
+            <span className="font-semibold text-[#0F172A]">{startRecord}</span>–
+            <span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
+            <span className="font-semibold text-[#0F172A]">{total}</span>{" "}
+            transactions
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -294,7 +292,7 @@ export const EarningsTransactionsTable: React.FC<
               size="sm"
               disabled={!hasPrev || isLoading}
               onClick={() => handlePageChange(currentPage - 1)}
-              className="h-8 px-2.5 rounded-md border-[#E5E7EB] bg-white text-xs font-medium text-[#0F172A] hover:bg-[#F8FAFC] disabled:opacity-50"
+              className="h-8 px-2.5 rounded-md border-[#ffceb0]/60 bg-[#FFE7D9] text-xs font-medium text-[#0F172A] hover:bg-[#ffceb0]/40 disabled:opacity-50"
             >
               <ChevronLeft className="w-3.5 h-3.5 mr-1" />
               Previous
@@ -320,8 +318,8 @@ export const EarningsTransactionsTable: React.FC<
                     className={cn(
                       "h-8 w-8 p-0 text-xs rounded-md",
                       p === currentPage
-                        ? "bg-[#10B981] text-white hover:bg-[#059669] border-[#10B981] font-bold"
-                        : "border-[#E5E7EB] bg-white text-[#0F172A] hover:bg-[#F8FAFC]",
+                        ? "bg-[#fe6201] text-white hover:bg-[#e55801] border-[#fe6201] font-bold"
+                        : "border-[#ffceb0]/60 bg-[#FFE7D9] text-[#0F172A] hover:bg-[#ffceb0]/40",
                     )}
                   >
                     {p}
@@ -335,7 +333,7 @@ export const EarningsTransactionsTable: React.FC<
               size="sm"
               disabled={!hasNext || isLoading}
               onClick={() => handlePageChange(currentPage + 1)}
-              className="h-8 px-2.5 rounded-md border-[#E5E7EB] bg-white text-xs font-medium text-[#0F172A] hover:bg-[#F8FAFC] disabled:opacity-50"
+              className="h-8 px-2.5 rounded-md border-[#ffceb0]/60 bg-[#FFE7D9] text-xs font-medium text-[#0F172A] hover:bg-[#ffceb0]/40 disabled:opacity-50"
             >
               Next
               <ChevronRight className="w-3.5 h-3.5 ml-1" />

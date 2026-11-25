@@ -1,8 +1,15 @@
+export interface IEmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+}
+
 export interface ISendEmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
+  attachments?: IEmailAttachment[];
 }
 
 export interface IVerificationEmailData {

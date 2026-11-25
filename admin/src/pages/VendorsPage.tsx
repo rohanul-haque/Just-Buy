@@ -54,25 +54,29 @@ export const VendorsPage: React.FC = () => {
           title="Vendor List"
           value={stats.vendorList.toLocaleString("en-US")}
           icon={<Store />}
-          iconBackgroundColor="bg-[#10B981]"
+          iconBackgroundColor="bg-[#DDE0FF]"
+          iconColor="text-[#4338CA]"
         />
         <SummaryCard
           title="Vendor Requests"
           value={stats.vendorRequests.toLocaleString("en-US")}
           icon={<FileText />}
-          iconBackgroundColor="bg-[#3B82F6]"
+          iconBackgroundColor="bg-[#D2F6FF]"
+          iconColor="text-[#0284C7]"
         />
         <SummaryCard
           title="Rejected"
           value={stats.rejected.toLocaleString("en-US")}
           icon={<XCircle />}
-          iconBackgroundColor="bg-[#EF4444]"
+          iconBackgroundColor="bg-[#FFCEB0]"
+          iconColor="text-[#EA580C]"
         />
         <SummaryCard
           title="Suspended"
           value={stats.suspended.toLocaleString("en-US")}
           icon={<AlertTriangle />}
-          iconBackgroundColor="bg-[#F97316]"
+          iconBackgroundColor="bg-[#FFE7D9]"
+          iconColor="text-[#B45309]"
         />
       </div>
 

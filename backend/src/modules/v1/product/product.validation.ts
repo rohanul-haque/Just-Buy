@@ -115,6 +115,8 @@ export const productQuerySchema = z
     skip: z.coerce.number().int().nonnegative().optional(),
     search: z.string().trim().optional(),
     category: z.string().trim().optional(),
+    minPrice: z.coerce.number().nonnegative().optional(),
+    maxPrice: z.coerce.number().nonnegative().optional(),
     isActive: z.preprocess(booleanPreprocessor, z.boolean().optional()),
   })
   .strict();

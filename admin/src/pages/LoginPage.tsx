@@ -1,11 +1,8 @@
 import { getApiErrorMessage } from "@/api/client";
-import JusBuyLogo from "@/components/layout/JusBuyLogo";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowRight, Loader2, Lock, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -59,98 +56,90 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] p-4 font-sans">
-      <Card className="w-full max-w-md bg-white rounded-md p-8 md:p-10 border border-[#E5E7EB] shadow-xs">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="mb-4">
-            <JusBuyLogo />
-          </div>
-          <Badge className="bg-[#E0E7FF] text-[#4F46E5] hover:bg-[#E0E7FF] border-none text-xs font-semibold rounded-md uppercase tracking-wider mb-2 px-3 py-1">
-            Admin Portal
-          </Badge>
-          <p className="text-sm text-[#4B5563]">
-            Sign in to manage vendors, categories, orders & platform earnings
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#461801] p-4 font-sans select-none relative overflow-hidden">
+      {/* Background radial gradient glow for subtle depth */}
+      <div className="absolute inset-0 bg-radial from-[#5c2102]/60 via-[#461801] to-[#331100] pointer-events-none" />
+
+      {/* Main Login Card */}
+      <div className="relative z-10 w-full max-w-[440px] bg-[#CA4E01] rounded-[28px] border-2 border-white/90 p-8 sm:p-10 shadow-2xl text-white">
+        {/* Header */}
+        <div className="text-center space-y-1.5 mb-8">
+          <h1 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight">
+            Login to Account
+          </h1>
+          <p className="text-xs sm:text-[13px] text-white/90 font-normal">
+            Please enter your email and password to continue
           </p>
         </div>
 
         {/* Error message */}
         {errorMessage && (
-          <div className="mb-6 p-3 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-xs text-center font-medium">
+          <div className="mb-6 p-3 rounded-xl bg-white/20 border border-white/40 text-white text-xs text-center font-medium shadow-xs">
             {errorMessage}
           </div>
         )}
 
-        {/* Login Form (shadcn Input & Button) */}
+        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
+          {/* Email */}
+          <div className="space-y-1.5 text-left">
             <label
               htmlFor="email"
-              className="text-xs font-semibold text-[#111827] block"
+              className="text-sm font-semibold text-white block pl-0.5"
             >
-              Admin Email
+              Email
             </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@jusbuy.com"
-                disabled={isSubmitting || isLoading}
-                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
-              />
-            </div>
+            <Input
+              id="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              disabled={isSubmitting || isLoading}
+              className="h-11 sm:h-12 rounded-xl bg-white text-[#1F2937] placeholder:text-[#9CA3AF] text-sm px-4 border-none shadow-inner focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+            />
           </div>
 
-          <div className="space-y-2">
+          {/* Password */}
+          <div className="space-y-1.5 text-left">
             <label
               htmlFor="password"
-              className="text-xs font-semibold text-[#111827] block"
+              className="text-sm font-semibold text-white block pl-0.5"
             >
               Password
             </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                disabled={isSubmitting || isLoading}
-                className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A]"
-              />
-            </div>
+            <Input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              disabled={isSubmitting || isLoading}
+              className="h-11 sm:h-12 rounded-xl bg-white text-[#1F2937] placeholder:text-[#9CA3AF] text-sm px-4 border-none shadow-inner focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+            />
           </div>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting || isLoading}
-            className="w-full h-10 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                <span>Signing in...</span>
-              </>
-            ) : (
-              <>
-                <span>Sign In to Dashboard</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </>
-            )}
-          </Button>
+          {/* Login Button */}
+          <div className="pt-3">
+            <Button
+              type="submit"
+              disabled={isSubmitting || isLoading}
+              className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-white/90 text-[#CA4E01] font-bold text-base transition-all shadow-md cursor-pointer disabled:opacity-60"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin mr-2 text-[#CA4E01]" />
+                  <span>Logging in...</span>
+                </>
+              ) : (
+                "Login"
+              )}
+            </Button>
+          </div>
         </form>
-
-        <p className="mt-8 text-center text-xs text-[#4B5563]">
-          Jus Buy Multi-Vendor Platform © {new Date().getFullYear()} • Secure
-          Admin Zone
-        </p>
-      </Card>
+      </div>
     </div>
   );
 };

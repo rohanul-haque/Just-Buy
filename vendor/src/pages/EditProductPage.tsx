@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, Loader2, Package, Upload, X } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
 import categoryService from "@/api/services/category.service";
 import productService from "@/api/services/product.service";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -23,6 +20,23 @@ import type { ICategory } from "@/types/category";
 import type { IProduct } from "@/types/product";
 
 const AVAILABLE_SIZES = ["S", "M", "L", "XL", "XXL"] as const;
+
+interface FeatureImageState {
+  preview: string;
+  file?: File;
+  isExisting?: boolean;
+  publicId?: string;
+  name?: string;
+}
+
+interface GalleryItemState {
+  id: string;
+  preview: string;
+  name: string;
+  file?: File;
+  isExisting?: boolean;
+  publicId?: string;
+}
 
 export const EditProductPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,24 +57,12 @@ export const EditProductPage: React.FC = () => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
 
-  // Existing images state management: retained vs removed
-  const [existingFeatureImageUrl, setExistingFeatureImageUrl] = useState<
-    string | null
-  >(null);
-  const [retainedExistingImages, setRetainedExistingImages] = useState<
-    Array<{ publicId: string; url: string }>
-  >([]);
-  const [, setRemovedImagePublicIds] = useState<string[]>([]);
+  // 1. Single Feature Image State
+  const [featureImage, setFeatureImage] = useState<FeatureImageState | null>(null);
 
-  // New Image Uploads (replacement / addition)
-  const [newFeatureImage, setNewFeatureImage] = useState<File | null>(null);
-  const [newFeatureImagePreview, setNewFeatureImagePreview] = useState<
-    string | null
-  >(null);
-  const [newAdditionalImages, setNewAdditionalImages] = useState<File[]>([]);
-  const [newAdditionalPreviews, setNewAdditionalPreviews] = useState<string[]>(
-    [],
-  );
+  // 2. Multiple Gallery Images State
+  const [galleryItems, setGalleryItems] = useState<GalleryItemState[]>([]);
+  const [removedPublicIds, setRemovedPublicIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!productId) {
@@ -73,7 +75,6 @@ export const EditProductPage: React.FC = () => {
       setIsLoading(true);
       setLoadError(null);
       try {
-        // Fetch categories and product concurrently
         const [categoriesRes, productRes] = await Promise.all([
           categoryService.getAllCategories(),
           productService.getProductById(productId),
@@ -90,8 +91,8 @@ export const EditProductPage: React.FC = () => {
             typeof prod.category === "object" && prod.category?._id
               ? prod.category._id
               : typeof prod.category === "string"
-                ? prod.category
-                : "";
+              ? prod.category
+              : "";
           setCategoryId(catId);
           setPrice(prod.price !== undefined ? String(prod.price) : "");
           setStock(prod.stock !== undefined ? String(prod.stock) : "");
@@ -100,22 +101,32 @@ export const EditProductPage: React.FC = () => {
           setSelectedSizes(prod.sizes || []);
           setIsActive(prod.isActive !== false);
 
+          // Populate existing feature image
           if (prod.featureImage?.url) {
-            setExistingFeatureImageUrl(prod.featureImage.url);
+            setFeatureImage({
+              preview: prod.featureImage.url,
+              isExisting: true,
+              publicId: prod.featureImage.publicId,
+              name: "Feature Image",
+            });
           }
+
+          // Populate existing gallery images
           if (prod.images && prod.images.length > 0) {
-            setRetainedExistingImages(prod.images);
-          } else {
-            setRetainedExistingImages([]);
+            const items: GalleryItemState[] = prod.images.map((img, idx) => ({
+              id: `existing-${idx}`,
+              preview: img.url,
+              name: `Gallery Image #${idx + 1}`,
+              isExisting: true,
+              publicId: img.publicId,
+            }));
+            setGalleryItems(items);
           }
-          setRemovedImagePublicIds([]);
         } else {
-          setLoadError("Unable to retrieve product details from backend.");
+          setLoadError(productRes.message || "Failed to load product details.");
         }
       } catch (err) {
-        const msg = getApiErrorMessage(err);
-        setLoadError(msg);
-        toast.error("Failed to load product: " + msg);
+        setLoadError(getApiErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
@@ -126,52 +137,61 @@ export const EditProductPage: React.FC = () => {
 
   const handleSizeToggle = (size: string) => {
     setSelectedSizes((prev) =>
-      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size],
+      prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
   };
 
-  const handleFeatureImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  // Feature Image change
+  const handleFeatureImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setNewFeatureImage(file);
-      setNewFeatureImagePreview(URL.createObjectURL(file));
+      if (featureImage?.isExisting && featureImage.publicId) {
+        setRemovedPublicIds((prev) => [...prev, featureImage.publicId!]);
+      }
+      setFeatureImage({
+        file,
+        preview: URL.createObjectURL(file),
+        name: file.name,
+        isExisting: false,
+      });
     }
+    e.target.value = "";
   };
 
-  // Remove existing additional image from preview and mark for backend update
-  const handleRemoveExistingImage = (publicId: string) => {
-    setRetainedExistingImages((prev) =>
-      prev.filter((img) => img.publicId !== publicId),
-    );
-    setRemovedImagePublicIds((prev) => [...prev, publicId]);
+  const removeFeatureImage = () => {
+    if (featureImage?.isExisting && featureImage.publicId) {
+      setRemovedPublicIds((prev) => [...prev, featureImage.publicId!]);
+    }
+    setFeatureImage(null);
   };
 
-  const handleAdditionalImagesChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  // Gallery Images change
+  const handleGalleryFilesAdded = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      const remainingSlots = Math.max(
-        0,
-        10 - (retainedExistingImages.length + newAdditionalImages.length),
-      );
-      const toAdd = files.slice(0, remainingSlots);
-      setNewAdditionalImages((prev) => [...prev, ...toAdd]);
-      const newPreviews = toAdd.map((f) => URL.createObjectURL(f));
-      setNewAdditionalPreviews((prev) => [...prev, ...newPreviews]);
-    }
+    if (files.length === 0) return;
+
+    const newItems: GalleryItemState[] = files.map((file, idx) => ({
+      id: `new-${Date.now()}-${idx}`,
+      name: file.name,
+      preview: URL.createObjectURL(file),
+      file,
+      isExisting: false,
+    }));
+
+    setGalleryItems((prev) => [...prev, ...newItems].slice(0, 10));
+    e.target.value = "";
   };
 
-  const removeNewAdditionalImage = (index: number) => {
-    setNewAdditionalImages((prev) => prev.filter((_, i) => i !== index));
-    setNewAdditionalPreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeGalleryItem = (index: number) => {
+    const target = galleryItems[index];
+    if (target.isExisting && target.publicId) {
+      setRemovedPublicIds((prev) => [...prev, target.publicId!]);
+    }
+    setGalleryItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!productId) return;
 
     if (!name.trim()) {
@@ -182,20 +202,18 @@ export const EditProductPage: React.FC = () => {
       toast.error("Please select a category.");
       return;
     }
-    if (!price || Number(price) <= 0) {
-      toast.error("Please enter a valid price greater than zero.");
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice) || numPrice < 0) {
+      toast.error("Please enter a valid regular price.");
       return;
     }
-    if (stock === "" || Number(stock) < 0) {
-      toast.error("Please enter a valid non-negative stock count.");
+    const numStock = parseInt(stock, 10);
+    if (isNaN(numStock) || numStock < 0) {
+      toast.error("Please enter a valid stock quantity.");
       return;
     }
-    if (!description.trim() || description.trim().length < 5) {
-      toast.error("Product description must be at least 5 characters.");
-      return;
-    }
-    if (!newFeatureImage && !existingFeatureImageUrl) {
-      toast.error("A main product feature image is required.");
+    if (!featureImage) {
+      toast.error("Please upload or retain a feature image.");
       return;
     }
 
@@ -204,43 +222,34 @@ export const EditProductPage: React.FC = () => {
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("category", categoryId);
-      formData.append("price", String(Number(price)));
-      formData.append("stock", String(Math.floor(Number(stock))));
-      formData.append("description", description.trim());
+      formData.append("price", String(numPrice));
+      formData.append("stock", String(numStock));
+      if (brand.trim()) formData.append("brand", brand.trim());
+      if (description.trim()) formData.append("description", description.trim());
       formData.append("isActive", String(isActive));
 
-      if (brand.trim()) {
-        formData.append("brand", brand.trim());
-      } else {
-        formData.append("brand", "");
-      }
-
-      if (selectedSizes.length > 0) {
-        formData.append("sizes", JSON.stringify(selectedSizes));
-      } else {
-        formData.append("sizes", JSON.stringify([]));
-      }
-
-      // Send retained image public IDs so backend preserves only kept images and deletes removed ones
-      formData.append(
-        "retainedImages",
-        JSON.stringify(retainedExistingImages.map((img) => img.publicId)),
-      );
-
-      // Append new feature image only if replacement was selected
-      if (newFeatureImage) {
-        formData.append("featureImage", newFeatureImage);
-      }
-
-      // Append any new additional images
-      newAdditionalImages.forEach((img) => {
-        formData.append("images", img);
+      selectedSizes.forEach((s) => {
+        formData.append("sizes", s);
       });
 
-      const response = await productService.updateMyProduct(
-        productId,
-        formData,
-      );
+      // New feature image
+      if (featureImage.file) {
+        formData.append("featureImage", featureImage.file);
+      }
+
+      // New gallery images
+      galleryItems.forEach((item) => {
+        if (item.file) {
+          formData.append("images", item.file);
+        }
+      });
+
+      // Removed images
+      removedPublicIds.forEach((pid) => {
+        formData.append("removedImages", pid);
+      });
+
+      const response = await productService.updateMyProduct(productId, formData);
       if (response.success) {
         toast.success("Product updated successfully!");
         navigate("/products");
@@ -256,423 +265,331 @@ export const EditProductPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-md" />
-          <div className="space-y-1.5">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-64" />
-          </div>
+          <Skeleton className="w-9 h-9 rounded-full" />
+          <Skeleton className="h-8 w-56" />
         </div>
-        <Card className="border border-[#E5E7EB] bg-white rounded-lg p-6 space-y-4">
-          <Skeleton className="h-6 w-36" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <Skeleton className="h-28 w-full" />
-        </Card>
+        <div className="rounded-2xl border border-[#ffceb0]/80 bg-[#FFE7D9] p-8 space-y-6">
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="max-w-xl mx-auto text-center py-16 space-y-4">
-        <div className="w-16 h-16 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto">
-          <Package className="w-8 h-8 text-[#EF4444]" />
-        </div>
-        <h3 className="text-lg font-bold text-[#0F172A]">Unable to Load Product</h3>
-        <p className="text-xs text-[#64748B]">{loadError}</p>
-        <Button
-          onClick={() => navigate("/products")}
-          variant="outline"
-          className="text-xs border-[#E5E7EB]"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
-          Back to Products
+      <div className="max-w-md mx-auto text-center py-16 space-y-4">
+        <h3 className="text-lg font-bold text-[#DC2626]">Failed to load product</h3>
+        <p className="text-sm text-[#4B5563]">{loadError}</p>
+        <Button onClick={() => navigate("/products")} className="bg-[#fe6201] text-white">
+          Return to Products
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Top Header */}
       <div className="flex items-center gap-3">
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="icon"
           onClick={() => navigate("/products")}
-          className="h-9 w-9 p-0 border-[#E5E7EB] text-[#374151] hover:bg-[#F8FAFC] cursor-pointer"
+          className="h-9 w-9 rounded-full text-[#1F2937] hover:bg-[#ffceb0]/40"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div>
-          <h2 className="text-2xl font-bold text-[#0F172A]">Edit Product</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Update pricing, inventory, description, and photos for this listing.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-[#1F2937] tracking-tight">
+          Edit Product Details
+        </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information Card */}
-        <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs">
-          <CardHeader className="pb-3 border-b border-[#F1F5F9] flex flex-row items-center justify-between gap-4">
-            <CardTitle className="text-base font-bold text-[#0F172A]">
-              Basic Information
-            </CardTitle>
+      {/* Main Container Card */}
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-[#ffceb0]/80 bg-[#FFE7D9] p-6 sm:p-8 shadow-xs space-y-6 text-[#1F2937]">
+        {/* Two-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Form Fields */}
+          <div className="lg:col-span-6 space-y-4">
+            {/* 1. Product Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-p-name" className="text-sm font-bold text-[#1F2937] block">
+                Product Name
+              </label>
+              <Input
+                id="edit-p-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Lorem Ipsum"
+                required
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
 
-            {/* Product Status Select Dropdown beside Heading */}
-            <div className="flex items-center gap-2">
-              <Label htmlFor="product-status" className="text-xs text-[#64748B] font-medium whitespace-nowrap">
-                Product Status:
-              </Label>
-              <Select
-                value={isActive ? "ACTIVE" : "INACTIVE"}
-                onValueChange={(val) => setIsActive(val === "ACTIVE")}
-              >
-                <SelectTrigger id="product-status" className="h-9 w-[130px] text-xs font-semibold border-[#E5E7EB] bg-white">
-                  <SelectValue placeholder="Select Status" />
+            {/* 2. Description */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-p-desc" className="text-sm font-bold text-[#1F2937] block">
+                Description
+              </label>
+              <Textarea
+                id="edit-p-desc"
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Lorem Ipsum Is A Dummy Text"
+                className="px-4 py-2.5 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 3. Category */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-p-cat" className="text-sm font-bold text-[#1F2937] block">
+                Category
+              </label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger id="edit-p-cat" className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] shadow-2xs focus:ring-[#fe6201]">
+                  <SelectValue placeholder="Sneaker" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="ACTIVE" className="text-xs text-[#059669] font-medium">
-                    Active
-                  </SelectItem>
-                  <SelectItem value="INACTIVE" className="text-xs text-[#DC2626] font-medium">
-                    Inactive
-                  </SelectItem>
+                <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                  {categories.map((cat) => (
+                    <SelectItem key={cat._id} value={cat._id} className="text-sm cursor-pointer hover:bg-[#ffceb0]/60">
+                      {cat.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Product Name */}
-              <div className="space-y-1.5 md:col-span-2">
-                <Label htmlFor="name" className="text-xs font-semibold text-[#374151]">
-                  Product Name <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. Classic Cotton Crewneck T-Shirt"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
 
-              {/* Category */}
-              <div className="space-y-1.5">
-                <Label htmlFor="category" className="text-xs font-semibold text-[#374151]">
-                  Category <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Select
-                  value={categoryId}
-                  onValueChange={(val) => setCategoryId(val)}
-                >
-                  <SelectTrigger id="category" className="w-full h-10 text-sm text-[#0F172A] border-[#E5E7EB] bg-white">
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {categories.map((cat) => (
-                      <SelectItem key={cat._id} value={cat._id} className="text-sm">
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Brand */}
-              <div className="space-y-1.5">
-                <Label htmlFor="brand" className="text-xs font-semibold text-[#374151]">
-                  Brand Name (Optional)
-                </Label>
-                <Input
-                  id="brand"
-                  placeholder="e.g. Jus Buy Basics"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
-
-              {/* Price */}
-              <div className="space-y-1.5">
-                <Label htmlFor="price" className="text-xs font-semibold text-[#374151]">
-                  Price (৳) <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
-
-              {/* Stock */}
-              <div className="space-y-1.5">
-                <Label htmlFor="stock" className="text-xs font-semibold text-[#374151]">
-                  Available Stock <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  step="1"
-                  placeholder="0"
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value)}
-                  required
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
+            {/* 4. Brand Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-p-brand" className="text-sm font-bold text-[#1F2937] block">
+                Brand Name
+              </label>
+              <Input
+                id="edit-p-brand"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="Addidas"
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
             </div>
 
-            {/* Sizes */}
-            <div className="space-y-2 pt-2">
-              <Label className="text-xs font-semibold text-[#374151]">
-                Available Sizes (Optional)
-              </Label>
-              <div className="flex flex-wrap items-center gap-4 pt-1">
+            {/* 5. Stock Quantity */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-p-stock" className="text-sm font-bold text-[#1F2937] block">
+                Stock Quantity
+              </label>
+              <Input
+                id="edit-p-stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                placeholder="211"
+                required
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 6. Regular Price */}
+            <div className="space-y-1.5">
+              <label htmlFor="edit-p-price" className="text-sm font-bold text-[#1F2937] block">
+                Regular Price
+              </label>
+              <Input
+                id="edit-p-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="$110.40"
+                required
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 7. Size (Optional) */}
+            <div className="space-y-2 pt-1">
+              <label className="text-sm font-bold text-[#1F2937] block">
+                Size(Optional)
+              </label>
+              <div className="flex items-center gap-2">
                 {AVAILABLE_SIZES.map((size) => {
-                  const isChecked = selectedSizes.includes(size);
+                  const isSelected = selectedSizes.includes(size);
                   return (
-                    <div key={size} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`size-${size}`}
-                        checked={isChecked}
-                        onCheckedChange={() => handleSizeToggle(size)}
-                      />
-                      <label
-                        htmlFor={`size-${size}`}
-                        className="text-xs font-medium text-[#374151] cursor-pointer select-none"
-                      >
-                        {size}
-                      </label>
-                    </div>
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => handleSizeToggle(size)}
+                      className={`min-w-10 h-10 px-3 rounded-lg border text-sm font-medium transition-all cursor-pointer shadow-2xs ${
+                        isSelected
+                          ? "bg-white border-[#fe6201] text-[#fe6201] font-bold ring-1 ring-[#fe6201]"
+                          : "bg-white/80 border-[#9CA3AF] text-[#1F2937] hover:bg-white"
+                      }`}
+                    >
+                      {size}
+                    </button>
                   );
                 })}
               </div>
             </div>
+          </div>
 
-            {/* Description */}
-            <div className="space-y-1.5 pt-2">
-              <Label htmlFor="description" className="text-xs font-semibold text-[#374151]">
-                Product Description <span className="text-[#EF4444]">*</span>
-              </Label>
-              <Textarea
-                id="description"
-                rows={4}
-                placeholder="Provide a detailed description of features, materials, and care instructions..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                className="text-sm border-[#E5E7EB]"
-              />
-            </div>
-          </CardContent>
-        </Card>
+          {/* Right Column: Two distinct sections: Feature Image & Gallery Images */}
+          <div className="lg:col-span-6 space-y-6">
+            {/* Section 1: Single Feature Image */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#1F2937]">
+                  Feature Image <span className="text-[#fe6201]">*</span>
+                </h3>
+                <span className="text-xs text-[#6B7280]">Primary single photo</span>
+              </div>
 
-        {/* Product Media Card */}
-        <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs">
-          <CardHeader className="pb-3 border-b border-[#F1F5F9]">
-            <CardTitle className="text-base font-bold text-[#0F172A]">
-              Product Images
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            {/* Main Feature Image */}
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold text-[#374151]">
-                Main Feature Image <span className="text-[#EF4444]">*</span>
-              </Label>
-              <div className="flex items-center gap-4">
-                {newFeatureImagePreview ? (
-                  <div className="w-24 h-24 rounded-md border border-[#E5E7EB] overflow-hidden relative group">
-                    <img
-                      src={newFeatureImagePreview}
-                      alt="New Feature preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setNewFeatureImage(null);
-                        setNewFeatureImagePreview(null);
-                      }}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs"
-                      title="Remove replacement photo"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : existingFeatureImageUrl ? (
-                  <div className="w-24 h-24 rounded-md border border-[#E5E7EB] overflow-hidden relative group">
-                    <img
-                      src={existingFeatureImageUrl}
-                      alt="Current Feature"
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1 py-0.5 rounded">
-                      Current
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setExistingFeatureImageUrl(null)}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs"
-                      title="Remove current feature photo"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : null}
-
-                <label className="w-24 h-24 rounded-md border-2 border-dashed border-[#CBD5E1] hover:border-[#6366F1] flex flex-col items-center justify-center cursor-pointer bg-[#F8FAFC] transition-colors">
-                  <Upload className="w-5 h-5 text-[#94A3B8]" />
-                  <span className="text-[10px] text-[#64748B] mt-1 font-medium">
-                    {newFeatureImagePreview || existingFeatureImageUrl
-                      ? "Replace"
-                      : "Upload"}
+              {!featureImage ? (
+                <label className="border-2 border-dashed border-[#9CA3AF] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#fe6201] bg-transparent transition-colors min-h-[140px] select-none">
+                  <ImageIcon className="w-10 h-10 text-[#1F2937] stroke-[1.2] mb-1.5" />
+                  <p className="text-xs sm:text-sm text-[#4B5563] font-medium">
+                    Upload Feature Image, or <span className="text-[#fe6201] underline">browse</span>
+                  </p>
+                  <span className="text-[11px] text-[#6B7280] mt-0.5">
+                    Single main image (Jpeg, png)
                   </span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp"
                     onChange={handleFeatureImageChange}
                     className="hidden"
                   />
                 </label>
+              ) : (
+                <div className="rounded-xl border border-[#9CA3AF] bg-transparent p-3 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-14 rounded-lg bg-[#9CA3AF]/40 overflow-hidden shrink-0 flex items-center justify-center">
+                      <img
+                        src={featureImage.preview}
+                        alt="Feature Image"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-[#1F2937] truncate">
+                        {featureImage.name || "Feature Image"}
+                      </p>
+                      <span className="text-[10px] font-bold text-[#fe6201] uppercase block mt-0.5">
+                        Feature Image
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="text-xs text-[#64748B]">
-                  <p className="font-semibold text-[#0F172A]">Primary Showcase Photo</p>
-                  <p>
-                    Leave untouched to keep the current image, or upload a replacement.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Images with Individual Image Removal */}
-            <div className="space-y-2 pt-2 border-t border-[#F1F5F9]">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold text-[#374151]">
-                  Additional Images ({retainedExistingImages.length + newAdditionalImages.length}/10)
-                </Label>
-                {retainedExistingImages.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      retainedExistingImages.forEach((img) =>
-                        handleRemoveExistingImage(img.publicId),
-                      );
-                    }}
-                    className="text-[11px] text-[#DC2626] hover:underline cursor-pointer font-medium"
+                    onClick={removeFeatureImage}
+                    className="p-1.5 text-[#1F2937] hover:text-[#DC2626] transition-colors cursor-pointer shrink-0"
+                    title="Remove feature image"
+                    aria-label="Remove feature image"
                   >
-                    Remove All Existing Photos
+                    <Trash2 className="w-5 h-5 stroke-[1.5]" />
                   </button>
-                )}
+                </div>
+              )}
+            </div>
+
+            {/* Section 2: Multiple Gallery Images */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#1F2937]">
+                  Product Gallery Images
+                </h3>
+                <span className="text-xs text-[#6B7280]">Multiple images</span>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                {/* Existing Saved Photos with Individual Removal Button */}
-                {retainedExistingImages.map((img, idx) => (
+              {/* Upload Dropzone for multiple images */}
+              <label className="border-2 border-dashed border-[#9CA3AF] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#fe6201] bg-transparent transition-colors min-h-[140px] select-none">
+                <ImageIcon className="w-10 h-10 text-[#1F2937] stroke-[1.2] mb-1.5" />
+                <p className="text-xs sm:text-sm text-[#4B5563] font-medium">
+                  Drop gallery images here, or <span className="text-[#fe6201] underline">browse</span>
+                </p>
+                <span className="text-[11px] text-[#6B7280] mt-0.5">
+                  Select multiple product photos (Jpeg, png)
+                </span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  multiple
+                  onChange={handleGalleryFilesAdded}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Uploaded Gallery Images List */}
+              <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                {galleryItems.map((item, idx) => (
                   <div
-                    key={`existing-${img.publicId || idx}`}
-                    className="w-20 h-20 rounded-md border border-[#E5E7EB] overflow-hidden relative group"
+                    key={item.id}
+                    className="rounded-xl border border-[#9CA3AF] bg-transparent p-3 flex items-center justify-between gap-3 shadow-2xs"
                   >
-                    <img
-                      src={img.url}
-                      alt={`Current additional ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[8px] px-1 py-0.5 rounded">
-                      Current
-                    </span>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-12 h-12 rounded-lg bg-[#9CA3AF]/40 overflow-hidden shrink-0 flex items-center justify-center">
+                        <img
+                          src={item.preview}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-[#1F2937] truncate">
+                          {item.name}
+                        </p>
+                        <span className="text-[10px] text-[#6B7280] block">
+                          Gallery Image #{idx + 1}
+                        </span>
+                      </div>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => handleRemoveExistingImage(img.publicId)}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs transition-opacity"
+                      onClick={() => removeGalleryItem(idx)}
+                      className="p-1.5 text-[#1F2937] hover:text-[#DC2626] transition-colors cursor-pointer shrink-0"
                       title="Remove image"
+                      aria-label="Remove image"
                     >
-                      <X className="w-3 h-3" />
+                      <Trash2 className="w-5 h-5 stroke-[1.5]" />
                     </button>
                   </div>
                 ))}
-
-                {/* Newly Added Additional Photos with Removal Button */}
-                {newAdditionalPreviews.map((preview, idx) => (
-                  <div
-                    key={`new-${idx}`}
-                    className="w-20 h-20 rounded-md border border-[#E5E7EB] overflow-hidden relative group"
-                  >
-                    <img
-                      src={preview}
-                      alt={`New preview ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeNewAdditionalImage(idx)}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100 cursor-pointer shadow-xs transition-opacity"
-                      title="Remove uploaded image"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-
-                {retainedExistingImages.length + newAdditionalImages.length < 10 && (
-                  <label className="w-20 h-20 rounded-md border-2 border-dashed border-[#CBD5E1] hover:border-[#6366F1] flex flex-col items-center justify-center cursor-pointer bg-[#F8FAFC] transition-colors">
-                    <Upload className="w-5 h-5 text-[#94A3B8]" />
-                    <span className="text-[10px] text-[#64748B] mt-1 font-medium">+ Add</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleAdditionalImagesChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        {/* Bottom Action Buttons */}
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 rounded-xl bg-[#fe6201] hover:bg-[#e55801] text-white font-bold text-sm uppercase tracking-wider shadow-md cursor-pointer disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Updating...
+              </span>
+            ) : (
+              "Update Product"
+            )}
+          </Button>
+
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/products")}
             disabled={isSubmitting}
-            className="border-[#E5E7EB] text-[#374151]"
+            className="w-full h-12 rounded-xl bg-transparent border-2 border-[#fe6201] text-[#fe6201] hover:bg-[#fe6201]/10 font-bold text-sm uppercase tracking-wider cursor-pointer"
           >
             Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold px-6 shadow-xs"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving Changes...
-              </>
-            ) : (
-              "Save Changes"
-            )}
           </Button>
         </div>
       </form>

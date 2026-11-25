@@ -4,15 +4,7 @@ import ProfileAvatar from "@/components/ui/ProfileAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import VendorPagination from "@/components/ui/vendor-pagination";
 import {
   Select,
   SelectContent,
@@ -29,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import type {
   IEarningsPagination,
   IVendorEarningsTransaction,
@@ -90,43 +83,43 @@ export const VendorEarningsTransactionsTable: React.FC<
     switch (status?.toUpperCase()) {
       case "DELIVERED":
         return (
-          <Badge className="bg-[#10B981]/10 text-[#10B981] border-transparent font-semibold">
+          <Badge className="bg-[#10B981]/15 text-[#059669] border-[#10B981]/30 font-semibold rounded-md text-xs">
             Delivered
           </Badge>
         );
       case "PENDING":
         return (
-          <Badge className="bg-[#F59E0B]/10 text-[#D97706] border-transparent font-semibold">
+          <Badge className="bg-[#F59E0B]/15 text-[#D97706] border-[#F59E0B]/30 font-semibold rounded-md text-xs">
             Pending
           </Badge>
         );
       case "PROCESSING":
         return (
-          <Badge className="bg-[#0284C7]/10 text-[#0284C7] border-transparent font-semibold">
+          <Badge className="bg-[#0284C7]/15 text-[#0284C7] border-[#0284C7]/30 font-semibold rounded-md text-xs">
             Processing
           </Badge>
         );
       case "CONFIRMED":
         return (
-          <Badge className="bg-[#4F46E5]/10 text-[#4F46E5] border-transparent font-semibold">
+          <Badge className="bg-[#fe6201]/15 text-[#fe6201] border-[#fe6201]/30 font-semibold rounded-md text-xs">
             Confirmed
           </Badge>
         );
       case "SHIPPED":
         return (
-          <Badge className="bg-[#8B5CF6]/10 text-[#7C3AED] border-transparent font-semibold">
+          <Badge className="bg-[#8B5CF6]/15 text-[#7C3AED] border-[#8B5CF6]/30 font-semibold rounded-md text-xs">
             Shipped
           </Badge>
         );
       case "CANCELLED":
         return (
-          <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-transparent font-semibold">
+          <Badge className="bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30 font-semibold rounded-md text-xs">
             Cancelled
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-[#6B7280]/10 text-[#4B5563] border-transparent font-semibold">
+          <Badge className="bg-[#6B7280]/15 text-[#4B5563] border-[#6B7280]/30 font-semibold rounded-md text-xs">
             {status || "Unknown"}
           </Badge>
         );
@@ -135,9 +128,9 @@ export const VendorEarningsTransactionsTable: React.FC<
 
   return (
     <div className="space-y-4">
-      {/* Search and Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white p-4 rounded-lg border border-[#E5E7EB] shadow-xs">
-        {/* Search Input (Takes available horizontal space) */}
+      {/* Search Bar & Filter Matching Admin Design */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+        {/* Full width Search Box */}
         <div className="relative flex-1 w-full min-w-0">
           <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
@@ -145,7 +138,7 @@ export const VendorEarningsTransactionsTable: React.FC<
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search by transaction ID or customer name..."
-            className="w-full pl-9 pr-8 h-9 rounded-md bg-white border-[#E5E7EB] text-xs sm:text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:ring-1 focus-visible:ring-[#4F46E5]"
+            className="w-full pl-9 pr-8 h-10 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-xs sm:text-sm text-[#1F2937] placeholder:text-[#94A3B8] shadow-xs outline-none focus:outline-none focus:border-[#fe6201] focus-visible:outline-none focus-visible:ring-0 focus-visible:border-[#fe6201]"
           />
           {searchQuery && (
             <button
@@ -159,32 +152,32 @@ export const VendorEarningsTransactionsTable: React.FC<
           )}
         </div>
 
-        {/* Status Filter (Far right) */}
+        {/* Status Filter */}
         <div className="w-full sm:w-48 md:w-52 shrink-0">
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="h-9 w-full text-xs sm:text-sm rounded-md border-[#E5E7EB] bg-white text-[#0F172A] focus:ring-[#4F46E5]">
+            <SelectTrigger className="h-10 w-full text-xs sm:text-sm rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] text-[#1F2937] shadow-xs focus:ring-[#fe6201]">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL" className="text-xs sm:text-sm cursor-pointer">
+            <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+              <SelectItem value="ALL" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 All Status
               </SelectItem>
-              <SelectItem value="DELIVERED" className="text-xs sm:text-sm cursor-pointer">
+              <SelectItem value="DELIVERED" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 Delivered
               </SelectItem>
-              <SelectItem value="PENDING" className="text-xs sm:text-sm cursor-pointer">
+              <SelectItem value="PENDING" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 Pending
               </SelectItem>
-              <SelectItem value="PROCESSING" className="text-xs sm:text-sm cursor-pointer">
+              <SelectItem value="PROCESSING" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 Processing
               </SelectItem>
-              <SelectItem value="CONFIRMED" className="text-xs sm:text-sm cursor-pointer">
+              <SelectItem value="CONFIRMED" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 Confirmed
               </SelectItem>
-              <SelectItem value="SHIPPED" className="text-xs sm:text-sm cursor-pointer">
+              <SelectItem value="SHIPPED" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 Shipped
               </SelectItem>
-              <SelectItem value="CANCELLED" className="text-xs sm:text-sm cursor-pointer">
+              <SelectItem value="CANCELLED" className="text-xs sm:text-sm cursor-pointer hover:bg-[#ffceb0]/60">
                 Cancelled
               </SelectItem>
             </SelectContent>
@@ -193,13 +186,13 @@ export const VendorEarningsTransactionsTable: React.FC<
       </div>
 
       {/* Earnings History Table */}
-      <div className="rounded-lg border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+      <div className="rounded-xl border border-[#ffceb0]/60 bg-[#FFE7D9] overflow-hidden shadow-xs">
         {!isLoading && transactions.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-12 h-12 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-xl bg-[#ffceb0]/40 border border-[#ffceb0] text-[#fe6201] flex items-center justify-center mx-auto mb-3">
               <Receipt className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-semibold text-[#0F172A]">
+            <h3 className="text-base font-semibold text-[#1F2937]">
               No earnings records found
             </h3>
             <p className="text-sm text-[#4B5563] mt-1 max-w-sm mx-auto">
@@ -211,39 +204,39 @@ export const VendorEarningsTransactionsTable: React.FC<
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-[#F8FAFC]">
-                <TableRow className="border-b border-[#E5E7EB] hover:bg-transparent">
+              <TableHeader className="bg-[#CB4E01] text-white">
+                <TableRow className="border-b border-[#CB4E01] hover:bg-[#CB4E01]">
                   {/* 1. Customer */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 pl-6 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 pl-6 align-middle">
                     Customer
                   </TableHead>
                   {/* 2. Date & Time */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Date & Time
                   </TableHead>
                   {/* 3. Amount */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Amount
                   </TableHead>
                   {/* 4. Vendor Commission */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Vendor Commission
                   </TableHead>
                   {/* 5. Order Status */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Order Status
                   </TableHead>
                   {/* 6. Actions */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 pr-6 text-right align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 pr-6 text-right align-middle">
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
 
-              <TableBody>
+              <TableBody className="bg-[#FFE7D9]">
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i} className="border-b border-[#E5E7EB]">
+                    <TableRow key={i} className="border-b border-[#ffceb0]/40">
                       <TableCell className="py-3.5 pl-6">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-9 w-9 rounded-full" />
@@ -274,7 +267,7 @@ export const VendorEarningsTransactionsTable: React.FC<
                     return (
                       <TableRow
                         key={tx._id}
-                        className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
+                        className="border-b border-[#ffceb0]/40 hover:bg-[#ffceb0]/40 transition-colors"
                       >
                         {/* 1. Customer */}
                         <TableCell className="py-3.5 pl-6 align-middle">
@@ -282,10 +275,10 @@ export const VendorEarningsTransactionsTable: React.FC<
                             <ProfileAvatar
                               src={tx.buyerImage}
                               alt={tx.buyerName}
-                              className="w-9 h-9 rounded-full border border-[#E5E7EB] shrink-0"
+                              className="w-9 h-9 rounded-full border border-[#ffceb0]/80 shrink-0"
                             />
                             <div className="min-w-0">
-                              <p className="font-medium text-xs sm:text-sm text-[#0F172A] truncate">
+                              <p className="font-medium text-xs sm:text-sm text-[#1F2937] truncate">
                                 {tx.buyerName}
                               </p>
                               {tx.transactionId && (
@@ -303,7 +296,7 @@ export const VendorEarningsTransactionsTable: React.FC<
                         </TableCell>
 
                         {/* 3. Amount */}
-                        <TableCell className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-[#0F172A] align-middle">
+                        <TableCell className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-[#1F2937] align-middle">
                           {formatCurrency(tx.amount)}
                         </TableCell>
 
@@ -332,7 +325,7 @@ export const VendorEarningsTransactionsTable: React.FC<
                             variant="ghost"
                             size="icon"
                             onClick={() => onViewDetails(tx.orderId)}
-                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#CB4E01] hover:bg-[#ffceb0]/60 transition-colors cursor-pointer"
                             title="View Earning Details"
                             aria-label="View Earning Details"
                           >
@@ -351,78 +344,13 @@ export const VendorEarningsTransactionsTable: React.FC<
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-1 text-xs text-[#4B5563]">
-          <div>
-            Showing <span className="font-semibold text-[#0F172A]">{startRecord}</span>–<span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
-            <span className="font-semibold text-[#0F172A]">{total}</span> records
-          </div>
-
-          <Pagination className="justify-center sm:justify-end mx-0 w-auto">
-            <PaginationContent className="gap-1">
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                  disabled={currentPage <= 1 || isLoading}
-                  className={
-                    currentPage <= 1 || isLoading
-                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs h-8 px-2.5"
-                      : "cursor-pointer text-xs h-8 px-2.5"
-                  }
-                />
-              </PaginationItem>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => {
-                  return (
-                    p === 1 ||
-                    p === totalPages ||
-                    Math.abs(p - currentPage) <= 1
-                  );
-                })
-                .reduce<(number | string)[]>((acc, curr, index, arr) => {
-                  if (
-                    index > 0 &&
-                    (curr as number) - (arr[index - 1] as number) > 1
-                  ) {
-                    acc.push(`ellipsis-${curr}`);
-                  }
-                  acc.push(curr);
-                  return acc;
-                }, [])
-                .map((item) => {
-                  if (typeof item === "string") {
-                    return (
-                      <PaginationItem key={item}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
-                  }
-                  return (
-                    <PaginationItem key={item}>
-                      <PaginationLink
-                        isActive={currentPage === item}
-                        onClick={() => onPageChange(item)}
-                        className="h-8 w-8 text-xs cursor-pointer"
-                      >
-                        {item}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage >= totalPages || isLoading}
-                  className={
-                    currentPage >= totalPages || isLoading
-                      ? "pointer-events-none opacity-50 cursor-not-allowed text-xs h-8 px-2.5"
-                      : "cursor-pointer text-xs h-8 px-2.5"
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+        <div className="pt-2">
+          <VendorPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            isLoading={isLoading}
+          />
         </div>
       )}
     </div>

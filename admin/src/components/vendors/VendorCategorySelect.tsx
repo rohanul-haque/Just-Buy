@@ -35,22 +35,22 @@ export const VendorCategorySelect: React.FC<VendorCategorySelectProps> = ({
   };
 
   return (
-    <div className={`w-full sm:w-48 shrink-0 ${className}`}>
+    <div className={`w-full sm:w-52 shrink-0 ${className}`}>
       <Select value={category} onValueChange={handleCategoryChange}>
-        <SelectTrigger className="w-full h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] shadow-xs focus:ring-1 focus:ring-[#4F46E5] focus:border-[#4F46E5]">
+        <SelectTrigger className="w-full h-10 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-sm text-[#0F172A] shadow-xs focus:ring-1 focus:ring-[#fe6201] focus:border-[#fe6201]">
           <SelectValue placeholder="Select category" />
         </SelectTrigger>
-        <SelectContent className="rounded-md border-[#E5E7EB] bg-white shadow-md">
-          <SelectItem value="list" className="rounded-sm text-sm">
+        <SelectContent className="rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] shadow-md">
+          <SelectItem value="list" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             Vendor List
           </SelectItem>
-          <SelectItem value="requests" className="rounded-sm text-sm">
+          <SelectItem value="requests" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             Vendor Requests
           </SelectItem>
-          <SelectItem value="rejected" className="rounded-sm text-sm">
+          <SelectItem value="rejected" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             Rejected
           </SelectItem>
-          <SelectItem value="suspended" className="rounded-sm text-sm">
+          <SelectItem value="suspended" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             Suspended
           </SelectItem>
         </SelectContent>

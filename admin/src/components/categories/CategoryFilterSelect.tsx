@@ -39,17 +39,17 @@ export const CategoryFilterSelect: React.FC<CategoryFilterSelectProps> = ({
   return (
     <div className={`w-full sm:w-52 ${className}`}>
       <Select value={currentStatus} onValueChange={handleStatusChange}>
-        <SelectTrigger className="w-full h-10 rounded-md bg-white border-[#E5E7EB] text-sm text-[#0F172A] shadow-xs focus:ring-1 focus:ring-[#4F46E5] focus:border-[#4F46E5]">
+        <SelectTrigger className="w-full h-10 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-sm text-[#0F172A] shadow-xs focus:ring-1 focus:ring-[#fe6201] focus:border-[#fe6201]">
           <SelectValue placeholder="All Categories" />
         </SelectTrigger>
-        <SelectContent className="rounded-md border-[#E5E7EB] bg-white shadow-md">
-          <SelectItem value="all" className="rounded-sm text-sm">
+        <SelectContent className="rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] shadow-md">
+          <SelectItem value="all" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             All Categories
           </SelectItem>
-          <SelectItem value="active" className="rounded-sm text-sm">
+          <SelectItem value="active" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             Active Categories
           </SelectItem>
-          <SelectItem value="inactive" className="rounded-sm text-sm">
+          <SelectItem value="inactive" className="rounded-md text-sm hover:bg-[#ffceb0]/40">
             Inactive Categories
           </SelectItem>
         </SelectContent>

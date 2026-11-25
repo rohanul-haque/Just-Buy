@@ -32,6 +32,9 @@ export const buyerService = {
   async updateProfile(payload: UpdateBuyerProfileInput): Promise<BuyerProfile> {
     const formData = new FormData();
 
+    if (payload.name !== undefined) {
+      formData.append("name", payload.name.trim());
+    }
     if (payload.phoneNumber !== undefined) {
       formData.append("phoneNumber", payload.phoneNumber.trim());
     }

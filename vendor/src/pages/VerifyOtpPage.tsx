@@ -1,9 +1,6 @@
 import { getApiErrorMessage } from "@/api/client";
 import verificationService from "@/api/services/verification.service";
-import JusBuyLogo from "@/components/layout/JusBuyLogo";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import OtpInput from "@/components/ui/otp-input";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -101,38 +98,36 @@ export const VerifyOtpPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] p-4 font-sans">
-      <Card className="w-full max-w-md bg-white rounded-md p-8 md:p-10 border border-[#E5E7EB] shadow-xs">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="mb-4">
-            <JusBuyLogo />
-          </div>
-          <Badge className="bg-[#E0E7FF] text-[#4F46E5] hover:bg-[#E0E7FF] border-none text-xs font-semibold rounded-md uppercase tracking-wider mb-2 px-3 py-1">
-            Vendor Verification
-          </Badge>
-          <h2 className="text-xl font-bold text-[#0F172A] mt-2">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#461801] p-4 font-sans select-none relative overflow-hidden">
+      {/* Background radial gradient glow for subtle depth */}
+      <div className="absolute inset-0 bg-radial from-[#5c2102]/60 via-[#461801] to-[#331100] pointer-events-none" />
+
+      {/* Main Verify Card */}
+      <div className="relative z-10 w-full max-w-[440px] bg-[#CA4E01] rounded-[28px] border-2 border-white/90 p-8 sm:p-10 shadow-2xl text-white">
+        {/* Header */}
+        <div className="text-center space-y-1.5 mb-8">
+          <h1 className="text-2xl sm:text-[26px] font-bold text-white tracking-tight">
             Verify Your Email
-          </h2>
-          <p className="text-sm text-[#4B5563] mt-1">
+          </h1>
+          <p className="text-xs sm:text-[13px] text-white/90 font-normal">
             Enter the 5-digit verification code sent to
           </p>
-          <p className="text-sm font-semibold text-[#0F172A] mt-0.5 break-all">
+          <p className="text-sm font-bold text-white mt-1 break-all bg-white/20 px-3 py-1 rounded-lg inline-block">
             {email || "your email address"}
           </p>
         </div>
 
         {/* Feedback Alerts */}
         {errorMessage && (
-          <div className="mb-6 p-3 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-xs font-medium flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="mb-6 p-3 rounded-xl bg-white/20 border border-white/40 text-white text-xs font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-white" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 p-3 rounded-md bg-[#10B981]/10 border border-[#10B981]/20 text-[#059669] text-xs font-medium flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+          <div className="mb-6 p-3 rounded-xl bg-emerald-500/30 border border-emerald-300/40 text-white text-xs font-medium flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-200" />
             <span>{successMessage}</span>
           </div>
         )}
@@ -155,11 +150,11 @@ export const VerifyOtpPage: React.FC = () => {
             type="button"
             onClick={() => handleVerify()}
             disabled={isVerifying || otp.length !== 5}
-            className="w-full h-11 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-md font-medium text-sm transition-all duration-200 cursor-pointer shadow-xs disabled:opacity-50"
+            className="w-full h-11 sm:h-12 rounded-xl bg-white hover:bg-white/90 text-[#CA4E01] font-bold text-base transition-all shadow-md cursor-pointer disabled:opacity-60"
           >
             {isVerifying ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="w-5 h-5 animate-spin mr-2 text-[#CA4E01]" />
                 <span>Verifying Code...</span>
               </>
             ) : (
@@ -169,7 +164,7 @@ export const VerifyOtpPage: React.FC = () => {
 
           {/* Resend OTP Section */}
           <div className="text-center pt-2">
-            <p className="text-xs text-[#64748B]">
+            <p className="text-xs text-white/80">
               Didn't receive the verification code?
             </p>
             <Button
@@ -177,32 +172,32 @@ export const VerifyOtpPage: React.FC = () => {
               variant="ghost"
               onClick={handleResend}
               disabled={cooldown > 0 || isResending || !email}
-              className="mt-2 text-xs font-medium text-[#4F46E5] hover:text-[#4338CA] hover:bg-[#EEF2FF] h-8 px-3 rounded-md"
+              className="mt-2 text-xs font-bold text-white hover:bg-white/10 h-8 px-3 rounded-xl cursor-pointer"
             >
               {isResending ? (
                 <>
-                  <RotateCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                  <RotateCw className="w-3.5 h-3.5 animate-spin mr-1.5 text-white" />
                   <span>Resending...</span>
                 </>
               ) : cooldown > 0 ? (
-                <span>Resend code in {cooldown}s</span>
+                <span className="text-white/70">Resend code in {cooldown}s</span>
               ) : (
-                <span className="font-semibold underline cursor-pointer">Resend Code</span>
+                <span className="underline">Resend Code</span>
               )}
             </Button>
           </div>
 
           {/* Return to Login */}
-          <div className="pt-4 border-t border-[#E5E7EB] text-center">
+          <div className="pt-4 border-t border-white/20 text-center">
             <Link
               to="/login"
-              className="text-xs text-[#64748B] hover:text-[#0F172A] font-medium"
+              className="text-xs text-white/90 hover:text-white font-medium"
             >
-              Return to <span className="text-[#4F46E5] font-semibold underline">Vendor Login</span>
+              Return to <span className="font-bold underline text-white">Vendor Login</span>
             </Link>
           </div>
         </div>
-      </Card>
+      </div>
 
       <Toaster position="bottom-right" richColors />
     </div>

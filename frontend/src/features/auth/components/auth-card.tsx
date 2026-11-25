@@ -20,7 +20,7 @@ export function AuthCard({
   className,
 }: AuthCardProps) {
   return (
-    <Card className={cn("w-full max-w-md shadow-md border-border bg-card", className)}>
+    <Card className={cn("w-full max-w-md shadow-none border-border bg-card", className)}>
       <CardHeader className="space-y-3 text-center pb-6">
         <div className="flex justify-center pb-2">
           <Link href="/">

@@ -58,8 +58,8 @@ export const BuyerDetailsDialog: React.FC<BuyerDetailsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
-        <DialogHeader className="flex flex-row items-center justify-between pb-4 border-b border-[#E5E7EB]">
+      <DialogContent className="sm:max-w-lg p-6 bg-[#FFE7D9] rounded-xl border border-[#ffceb0]/80 shadow-lg font-sans">
+        <DialogHeader className="flex flex-row items-center justify-between pb-4 border-b border-[#ffceb0]/80">
           <div>
             <DialogTitle className="text-xl font-bold text-[#0F172A]">
               Buyer Profile
@@ -76,10 +76,10 @@ export const BuyerDetailsDialog: React.FC<BuyerDetailsDialogProps> = ({
             <img
               src={avatarUrl}
               alt={name}
-              className="w-16 h-16 rounded-md object-cover border border-[#E5E7EB] shadow-xs"
+              className="w-16 h-16 rounded-md object-cover border border-[#ffceb0]/80 shadow-xs"
             />
           ) : (
-            <div className="w-16 h-16 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-xl flex items-center justify-center border border-[#C7D2FE] shadow-xs">
+            <div className="w-16 h-16 rounded-md bg-[#ffefe6] text-[#fe6201] font-bold text-xl flex items-center justify-center border border-[#ffceb0] shadow-xs">
               {initials}
             </div>
           )}
@@ -109,16 +109,17 @@ export const BuyerDetailsDialog: React.FC<BuyerDetailsDialogProps> = ({
               </Badge>
             </div>
             <p className="text-xs text-[#6B7280]">
-              Account ID: <span className="font-mono text-[#111827]">{buyer._id}</span>
+              Account ID:{" "}
+              <span className="font-mono text-[#111827]">{buyer._id}</span>
             </p>
           </div>
         </div>
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-          <div className="p-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
+          <div className="p-3 rounded-md bg-white/80 border border-[#ffceb0]/80 space-y-1">
             <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
-              <Mail className="w-3.5 h-3.5 text-[#6366F1]" />
+              <Mail className="w-3.5 h-3.5 text-[#e55801]" />
               <span>Email Address</span>
             </div>
             <p className="text-sm font-semibold text-[#0F172A] truncate">
@@ -126,17 +127,17 @@ export const BuyerDetailsDialog: React.FC<BuyerDetailsDialogProps> = ({
             </p>
           </div>
 
-          <div className="p-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
+          <div className="p-3 rounded-md bg-white/80 border border-[#ffceb0]/80 space-y-1">
             <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
-              <Phone className="w-3.5 h-3.5 text-[#6366F1]" />
+              <Phone className="w-3.5 h-3.5 text-[#e55801]" />
               <span>Phone Number</span>
             </div>
             <p className="text-sm font-semibold text-[#0F172A]">{phone}</p>
           </div>
 
-          <div className="p-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
+          <div className="p-3 rounded-md bg-white/80 border border-[#ffceb0]/80 space-y-1">
             <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
-              <User className="w-3.5 h-3.5 text-[#6366F1]" />
+              <User className="w-3.5 h-3.5 text-[#e55801]" />
               <span>Gender</span>
             </div>
             <p className="text-sm font-semibold text-[#0F172A] capitalize">
@@ -144,9 +145,9 @@ export const BuyerDetailsDialog: React.FC<BuyerDetailsDialogProps> = ({
             </p>
           </div>
 
-          <div className="p-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
+          <div className="p-3 rounded-md bg-white/80 border border-[#ffceb0]/80 space-y-1">
             <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
-              <Calendar className="w-3.5 h-3.5 text-[#6366F1]" />
+              <Calendar className="w-3.5 h-3.5 text-[#e55801]" />
               <span>Join Date</span>
             </div>
             <p className="text-sm font-semibold text-[#0F172A]">
@@ -154,24 +155,22 @@ export const BuyerDetailsDialog: React.FC<BuyerDetailsDialogProps> = ({
             </p>
           </div>
 
-          <div className="sm:col-span-2 p-3 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] space-y-1">
+          <div className="sm:col-span-2 p-3 rounded-md bg-white/80 border border-[#ffceb0]/80 space-y-1">
             <div className="flex items-center gap-1.5 text-xs text-[#4B5563] font-medium">
-              <MapPin className="w-3.5 h-3.5 text-[#6366F1]" />
+              <MapPin className="w-3.5 h-3.5 text-[#e55801]" />
               <span>Shipping / Billing Address</span>
             </div>
-            <p className="text-sm text-[#0F172A]">
-              {address}
-            </p>
+            <p className="text-sm text-[#0F172A]">{address}</p>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="pt-4 mt-2 border-t border-[#E5E7EB] flex justify-end">
+        <div className="pt-4 mt-2 border-t border-[#ffceb0]/80 flex justify-end">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-md border-[#E5E7EB] text-[#1F2937] hover:bg-[#F8FAFC]"
+            className="rounded-md border-[#ffceb0]/80 text-[#1F2937] hover:bg-white/80"
           >
             Close
           </Button>

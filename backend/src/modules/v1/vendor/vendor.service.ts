@@ -1,5 +1,6 @@
 import cloudinaryService from "@/lib/cloudinary";
 import { logger } from "@/lib/winston";
+import emailService from "@/modules/v1/auth/email/email.service";
 import { UserRole } from "@/modules/v1/user/user.constant";
 import User from "@/modules/v1/user/user.model";
 import AppError from "@/utils/AppError";
@@ -416,6 +417,20 @@ const updateVendorStatus = async (
       populate: { path: "verification", select: "isEmailVerified" },
     })
     .exec();
+
+  const vendorUser = (updatedVendor as any)?.vendor as
+    | { name?: string; email?: string }
+    | undefined;
+  if (vendorUser?.email) {
+    emailService
+      .sendAccountStatusEmail({
+        to: vendorUser.email,
+        name: vendorUser.name || "Vendor",
+        role: "VENDOR",
+        status: newStatus,
+      })
+      .catch(() => {});
+  }
 
   return updatedVendor!;
 };

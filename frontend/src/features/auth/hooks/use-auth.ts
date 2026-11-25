@@ -122,3 +122,16 @@ export function useLogout() {
   });
 }
 
+/**
+ * Hook to change user password
+ */
+export function useChangePassword() {
+  return useMutation<
+    ApiResponse<null>,
+    ApiErrorResponse,
+    { currentPassword: string; newPassword: string }
+  >({
+    mutationFn: (payload) => authService.changePassword(payload),
+  });
+}
+

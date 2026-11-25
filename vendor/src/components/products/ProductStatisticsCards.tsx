@@ -22,13 +22,13 @@ export const ProductStatisticsCards: React.FC<ProductStatisticsCardsProps> = ({
         {Array.from({ length: 3 }).map((_, idx) => (
           <Card
             key={idx}
-            className="p-4 bg-white border border-[#E5E7EB] rounded-lg shadow-xs"
+            className="p-5 bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-xl shadow-xs"
           >
-            <div className="flex items-center gap-3.5">
-              <Skeleton className="w-11 h-11 rounded-md shrink-0" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="w-12 h-12 rounded-full shrink-0" />
               <div className="space-y-1.5 flex-1">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-3 w-28" />
               </div>
             </div>
           </Card>
@@ -52,24 +52,24 @@ export const ProductStatisticsCards: React.FC<ProductStatisticsCardsProps> = ({
         <SummaryCard
           title="Total Products"
           value={formatNumber(statistics?.totalProducts)}
-          icon={<Package />}
-          iconBackgroundColor="bg-[#4F46E5]"
+          icon={<Package className="w-6 h-6 text-[#4F46E5]" />}
+          iconBackgroundColor="#DDE0FF"
         />
 
         {/* 2. Active Products */}
         <SummaryCard
           title="Active Products"
           value={formatNumber(statistics?.activeProducts)}
-          icon={<CheckCircle2 />}
-          iconBackgroundColor="bg-[#10B981]"
+          icon={<CheckCircle2 className="w-6 h-6 text-[#0284C7]" />}
+          iconBackgroundColor="#D2F6FF"
         />
 
         {/* 3. Inactive Products */}
         <SummaryCard
           title="Inactive Products"
           value={formatNumber(statistics?.inactiveProducts)}
-          icon={<XCircle />}
-          iconBackgroundColor="bg-[#EF4444]"
+          icon={<XCircle className="w-6 h-6 text-[#DC2626]" />}
+          iconBackgroundColor="#FFCEB0"
         />
       </div>
     </div>

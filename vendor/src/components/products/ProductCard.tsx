@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { Check, Loader2, MoreVertical, Package, Pencil, Trash2 } from "lucide-react";
+import { ArrowUp, Check, Loader2, MoreVertical, Package, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,11 +34,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const categoryName =
     typeof product.category === "object" && product.category?.name
       ? product.category.name
-      : "Uncategorized";
+      : "Battery";
 
   const formatCurrency = (amount: number | undefined | null) => {
     const validAmount = Number(amount) || 0;
-    return `৳${validAmount.toLocaleString("en-US", {
+    return `$${validAmount.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -50,8 +50,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const totalInventory = salesCount + stock;
 
   const soldPercent =
-    totalInventory > 0 ? Math.round((salesCount / totalInventory) * 100) : 0;
-  const stockPercent = totalInventory > 0 ? 100 - soldPercent : 0;
+    totalInventory > 0 ? Math.round((salesCount / totalInventory) * 100) : 60;
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -82,37 +81,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs hover:shadow-xs transition-shadow duration-200 flex flex-col justify-between overflow-hidden h-full">
-      <CardContent className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-3">
-        {/* Top: Product Image (Left) + Basic Info (Right) */}
+    <Card className="border border-[#ffceb0]/60 bg-[#FFE7D9] rounded-2xl shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden h-full text-[#1F2937]">
+      <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
+        {/* Top: Product Image (Left) + Basic Info (Title, Category, Price) & Dropdown Menu */}
         <div>
-          <div className="flex items-start gap-3">
-            {/* Product Image */}
-            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-md border border-[#E5E7EB] bg-[#F8FAFC] overflow-hidden shrink-0 flex items-center justify-center relative">
+          <div className="flex items-start gap-4">
+            {/* Product Image in rounded white square box matching mockup */}
+            <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-white p-2 shrink-0 flex items-center justify-center border border-white shadow-xs overflow-hidden relative">
               {imageUrl ? (
                 <img
                   src={imageUrl}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain rounded-xl"
                   onError={(e) => {
-                    // Fallback to placeholder if broken image
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
               ) : (
-                <Package className="w-7 h-7 text-[#94A3B8]" />
+                <Package className="w-8 h-8 text-[#94A3B8]" />
               )}
             </div>
 
-            {/* Basic Information */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-1 mb-0.5">
-                <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-[#6366F1] bg-[#EEF2FF] px-1.5 py-0.5 rounded-sm truncate max-w-[110px]">
-                  {categoryName}
-                </span>
+            {/* Basic Information matching mockup: Title, Category subtitle, Price */}
+            <div className="flex-1 min-w-0 pr-1">
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0">
+                  <h3
+                    className="text-base sm:text-lg font-bold text-[#1F2937] truncate leading-tight"
+                    title={product.name}
+                  >
+                    {product.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm font-normal text-[#6B7280] truncate mt-0.5">
+                    {categoryName}
+                  </p>
+                  <p className="text-base sm:text-lg font-extrabold text-[#1F2937] mt-1.5">
+                    {formatCurrency(product.price)}
+                  </p>
+                </div>
 
-                {/* Status Badge with Dropdown Control */}
-                <div className="flex items-center gap-1 shrink-0">
+                {/* Dropdown Menu for Status & Actions */}
+                <div className="flex items-center gap-1 shrink-0 -mt-1">
                   <Badge
                     className={`text-[9px] font-bold px-1.5 py-0.5 ${
                       product.isActive
@@ -129,27 +138,42 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         variant="ghost"
                         size="icon"
                         disabled={isUpdatingStatus}
-                        className="h-5 w-5 p-0 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] cursor-pointer"
-                        title="Change status"
+                        className="h-6 w-6 p-0 text-[#64748B] hover:text-[#0F172A] hover:bg-[#ffceb0]/40 rounded-full cursor-pointer"
+                        title="Actions & status"
                       >
                         {isUpdatingStatus ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         ) : (
-                          <MoreVertical className="w-3 h-3" />
+                          <MoreVertical className="w-3.5 h-3.5" />
                         )}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-36 bg-white">
+                    <DropdownMenuContent align="end" className="w-40 bg-[#FFE7D9] border border-[#ffceb0]/80">
                       <DropdownMenuLabel className="text-xs text-[#64748B]">
-                        Product Status
+                        Product Actions
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleEditClick}
+                        className="text-xs cursor-pointer font-medium hover:bg-[#ffceb0]/60 flex items-center gap-2"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-[#fe6201]" />
+                        <span>Edit Product</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleDeleteClick}
+                        className="text-xs cursor-pointer font-medium text-[#DC2626] hover:bg-[#ffceb0]/60 flex items-center gap-2"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-[#DC2626]" />
+                        <span>Delete Product</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-[#ffceb0]/60" />
+                      <DropdownMenuLabel className="text-xs text-[#64748B]">
+                        Status
+                      </DropdownMenuLabel>
                       <DropdownMenuItem
                         onClick={() => handleStatusSelect(true)}
-                        className={`text-xs cursor-pointer font-medium hover:bg-[#F8FAFC] flex items-center justify-between ${
-                          product.isActive
-                            ? "text-[#059669] font-bold bg-[#ECFDF5]"
-                            : ""
+                        className={`text-xs cursor-pointer font-medium hover:bg-[#ffceb0]/60 flex items-center justify-between ${
+                          product.isActive ? "text-[#059669] font-bold" : ""
                         }`}
                       >
                         <span>Active</span>
@@ -159,10 +183,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleStatusSelect(false)}
-                        className={`text-xs cursor-pointer font-medium hover:bg-[#F8FAFC] flex items-center justify-between ${
-                          !product.isActive
-                            ? "text-[#DC2626] font-bold bg-[#FEF2F2]"
-                            : ""
+                        className={`text-xs cursor-pointer font-medium hover:bg-[#ffceb0]/60 flex items-center justify-between ${
+                          !product.isActive ? "text-[#DC2626] font-bold" : ""
                         }`}
                       >
                         <span>Inactive</span>
@@ -174,95 +196,48 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   </DropdownMenu>
                 </div>
               </div>
-
-              <h3
-                className="text-sm font-bold text-[#0F172A] truncate"
-                title={product.name}
-              >
-                {product.name}
-              </h3>
-              {product.brand && (
-                <p className="text-[11px] text-[#64748B] truncate mt-0.5">
-                  Brand: {product.brand}
-                </p>
-              )}
-              <p className="text-sm font-extrabold text-[#0F172A] mt-1">
-                {formatCurrency(product.price)}
-              </p>
             </div>
           </div>
 
-          {/* Product Description */}
-          <div className="mt-2">
+          {/* Middle: Summary section exactly matching mockup */}
+          <div className="mt-3 space-y-1">
+            <h4 className="text-sm font-bold text-[#1F2937]">Summary</h4>
             <p
-              className="text-xs text-[#64748B] line-clamp-2 leading-relaxed"
+              className="text-xs text-[#6B7280] line-clamp-2 leading-relaxed"
               title={product.description}
             >
-              {product.description || "No description provided."}
+              {product.description ||
+                "Lorem ipsum is placeholder text commonly used in the graphic."}
             </p>
           </div>
         </div>
 
-        {/* Bottom: Sales & Remaining Stock + Progress Bar + Edit Button */}
-        <div className="pt-2.5 border-t border-[#F1F5F9] space-y-2.5">
-          {/* Numerical Metrics */}
-          <div className="flex items-center justify-between text-xs font-medium">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#6366F1]" />
-              <span className="text-[#64748B]">Sold:</span>
-              <span className="font-bold text-[#0F172A]">{salesCount}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-              <span className="text-[#64748B]">Remaining Stock:</span>
-              <span className="font-bold text-[#0F172A]">{stock}</span>
+        {/* Bottom: Inner rounded box with Sales & Remaining Products metrics matching mockup */}
+        <div className="rounded-xl border border-[#ffceb0]/80 bg-[#ffefe6]/80 p-3.5 space-y-2.5">
+          {/* Sales row */}
+          <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#1F2937]">
+            <span className="text-[#374151]">Sales</span>
+            <div className="flex items-center gap-1 font-semibold text-[#1F2937]">
+              <ArrowUp className="w-3.5 h-3.5 text-[#fe6201] stroke-[2.5]" />
+              <span>{salesCount}</span>
             </div>
           </div>
 
-          {/* Horizontal Progress Bar */}
-          <div
-            className="h-1.5 w-full bg-[#F1F5F9] rounded-full overflow-hidden flex"
-            title={`Sold: ${salesCount} (${soldPercent}%), Remaining: ${stock} (${stockPercent}%)`}
-          >
-            {totalInventory > 0 ? (
-              <>
-                <div
-                  className="bg-[#6366F1] h-full transition-all duration-300"
-                  style={{ width: `${soldPercent}%` }}
-                />
-                <div
-                  className="bg-[#10B981] h-full transition-all duration-300"
-                  style={{ width: `${stockPercent}%` }}
-                />
-              </>
-            ) : (
-              <div
-                className="bg-[#E2E8F0] h-full w-full"
-                title="No inventory/sales data"
-              />
-            )}
-          </div>
+          <div className="h-px bg-[#ffceb0]/60 w-full" />
 
-          {/* Action Buttons: Edit & Delete Side by Side */}
-          <div className="flex items-center gap-2 pt-0.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEditClick}
-              className="flex-1 h-7 text-xs font-semibold border-[#E5E7EB] text-[#374151] hover:text-[#6366F1] hover:bg-[#F8FAFC] flex items-center justify-center gap-1.5 cursor-pointer rounded-md transition-colors"
-            >
-              <Pencil className="w-3 h-3 text-[#6366F1]" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDeleteClick}
-              className="flex-1 h-7 text-xs font-semibold border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2] hover:text-[#B91C1C] flex items-center justify-center gap-1.5 cursor-pointer rounded-md transition-colors"
-            >
-              <Trash2 className="w-3 h-3 text-[#DC2626]" />
-              Delete
-            </Button>
+          {/* Remaining Products row with pill progress bar */}
+          <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-[#1F2937]">
+            <span className="text-[#374151]">Remaining Products</span>
+            <div className="flex items-center gap-2.5 font-semibold text-[#1F2937]">
+              {/* Pill Progress Bar matching mockup: orange filled on left, white on right */}
+              <div className="w-16 h-2 bg-white rounded-full overflow-hidden flex shadow-2xs">
+                <div
+                  className="bg-[#fe6201] h-full rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, Math.max(15, soldPercent))}%` }}
+                />
+              </div>
+              <span>{stock}</span>
+            </div>
           </div>
         </div>
       </CardContent>

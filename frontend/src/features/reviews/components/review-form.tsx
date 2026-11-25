@@ -139,9 +139,8 @@ export function ReviewForm({ productId }: ReviewFormProps) {
       <div className="flex justify-end">
         <Button
           type="submit"
-          size="sm"
           disabled={createReviewMutation.isPending || !comment.trim()}
-          className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+          className="h-auto gap-2 rounded-md bg-[#ff6200] hover:bg-[#e55800] active:bg-[#cc4e00] px-6 py-2.5 text-sm font-semibold text-white shadow-xs border-0 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {createReviewMutation.isPending ? (
             <>

@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import type { IVendorRecentSale } from "@/types/dashboard";
 
 interface RecentProductSalesTableProps {
@@ -75,51 +76,51 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
   return (
     <div className="space-y-4">
       {/* Table Content */}
-      <div className="rounded-md border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+      <div className="rounded-xl border border-[#ffceb0]/60 bg-[#FFE7D9] overflow-hidden shadow-xs">
         {!isLoading && sales.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-12 h-12 rounded-md bg-[#F8FAFC] border border-[#E5E7EB] text-[#9CA3AF] flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-xl bg-[#ffceb0]/40 border border-[#ffceb0] text-[#fe6201] flex items-center justify-center mx-auto mb-3">
               <ShoppingBag className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-semibold text-[#0F172A]">
+            <h4 className="text-sm font-semibold text-[#1F2937]">
               No selling products yet
             </h4>
-            <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-[#4B5563] mt-1 max-w-sm mx-auto">
               When customers purchase and receive your products, the sales history will appear here.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-[#F8FAFC]">
-                <TableRow className="border-b border-[#E5E7EB] hover:bg-transparent">
+              <TableHeader className="bg-[#CB4E01] text-white">
+                <TableRow className="border-b border-[#CB4E01] hover:bg-[#CB4E01]">
                   {/* 1. Product */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 pl-6 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 pl-6 align-middle">
                     Product
                   </TableHead>
                   {/* 2. Customer */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Customer
                   </TableHead>
                   {/* 3. Date */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Date
                   </TableHead>
                   {/* 4. Amount */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 px-4 align-middle">
                     Amount
                   </TableHead>
                   {/* 5. Actions */}
-                  <TableHead className="font-semibold text-xs text-[#4B5563] uppercase tracking-wider h-10 py-2.5 pr-6 text-right align-middle">
+                  <TableHead className="font-semibold text-xs text-white uppercase tracking-wider h-10 py-2.5 pr-6 text-right align-middle">
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
 
-              <TableBody>
+              <TableBody className="bg-[#FFE7D9]">
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, idx) => (
-                    <TableRow key={idx} className="border-b border-[#E5E7EB]">
+                    <TableRow key={idx} className="border-b border-[#ffceb0]/40">
                       <TableCell className="py-3.5 pl-6">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-10 w-10 rounded-md" />
@@ -153,7 +154,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
                   sales.map((sale, i) => (
                     <TableRow
                       key={`${sale.orderId}-${i}`}
-                      className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
+                      className="border-b border-[#ffceb0]/40 hover:bg-[#ffceb0]/40 transition-colors"
                     >
                       {/* 1. Product Column */}
                       <TableCell className="py-3.5 pl-6 align-middle">
@@ -162,15 +163,15 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
                             <img
                               src={sale.product.image}
                               alt={sale.product.name}
-                              className="w-10 h-10 rounded-md object-cover border border-[#E5E7EB] shrink-0"
+                              className="w-10 h-10 rounded-md object-cover border border-[#ffceb0]/80 shrink-0"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 rounded-md bg-[#DDE0FF] text-[#4F46E5] flex items-center justify-center shrink-0">
                               <Package className="w-5 h-5" />
                             </div>
                           )}
                           <div className="min-w-0">
-                            <p className="font-semibold text-xs sm:text-sm text-[#0F172A] truncate max-w-xs">
+                            <p className="font-semibold text-xs sm:text-sm text-[#1F2937] truncate max-w-xs">
                               {sale.product.name}
                             </p>
                             <p className="text-[11px] text-[#64748B] mt-0.5">
@@ -187,10 +188,10 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
                           <ProfileAvatar
                             src={sale.customer.profileImage}
                             alt={sale.customer.name}
-                            className="w-9 h-9 rounded-full border border-[#E5E7EB] shrink-0"
+                            className="w-9 h-9 rounded-full border border-[#ffceb0]/80 shrink-0"
                           />
                           <div className="min-w-0">
-                            <p className="font-medium text-xs sm:text-sm text-[#0F172A] truncate">
+                            <p className="font-medium text-xs sm:text-sm text-[#1F2937] truncate">
                               {sale.customer.name}
                             </p>
                             <p className="text-[11px] text-[#64748B] truncate">
@@ -206,7 +207,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
                       </TableCell>
 
                       {/* 4. Amount Column */}
-                      <TableCell className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-[#0F172A] align-middle">
+                      <TableCell className="py-3.5 px-4 text-xs sm:text-sm font-semibold text-[#1F2937] align-middle">
                         {formatCurrency(sale.amount)}
                       </TableCell>
 
@@ -217,7 +218,7 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
                           variant="ghost"
                           size="icon"
                           onClick={() => onViewDetails(sale)}
-                          className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#CB4E01] hover:bg-[#ffceb0]/60 transition-colors cursor-pointer"
                           title="View Sale Details"
                           aria-label="View Sale Details"
                         >
@@ -237,8 +238,8 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-[#4B5563]">
           <div>
-            Showing <span className="font-semibold text-[#0F172A]">{startRecord}</span>–<span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
-            <span className="font-semibold text-[#0F172A]">{total}</span> sales
+            Showing <span className="font-semibold text-[#1F2937]">{startRecord}</span>–<span className="font-semibold text-[#1F2937]">{endRecord}</span> of{" "}
+            <span className="font-semibold text-[#1F2937]">{total}</span> sales
           </div>
 
           <Pagination className="justify-center sm:justify-end mx-0 w-auto">
@@ -247,11 +248,12 @@ export const RecentProductSalesTable: React.FC<RecentProductSalesTableProps> = (
                 <PaginationPrevious
                   onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage <= 1 || isLoading}
-                  className={
+                  className={cn(
+                    "bg-[#FFE7D9] text-[#1F2937] border border-[#ffceb0]/80 hover:bg-[#ffceb0] rounded-md",
                     currentPage <= 1 || isLoading
                       ? "pointer-events-none opacity-50 cursor-not-allowed text-xs h-8 px-2.5"
                       : "cursor-pointer text-xs h-8 px-2.5"
-                  }
+                  )}
                 />
               </PaginationItem>
 

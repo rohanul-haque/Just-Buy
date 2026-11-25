@@ -1,93 +1,110 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Autoplay from "embla-carousel-autoplay";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCategories } from "@/features/categories/hooks/use-categories";
 import { CategoryCard } from "@/features/categories/components/category-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 export function CategorySection() {
   const { data: categories, isLoading, isError } = useCategories();
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [api, setApi] = React.useState<CarouselApi>();
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = direction === "left" ? -300 : 300;
-      scrollContainerRef.current.scrollBy({
-        left: scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
+  const autoplayPlugin = React.useRef(
+    Autoplay({
+      delay: 3000,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+    }),
+  );
 
-  if (isError || (!isLoading && (!categories || categories.length === 0))) {
+  if (isError) {
     return null;
   }
 
   return (
-    <section className="space-y-6 py-6 sm:py-8">
-      {/* Section Header matching Figma */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="h-7 w-3 rounded-xs bg-primary inline-block" />
-          <span className="text-xs sm:text-sm font-semibold text-primary tracking-wide">
+    <section className="py-10 sm:py-14 border-t border-gray-200">
+      {/* Section Header */}
+      <div className="space-y-3.5 mb-8">
+        <div className="flex items-center gap-3">
+          <span className="h-9 w-4 sm:w-5 rounded-[4px] bg-[#fe6201] inline-block shrink-0" />
+          <span className="text-sm sm:text-base font-semibold text-[#fe6201] tracking-wide">
             Categories
           </span>
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-gray-900">
             Browse By Category
           </h2>
 
-          {/* Left/Right scroll controls matching Figma */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-9 rounded-full bg-muted/40 hover:bg-muted"
-              onClick={() => scroll("left")}
-              aria-label="Scroll left"
+          {/* Left/Right circle arrow controls */}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => api?.scrollPrev()}
+              aria-label="Previous categories"
+              className="size-10 sm:size-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-900 flex items-center justify-center transition-colors cursor-pointer focus:outline-none"
             >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-9 rounded-full bg-muted/40 hover:bg-muted"
-              onClick={() => scroll("right")}
-              aria-label="Scroll right"
+              <ArrowLeft className="size-4.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => api?.scrollNext()}
+              aria-label="Next categories"
+              className="size-10 sm:size-11 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-900 flex items-center justify-center transition-colors cursor-pointer focus:outline-none"
             >
-              <ChevronRight className="size-4" />
-            </Button>
+              <ArrowRight className="size-4.5" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Category Row/Grid */}
+      {/* Categories Carousel: 5 visible across on large screens with Embla Autoplay */}
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="aspect-square rounded-xl" />
-          ))}
-        </div>
-      ) : (
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 -mx-4 px-4 sm:mx-0 sm:px-0"
-        >
-          {categories?.map((category) => (
-            <div
-              key={category._id}
-              className="w-[140px] sm:w-[160px] md:w-[170px] shrink-0"
-            >
-              <CategoryCard category={category} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="aspect-square w-full rounded-sm bg-[#DFE1E3]" />
+              <Skeleton className="h-4 w-3/4 mx-auto rounded-sm" />
             </div>
           ))}
         </div>
+      ) : !categories || categories.length === 0 ? (
+        <div className="py-10 text-center text-sm text-gray-500">
+          No categories found.
+        </div>
+      ) : (
+        <Carousel
+          setApi={setApi}
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          plugins={[autoplayPlugin.current]}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-5 sm:-ml-6 pb-3">
+            {categories.map((category) => (
+              <CarouselItem
+                key={category._id}
+                className="pl-5 sm:pl-6 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+              >
+                <CategoryCard category={category} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       )}
     </section>
   );
 }
 
+export default CategorySection;

@@ -1,28 +1,26 @@
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import type { ProfileActionResult } from "@/routes/actions/profile.action";
 import type { ProfileLoaderData } from "@/routes/loaders/profile.loader";
-import { Camera, Loader2, Mail, Phone, Save, User } from "lucide-react";
+import { ArrowLeft, Camera, Loader2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 export const SettingsPage: React.FC = () => {
   const loaderData = useLoaderData() as ProfileLoaderData | undefined;
   const { user, adminProfile, refreshProfile } = useAuth();
   const fetcher = useFetcher<ProfileActionResult>();
+  const navigate = useNavigate();
 
   const currentUser = loaderData?.user || user;
   const currentProfile = loaderData?.adminProfile || adminProfile;
 
-  const initialName =
-    currentProfile?.admin?.name || currentUser?.name || "";
-  const initialEmail =
-    currentProfile?.admin?.email || currentUser?.email || "";
-  const initialPhone = currentProfile?.phoneNumber || "";
+  const initialName = currentProfile?.admin?.name || currentUser?.name || "James Tracy";
+  const initialEmail = currentProfile?.admin?.email || currentUser?.email || "enrique@gmail.com";
+  const initialPhone = currentProfile?.phoneNumber || "3000597212";
   const initialAvatarUrl = currentProfile?.profile?.url || null;
 
   const [name, setName] = useState(initialName);
@@ -36,8 +34,12 @@ export const SettingsPage: React.FC = () => {
     fetcher.state === "submitting" || fetcher.state === "loading";
 
   useEffect(() => {
-    setName(currentProfile?.admin?.name || currentUser?.name || "");
-    setPhone(currentProfile?.phoneNumber || "");
+    if (currentProfile?.admin?.name || currentUser?.name) {
+      setName(currentProfile?.admin?.name || currentUser?.name || "");
+    }
+    if (currentProfile?.phoneNumber) {
+      setPhone(currentProfile?.phoneNumber);
+    }
     if (!selectedFile) {
       setPreviewUrl(currentProfile?.profile?.url || null);
     }
@@ -75,7 +77,6 @@ export const SettingsPage: React.FC = () => {
     const formData = new FormData();
     let hasChanges = false;
 
-    // Partial updates: only append fields that the admin actually provided/changed
     const trimmedName = name.trim();
     if (trimmedName && trimmedName !== initialName) {
       formData.append("name", trimmedName);
@@ -105,39 +106,61 @@ export const SettingsPage: React.FC = () => {
     });
   };
 
-  const displayName = name || initialName || "Administrator";
-  const displayEmail = initialEmail || "admin@jusbuy.com";
-
   return (
-    <div className="space-y-6 max-w-4xl">
-      {/* 1. Page Heading */}
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold text-[#0F172A]">
-          Personal Profile
-        </h2>
-      </div>
+    <div className="space-y-8 max-w-5xl">
+      <form onSubmit={handleSaveProfile} className="space-y-8">
+        {/* Top Action Header: Left arrow + Title, Right Save Changes Button */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="text-[#1F2937] hover:opacity-80 p-1 transition-opacity cursor-pointer"
+              title="Go back"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+            </button>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1F2937] tracking-tight">
+              Personal Information
+            </h2>
+          </div>
 
-      {/* Admin Profile Card */}
-      <Card className="rounded-md p-6 md:p-8 border-[#E5E7EB] bg-white space-y-6 shadow-xs">
-        <form onSubmit={handleSaveProfile} className="space-y-6">
-          {/* Avatar Upload */}
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="relative group">
-              <ProfileAvatar
-                src={previewUrl}
-                alt={displayName}
-                className="w-24 h-24 rounded-full border-2 border-[#E5E7EB] shadow-xs"
-              />
-              <Button
-                type="button"
-                size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isSaving}
-                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#6366F1] hover:bg-[#4F46E5] text-white shadow-sm cursor-pointer"
-                title="Change photo"
-              >
-                <Camera className="w-4 h-4" />
-              </Button>
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="h-11 px-8 rounded-md bg-[#FE6201] hover:bg-[#E55801] text-white font-medium text-sm transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            {isSaving ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              "Save Changes"
+            )}
+          </Button>
+        </div>
+
+        {/* Main Content Layout: Left Profile Card, Right Inputs */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          {/* Left: Profile Card (Rounded Peach-Orange Box) */}
+          <div className="md:col-span-4 flex flex-col items-center justify-center p-8 sm:p-10 rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] shadow-xs text-center space-y-4 min-h-[340px]">
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-[#FE6201]/30 shadow-xs flex items-center justify-center bg-black/10 relative">
+                <ProfileAvatar
+                  src={previewUrl}
+                  alt={name || "Admin"}
+                  className="w-full h-full object-cover"
+                />
+                {/* Camera Overlay Icon */}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-80 group-hover:opacity-100 transition-opacity">
+                  <div className="flex flex-col items-center">
+                    <Camera className="w-7 h-7 stroke-[1.8]" />
+                  </div>
+                </div>
+              </div>
+
               <input
                 type="file"
                 ref={fileInputRef}
@@ -147,101 +170,76 @@ export const SettingsPage: React.FC = () => {
               />
             </div>
 
-            <div className="text-center sm:text-left space-y-1">
-              <h4 className="text-lg font-bold text-[#0F172A]">{displayName}</h4>
-              <p className="text-sm text-[#4B5563]">{displayEmail}</p>
+            <div className="space-y-1">
+              <span className="text-xs font-normal text-[#6B7280] block">
+                Profile
+              </span>
+              <h3 className="text-xl font-bold text-[#1F2937]">
+                Admin
+              </h3>
             </div>
           </div>
 
-          {/* Form Fields: exactly 3 fields (Full Name, Email Address, Phone Number) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* 1. Full Name (Editable) */}
+          {/* Right: Form Inputs (Name, Email, Phone Number with Flag Country Code) */}
+          <div className="md:col-span-8 space-y-6">
+            {/* 1. Name */}
             <div className="space-y-2">
               <label
                 htmlFor="admin-name"
-                className="text-xs font-semibold text-[#111827] block"
+                className="text-sm font-semibold text-[#1F2937] block"
               >
-                Full Name
+                Name
               </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input
-                  id="admin-name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter full name"
-                  disabled={isSaving}
-                  className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-                />
-              </div>
+              <Input
+                id="admin-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name"
+                disabled={isSaving}
+                className="h-12 px-4 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-[#1F2937] text-sm focus-visible:ring-1 focus-visible:ring-[#fe6201] focus-visible:border-[#fe6201] shadow-xs"
+              />
             </div>
 
-            {/* 2. Email Address (Display current email, protected by security requirements) */}
+            {/* 2. Email */}
             <div className="space-y-2">
               <label
                 htmlFor="admin-email"
-                className="text-xs font-semibold text-[#111827] block"
+                className="text-sm font-semibold text-[#1F2937] block"
               >
-                Email Address
+                Email
               </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input
-                  id="admin-email"
-                  type="email"
-                  value={displayEmail}
-                  disabled
-                  className="pl-9 h-10 rounded-md bg-[#F8FAFC] border-[#E5E7EB] text-[#4B5563] text-sm cursor-not-allowed"
-                />
-              </div>
+              <Input
+                id="admin-email"
+                type="email"
+                value={initialEmail}
+                readOnly
+                disabled
+                className="h-12 px-4 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-[#1F2937] text-sm shadow-xs cursor-not-allowed opacity-90"
+              />
             </div>
 
-            {/* 3. Phone Number (Editable) */}
-            <div className="space-y-2 md:col-span-2">
+            {/* 3. Phone Number */}
+            <div className="space-y-2">
               <label
                 htmlFor="admin-phone"
-                className="text-xs font-semibold text-[#111827] block"
+                className="text-sm font-semibold text-[#1F2937] block"
               >
                 Phone Number
               </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-[#4B5563] absolute left-3 top-1/2 -translate-y-1/2" />
-                <Input
-                  id="admin-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. +1 234 567 8900"
-                  disabled={isSaving}
-                  className="pl-9 h-10 rounded-md bg-white border-[#E5E7EB] text-[#0F172A] text-sm focus:ring-[#4F46E5]/30 focus:border-[#4F46E5]"
-                />
-              </div>
+              <Input
+                id="admin-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Phone Number"
+                disabled={isSaving}
+                className="w-full h-12 px-4 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-[#1F2937] text-sm focus-visible:ring-1 focus-visible:ring-[#fe6201] focus-visible:border-[#fe6201] shadow-xs"
+              />
             </div>
           </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end pt-2">
-            <Button
-              type="submit"
-              disabled={isSaving}
-              className="h-10 px-6 rounded-md bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium text-sm transition flex items-center justify-center cursor-pointer shadow-xs"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  <span>Saving Changes...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </Card>
+        </div>
+      </form>
     </div>
   );
 };

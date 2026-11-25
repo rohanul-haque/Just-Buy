@@ -1,20 +1,13 @@
-import React from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IMonthlyCount } from "@/types/dashboard";
+import React from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 interface EarningsBarChartProps {
   data: IMonthlyCount[];
@@ -22,24 +15,24 @@ interface EarningsBarChartProps {
 }
 
 const SHORT_MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
   "May",
-  "June",
+  "Jun",
   "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "Augst",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 const chartConfig = {
   earnings: {
     label: "Earnings",
-    color: "var(--chart-2)",
+    color: "#FE6201",
   },
 } satisfies ChartConfig;
 
@@ -49,12 +42,11 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs p-6 flex flex-col justify-between h-full">
-        <div className="space-y-2 pb-4 border-b border-[#E5E7EB]">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-4 w-64" />
+      <Card className="rounded-2xl border border-[#ffceb0]/60 bg-[#FFE7D9] shadow-xs p-6 sm:p-7 flex flex-col justify-between h-full">
+        <div className="pb-4">
+          <Skeleton className="h-6 w-48" />
         </div>
-        <div className="py-6 h-[260px] flex items-center justify-center">
+        <div className="py-6 h-[270px] flex items-center justify-center">
           <Skeleton className="h-full w-full rounded-md" />
         </div>
       </Card>
@@ -71,78 +63,98 @@ export const EarningsBarChart: React.FC<EarningsBarChartProps> = ({
     };
   });
 
-  return (
-    <Card className="rounded-lg border-[#E5E7EB] bg-white shadow-xs flex flex-col justify-between h-full pt-0">
-      <CardHeader className="border-b border-[#E5E7EB] py-5 px-6">
-        <CardTitle className="text-base font-bold text-[#0F172A]">
-          Earning Overview
-        </CardTitle>
-        <CardDescription className="text-xs text-[#64748B] mt-1">
-          Monthly earnings from delivered orders
-        </CardDescription>
-      </CardHeader>
+  // Calculate dynamic maximum to scale Y-axis ticks gracefully (e.g. 0 to 100)
+  const maxVal = Math.max(...chartData.map((d) => d.earnings), 0);
+  const roundedMax =
+    maxVal === 0
+      ? 100
+      : maxVal <= 20
+      ? Math.ceil(maxVal / 5) * 5
+      : maxVal <= 100
+      ? Math.ceil(maxVal / 20) * 20
+      : maxVal <= 1000
+      ? Math.ceil(maxVal / 200) * 200
+      : Math.ceil(maxVal / 2000) * 2000;
 
-      <CardContent className="px-3 pt-6 pb-6 sm:px-6">
+  return (
+    <Card className="rounded-2xl border border-[#ffceb0]/60 bg-[#FFE7D9] shadow-xs p-6 sm:p-7 flex flex-col justify-between h-full w-full">
+      {/* Header: Exactly Title 'Earning Overview' (No growth, no dropdown) */}
+      <div className="flex items-center justify-between pb-4">
+        <h3 className="text-xl font-bold text-[#1F2937] tracking-tight">
+          Earning Overview
+        </h3>
+      </div>
+
+      <div className="pt-2 h-[280px] w-full">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-full w-full"
         >
           <BarChart
-            accessibilityLayer
             data={chartData}
             margin={{
-              top: 10,
-              right: 12,
-              left: -16,
+              top: 15,
+              right: 10,
+              left: -20,
               bottom: 0,
             }}
           >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#F1F5F9" />
+            {/* Horizontal orange grid lines matching reference screenshot */}
+            <CartesianGrid
+              vertical={false}
+              stroke="#FE8534"
+              strokeOpacity={0.65}
+            />
 
+            {/* X-Axis */}
             <XAxis
               dataKey="month"
               tickLine={false}
-              tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-              tick={{ fill: "#64748B", fontSize: 11 }}
+              tickMargin={10}
+              tick={{ fill: "#374151", fontSize: 11, fontWeight: 500 }}
             />
 
+            {/* Y-Axis */}
             <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tick={{ fill: "#94A3B8", fontSize: 11 }}
-              tickFormatter={(value) => `$${Number(value).toLocaleString("en-US")}`}
+              tick={{ fill: "#374151", fontSize: 11, fontWeight: 500 }}
+              domain={[0, roundedMax]}
+              tickCount={6}
             />
 
+            {/* Custom Tooltip */}
             <ChartTooltip
               cursor={false}
-              content={
-                <ChartTooltipContent
-                  indicator="dashed"
-                  formatter={(value) => (
-                    <span className="font-mono font-bold text-white">
-                      $
-                      {Number(value).toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const value = Number(payload[0]?.value) || 0;
+                let formattedValue = `$${value.toLocaleString("en-US")}`;
+                if (value >= 1000) {
+                  formattedValue = `$${(value / 1000).toFixed(2)}k`;
+                }
+                return (
+                  <div className="bg-[#FFC09F] border border-[#FE6201]/30 rounded-md px-3 py-1.5 shadow-sm text-center">
+                    <span className="text-xs font-bold text-[#1F2937]">
+                      {formattedValue}
                     </span>
-                  )}
-                />
-              }
+                  </div>
+                );
+              }}
             />
 
+            {/* Orange Slim Vertical Bars matching reference screenshot */}
             <Bar
               dataKey="earnings"
-              fill="var(--color-earnings)"
-              radius={4}
-              maxBarSize={32}
+              fill="#FE6201"
+              radius={[3, 3, 0, 0]}
+              maxBarSize={18}
             />
           </BarChart>
         </ChartContainer>
-      </CardContent>
+      </div>
     </Card>
   );
 };

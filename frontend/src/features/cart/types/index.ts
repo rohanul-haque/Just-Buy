@@ -4,6 +4,7 @@ export interface CartProduct {
   _id: string;
   name: string;
   price: number;
+  stock?: number;
   featureImage?: {
     url: string;
     publicId?: string;

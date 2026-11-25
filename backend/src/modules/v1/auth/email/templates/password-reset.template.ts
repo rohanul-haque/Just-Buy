@@ -4,7 +4,7 @@ import type { IPasswordResetEmailData } from "@/modules/v1/auth/email/email.inte
 export const renderPasswordResetTemplate = (
   data: IPasswordResetEmailData,
 ): string => {
-  const { name, resetToken, expiresInMinutes = 15 } = data;
+  const { name, resetToken, expiresInMinutes = 5 } = data;
   const resetUrl = `${config.CLIENT_URL}/reset-password?token=${encodeURIComponent(resetToken)}`;
 
   return `
@@ -13,49 +13,51 @@ export const renderPasswordResetTemplate = (
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Your Password - Jus Buy</title>
+  <title>Reset Your Password - JustBuy</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
-    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .header { background: #2563eb; padding: 28px 24px; text-align: center; }
-    .header h1 { margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; }
-    .content { padding: 32px 28px; line-height: 1.6; }
-    .greeting { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 24px 16px; color: #171717; }
+    .container { max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; border-top: 4px solid #ff6200; overflow: hidden; }
+    .header { padding: 28px 28px 12px; text-align: center; }
+    .brand { display: inline-block; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #171717; }
+    .brand span { color: #ff6200; }
+    .content { padding: 12px 32px 32px; line-height: 1.6; }
+    .title { font-size: 20px; font-weight: 700; color: #171717; text-align: center; margin: 0 0 8px; }
+    .subtitle { font-size: 14px; color: #6b7280; text-align: center; margin: 0 0 24px; }
+    .greeting { font-size: 15px; font-weight: 600; color: #171717; margin-bottom: 10px; }
+    .text { font-size: 14px; color: #4b5563; margin: 0 0 24px; }
     .btn-container { text-align: center; margin: 28px 0; }
-    .btn { background: #2563eb; color: #ffffff !important; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block; }
-    .token-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; word-break: break-all; font-family: monospace; font-size: 13px; color: #475569; margin: 16px 0; }
-    .warning { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: #991b1b; margin: 20px 0; }
-    .footer { background: #f8fafc; padding: 20px 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+    .btn { background-color: #ff6200; color: #ffffff !important; padding: 13px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; display: inline-block; }
+    .notice { background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #9a3412; margin: 20px 0 0; }
+    .footer { background-color: #f9fafb; padding: 18px 24px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>Jus Buy</h1>
+      <div class="brand">Just<span>Buy</span></div>
     </div>
     <div class="content">
-      <div class="greeting">Hello, ${name}!</div>
-      <p>We received a request to reset your password for your Jus Buy account. Click the button below to choose a new password:</p>
-      
+      <h1 class="title">Reset Your Password</h1>
+      <p class="subtitle">We received a request to reset your account password.</p>
+
+      <div class="greeting">Hello ${name},</div>
+      <p class="text">
+        Click the button below to choose a new password for your JustBuy account.
+      </p>
+
       <div class="btn-container">
         <a href="${resetUrl}" class="btn">Reset Password</a>
       </div>
 
-      <p style="font-size: 14px; color: #64748b;">Or use this token directly in your application:</p>
-      <div class="token-box">${resetToken}</div>
-
-      <div class="warning">
-        This link and token will expire in <strong>${expiresInMinutes} minutes</strong>. If you did not make this request, please disregard this email. Your password will remain unchanged.
+      <div class="notice">
+        <strong>Security Notice:</strong> This Reset Password button will expire in <strong>${expiresInMinutes} minutes</strong>. If you did not request a password reset, you can safely ignore this email.
       </div>
-
-      <p style="margin-top: 24px;">Sincerely,<br><strong>The Jus Buy Security Team</strong></p>
     </div>
     <div class="footer">
-      &copy; ${new Date().getFullYear()} Jus Buy. All rights reserved.
+      &copy; ${new Date().getFullYear()} JustBuy. All rights reserved.
     </div>
   </div>
 </body>
 </html>
   `.trim();
 };
-

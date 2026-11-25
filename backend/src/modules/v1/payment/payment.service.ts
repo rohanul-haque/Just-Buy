@@ -1,5 +1,6 @@
 import config from "@/config";
 import stripe from "@/lib/stripe";
+import emailService from "@/modules/v1/auth/email/email.service";
 import Cart from "@/modules/v1/cart/cart.model";
 import {
   ORDER_MESSAGES,
@@ -245,6 +246,7 @@ const confirmPaymentSuccess = async ({
   // Atomically update payment to PAID and set paidAt if not already PAID
   // { status: { $ne: PaymentStatus.PAID } } enforces database-level idempotency
   let updatedPayment: IPayment | null = null;
+  let transitionedToPaid = false;
 
   await runInTransaction(async (session) => {
     const updateQuery = Payment.findOneAndUpdate(
@@ -270,6 +272,10 @@ const confirmPaymentSuccess = async ({
       updateQuery.session(session);
     }
     updatedPayment = await updateQuery.exec();
+
+    if (updatedPayment) {
+      transitionedToPaid = true;
+    }
 
     // If payment was already PAID, retrieve existing record
     if (!updatedPayment) {
@@ -305,6 +311,45 @@ const confirmPaymentSuccess = async ({
     }
     await cartUpdate.exec();
   });
+
+  if (transitionedToPaid && targetOrder) {
+    emailService
+      .sendOrderCreatedEmails({
+        orderId: targetOrder._id.toString(),
+        buyerId: targetOrder.buyer.toString(),
+        vendorId: ((targetOrder.vendor as any)?._id || targetOrder.vendor).toString(),
+        transactionNumber: targetOrder.transactionNumber,
+        status: targetOrder.status,
+        orderType: targetOrder.orderType,
+        totalAmount: targetOrder.totalAmount,
+      })
+      .catch(() => {});
+
+    if (targetOrder.orderType === OrderType.ONLINE) {
+      const items = (targetOrder.productItems || []).map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        itemSubtotal: item.itemSubtotal,
+        size: item.size,
+      }));
+
+      emailService
+        .sendOnlinePaymentInvoiceEmail({
+          orderId: targetOrder._id.toString(),
+          buyerId: targetOrder.buyer.toString(),
+          transactionNumber: targetOrder.transactionNumber,
+          paidAt,
+          currency: (updatedPayment as IPayment | null)?.currency || payment.currency || "usd",
+          shippingAddress: targetOrder.shippingAddress,
+          items,
+          subtotal: targetOrder.subtotal,
+          shippingCharge: targetOrder.shippingCharge,
+          totalAmount: targetOrder.totalAmount,
+        })
+        .catch(() => {});
+    }
+  }
 
   return updatedPayment;
 };

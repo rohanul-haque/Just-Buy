@@ -30,6 +30,11 @@ export interface IResetPasswordInput {
   newPassword: string;
 }
 
+export interface IChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface IAuthUserSummary {
   id: string;
   name: string;

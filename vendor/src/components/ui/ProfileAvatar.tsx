@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { User } from "lucide-react";
 import React from "react";
 
 export interface ProfileAvatarProps {
@@ -15,6 +16,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   alt = "Profile Avatar",
   className,
   fallbackClassName,
+  iconClassName,
 }) => {
   return (
     <Avatar
@@ -32,10 +34,12 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       ) : null}
       <AvatarFallback
         className={cn(
-          "bg-[#F1F5F9] flex items-center justify-center rounded-full size-full select-none",
+          "bg-white flex items-center justify-center rounded-full size-full select-none text-gray-500",
           fallbackClassName,
         )}
-      />
+      >
+        <User className={cn("w-1/2 h-1/2 shrink-0 text-gray-500", iconClassName)} />
+      </AvatarFallback>
     </Avatar>
   );
 };

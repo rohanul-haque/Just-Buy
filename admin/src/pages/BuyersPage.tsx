@@ -40,19 +40,22 @@ export const BuyersPage: React.FC = () => {
           title="Total Buyers"
           value={stats.totalBuyers.toLocaleString("en-US")}
           icon={<Users />}
-          iconBackgroundColor="bg-[#3B82F6]"
+          iconBackgroundColor="bg-[#DDE0FF]"
+          iconColor="text-[#4338CA]"
         />
         <SummaryCard
           title="Blocked"
           value={stats.blocked.toLocaleString("en-US")}
           icon={<UserX />}
-          iconBackgroundColor="bg-[#EF4444]"
+          iconBackgroundColor="bg-[#FFCEB0]"
+          iconColor="text-[#EA580C]"
         />
         <SummaryCard
           title="Active"
           value={stats.active.toLocaleString("en-US")}
           icon={<UserCheck />}
-          iconBackgroundColor="bg-[#10B981]"
+          iconBackgroundColor="bg-[#D2F6FF]"
+          iconColor="text-[#0284C7]"
         />
       </div>
 

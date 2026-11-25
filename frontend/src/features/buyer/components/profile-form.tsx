@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ChevronRight } from "lucide-react";
 import {
   updateBuyerProfileSchema,
   type UpdateBuyerProfileFormValues,
@@ -11,17 +12,12 @@ import {
   useBuyerProfile,
   useUpdateBuyerProfile,
 } from "@/features/buyer/hooks/use-buyer";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
-import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import notify from "@/lib/toast";
 
 export function ProfileForm() {
-  const [isEditing, setIsEditing] = React.useState(false);
-
   const {
     data: profile,
     isLoading,
@@ -40,6 +36,7 @@ export function ProfileForm() {
   } = useForm<UpdateBuyerProfileFormValues>({
     resolver: zodResolver(updateBuyerProfileSchema),
     defaultValues: {
+      name: "",
       phoneNumber: "",
       gender: undefined,
       address: "",
@@ -50,6 +47,7 @@ export function ProfileForm() {
   React.useEffect(() => {
     if (profile) {
       reset({
+        name: profile.buyer?.name || "",
         phoneNumber: profile.phoneNumber || "",
         gender: profile.gender || undefined,
         address: profile.address || "",
@@ -57,28 +55,17 @@ export function ProfileForm() {
     }
   }, [profile, reset]);
 
-  const handleCancelEdit = () => {
-    if (profile) {
-      reset({
-        phoneNumber: profile.phoneNumber || "",
-        gender: profile.gender || undefined,
-        address: profile.address || "",
-      });
-    }
-    setIsEditing(false);
-  };
-
   const onSubmit = async (values: UpdateBuyerProfileFormValues) => {
     updateProfileMutation.mutate(
       {
-        phoneNumber: values.phoneNumber || "",
+        name: values.name?.trim(),
+        phoneNumber: values.phoneNumber?.trim() || "",
         gender: values.gender,
-        address: values.address || "",
+        address: values.address?.trim() || "",
       },
       {
         onSuccess: () => {
-          notify.success("Profile updated successfully!");
-          setIsEditing(false);
+          notify.success("Profile saved successfully!");
         },
         onError: (err) => {
           notify.apiError(err, "Failed to update profile.");
@@ -90,31 +77,31 @@ export function ProfileForm() {
   if (isLoading) {
     return (
       <div className="space-y-6 w-full">
-        <Skeleton className="h-7 w-48 bg-muted" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <Skeleton className="h-7 w-56 bg-muted" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-[52px] w-full rounded-md" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-[52px] w-full rounded-md" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-[52px] w-full rounded-md" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-[52px] w-full rounded-md" />
           </div>
           <div className="sm:col-span-2 space-y-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-[52px] w-full rounded-md" />
           </div>
         </div>
-        <div className="flex justify-center pt-2">
-          <Skeleton className="h-10 w-32 rounded-xl" />
+        <div className="flex justify-center pt-6">
+          <Skeleton className="h-12 w-44 rounded-md" />
         </div>
       </div>
     );
@@ -131,83 +118,91 @@ export function ProfileForm() {
   }
 
   const isPending = isSubmitting || updateProfileMutation.isPending;
+  const displayEmail = profile?.buyer?.email || "";
 
   return (
-    <div className="space-y-6 w-full">
-      {/* Section Title matching Figma */}
-      <h1 className="text-xl md:text-2xl font-bold text-primary tracking-tight">
+    <div className="w-full">
+      {/* Section Title matching mockup */}
+      <h1 className="text-xl sm:text-2xl font-medium text-[#ff6200] tracking-tight mb-7 sm:mb-8">
         Personal Information :
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         {/* 2-Column Responsive Form Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
-          {/* Name Field (Readonly) */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-foreground">
+          {/* Name Field (Directly Editable) */}
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
+            >
               Name :
-            </Label>
-            <Input
+            </label>
+            <input
               id="name"
               type="text"
-              value={profile?.buyer?.name || ""}
-              disabled
-              className="bg-muted/30 text-foreground cursor-not-allowed border-border"
+              placeholder="Cameron Williamson"
+              disabled={isPending}
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors"
+              {...register("name")}
             />
+            {errors.name && (
+              <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
+            )}
           </div>
 
-          {/* Phone Number Field */}
-          <div className="space-y-2">
-            <Label
+          {/* Phone Number Field (Directly Editable) */}
+          <div>
+            <label
               htmlFor="phoneNumber"
-              className="text-sm font-medium text-foreground"
+              className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
             >
               Phone Number :
-            </Label>
-            <Input
+            </label>
+            <input
               id="phoneNumber"
               type="tel"
               placeholder="+1 145528 455265"
-              disabled={!isEditing || isPending}
-              hasError={Boolean(errors.phoneNumber)}
-              className={!isEditing ? "bg-muted/20 cursor-default" : "bg-background"}
+              disabled={isPending}
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors"
               {...register("phoneNumber")}
             />
             {errors.phoneNumber && (
-              <p className="text-xs text-destructive">
-                {errors.phoneNumber.message}
-              </p>
+              <p className="text-xs text-red-500 mt-1">{errors.phoneNumber.message}</p>
             )}
           </div>
 
           {/* Email Field (Readonly) */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-foreground">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
+            >
               Email :
-            </Label>
-            <Input
+            </label>
+            <input
               id="email"
               type="email"
-              value={profile?.buyer?.email || ""}
+              value={displayEmail}
               disabled
-              className="bg-muted/30 text-foreground cursor-not-allowed border-border"
+              placeholder="deana@gmail.com"
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 text-sm sm:text-base text-neutral-500 cursor-not-allowed select-none"
             />
           </div>
 
-          {/* Gender Field */}
-          <div className="space-y-2">
-            <Label htmlFor="gender" className="text-sm font-medium text-foreground">
+          {/* Gender Field (Directly Editable) */}
+          <div>
+            <label
+              htmlFor="gender"
+              className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
+            >
               Gander :
-            </Label>
+            </label>
             <div className="relative">
               <select
                 id="gender"
-                disabled={!isEditing || isPending}
-                className={`h-9 w-full appearance-none rounded-md border border-input px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
-                  !isEditing
-                    ? "bg-muted/20 cursor-default text-foreground"
-                    : "bg-background text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                }`}
+                disabled={isPending}
+                className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 pr-10 text-sm sm:text-base text-neutral-900 appearance-none focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors cursor-pointer"
                 {...register("gender")}
               >
                 <option value="">Select Gender</option>
@@ -215,82 +210,48 @@ export function ProfileForm() {
                 <option value="FEMALE">Female</option>
                 <option value="OTHER">Other</option>
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground text-xs">
-                &gt;
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-neutral-800">
+                <ChevronRight className="size-5 stroke-[2]" />
               </div>
             </div>
             {errors.gender && (
-              <p className="text-xs text-destructive">
-                {errors.gender.message}
-              </p>
+              <p className="text-xs text-red-500 mt-1">{errors.gender.message}</p>
             )}
           </div>
 
-          {/* Address Field (Full Width) */}
-          <div className="sm:col-span-2 space-y-2">
-            <Label
+          {/* Address Field (Directly Editable, Full Width) */}
+          <div className="sm:col-span-2">
+            <label
               htmlFor="address"
-              className="text-sm font-medium text-foreground"
+              className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
             >
               Address :
-            </Label>
-            <Input
+            </label>
+            <input
               id="address"
               type="text"
               placeholder="Address Here..."
-              disabled={!isEditing || isPending}
-              hasError={Boolean(errors.address)}
-              className={!isEditing ? "bg-muted/20 cursor-default" : "bg-background"}
+              disabled={isPending}
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors"
               {...register("address")}
             />
             {errors.address && (
-              <p className="text-xs text-destructive">
-                {errors.address.message}
-              </p>
+              <p className="text-xs text-red-500 mt-1">{errors.address.message}</p>
             )}
           </div>
         </div>
 
-        {/* Action Button: Edit vs Save Changes matching Figma */}
-        <div className="flex items-center justify-center gap-4 pt-4">
-          {!isEditing ? (
-            <Button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="px-10 py-2.5 font-medium rounded-xl min-w-[140px]"
-            >
-              Edit
-            </Button>
-          ) : (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancelEdit}
-                disabled={isPending}
-                className="px-6 py-2.5 font-medium rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="px-10 py-2.5 font-medium rounded-xl min-w-[140px]"
-              >
-                {isPending ? (
-                  <>
-                    <LoadingSpinner size="sm" className="mr-2" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
-              </Button>
-            </>
-          )}
+        {/* Action Button: Save Changes */}
+        <div className="flex items-center justify-center pt-8">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="px-14 py-3 h-12 font-medium text-sm sm:text-base rounded-md bg-[#ff6200] hover:bg-[#e65800] text-white transition-colors min-w-[170px] shadow-none cursor-pointer"
+          >
+            {isPending ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </form>
     </div>
   );
 }
-

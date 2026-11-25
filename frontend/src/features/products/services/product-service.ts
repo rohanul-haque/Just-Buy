@@ -60,18 +60,21 @@ export const productService = {
   },
 
   /**
-   * Fetch explore products for homepage (default 8)
+   * Fetch explore products for homepage (default 8, skipping latest 4)
    */
-  async getExploreProducts(limit: number = 8): Promise<Product[]> {
+  async getExploreProducts(
+    limit: number = 8,
+    skip: number = 4,
+  ): Promise<Product[]> {
     const response = await api.get<ApiResponse<Product[]>>("/products", {
-      params: { limit, page: 1 },
+      params: { limit: limit + skip, page: 1 },
     });
 
     if (!response.data.data) {
       throw new Error(response.data.message || "Failed to load explore products");
     }
 
-    return response.data.data;
+    return response.data.data.slice(skip, skip + limit);
   },
 
   /**

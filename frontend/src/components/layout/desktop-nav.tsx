@@ -7,15 +7,16 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Categories", href: "/categories" },
   { label: "All Products", href: "/products" },
+  { label: "Contact", href: "/contact" },
+  { label: "About", href: "/about" },
 ];
 
 export function DesktopNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+    <nav className="hidden md:flex items-center gap-8 lg:gap-10 text-base font-normal">
       {NAV_LINKS.map((link) => {
         const isActive =
           link.href === "/"
@@ -27,10 +28,10 @@ export function DesktopNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "transition-colors hover:text-primary relative py-1",
+              "transition-colors text-black hover:text-black py-1 relative",
               isActive
-                ? "text-primary font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-full"
-                : "text-muted-foreground",
+                ? "border-b border-black font-medium"
+                : "text-gray-800 hover:text-black",
             )}
           >
             {link.label}
@@ -40,4 +41,3 @@ export function DesktopNav() {
     </nav>
   );
 }
-

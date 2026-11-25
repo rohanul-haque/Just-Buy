@@ -1,5 +1,6 @@
 import cloudinaryService from "@/lib/cloudinary";
 import { logger } from "@/lib/winston";
+import emailService from "@/modules/v1/auth/email/email.service";
 import { revokeRefreshToken } from "@/modules/v1/auth/redis/redis.service";
 import {
   AccountStatus,
@@ -109,6 +110,11 @@ const updateOwnProfile = async (
       width: uploadRes.width,
       height: uploadRes.height,
     };
+  }
+
+  // 1.5. Update User's name if provided
+  if (payload.name) {
+    await User.findByIdAndUpdate(userId, { name: payload.name.trim() }).exec();
   }
 
   // 2. Update Buyer profile in database
@@ -333,6 +339,20 @@ const updateBuyerStatus = async (
   const updatedBuyer = await Buyer.findById(buyer._id)
     .populate("buyer", "name email role status createdAt")
     .exec();
+
+  const buyerUser = (updatedBuyer as any)?.buyer as
+    | { name?: string; email?: string }
+    | undefined;
+  if (buyerUser?.email) {
+    emailService
+      .sendAccountStatusEmail({
+        to: buyerUser.email,
+        name: buyerUser.name || "Customer",
+        role: "BUYER",
+        status: newStatus,
+      })
+      .catch(() => {});
+  }
 
   return updatedBuyer!;
 };

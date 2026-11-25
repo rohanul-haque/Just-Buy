@@ -75,10 +75,23 @@ export const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
 
   if (!open) return null;
 
-  const name = userDetails?.fullName || userDetails?.name || initialUser?.fullName || initialUser?.name || "User";
+  const name =
+    userDetails?.fullName ||
+    userDetails?.name ||
+    initialUser?.fullName ||
+    initialUser?.name ||
+    "User";
   const email = userDetails?.email || initialUser?.email || "N/A";
-  const role = (userDetails?.role || initialUser?.role || "BUYER").toUpperCase();
-  const status = (userDetails?.status || initialUser?.status || "ACTIVE").toUpperCase();
+  const role = (
+    userDetails?.role ||
+    initialUser?.role ||
+    "BUYER"
+  ).toUpperCase();
+  const status = (
+    userDetails?.status ||
+    initialUser?.status ||
+    "ACTIVE"
+  ).toUpperCase();
   const avatarUrl = userDetails?.avatar || initialUser?.avatar;
   const createdAt = userDetails?.createdAt || initialUser?.createdAt;
 
@@ -102,8 +115,8 @@ export const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
-        <DialogHeader className="flex flex-row items-center justify-between pb-4 border-b border-[#E5E7EB]">
+      <DialogContent className="sm:max-w-lg p-6 bg-[#FFE7D9] rounded-xl border border-[#ffceb0]/80 shadow-lg font-sans">
+        <DialogHeader className="flex flex-row items-center justify-between pb-4 border-b border-[#ffceb0]/80">
           <div>
             <DialogTitle className="text-xl font-bold text-[#0F172A]">
               User Information
@@ -137,10 +150,10 @@ export const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
                 <img
                   src={avatarUrl}
                   alt={name}
-                  className="w-16 h-16 rounded-md object-cover border border-[#E5E7EB] shadow-xs"
+                  className="w-16 h-16 rounded-md object-cover border border-[#ffceb0]/80 shadow-xs"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-md bg-[#E0E7FF] border border-[#C7D2FE] flex items-center justify-center text-[#4F46E5] font-extrabold text-xl shadow-xs">
+                <div className="w-16 h-16 rounded-md bg-[#ffefe6] border border-[#ffceb0] flex items-center justify-center text-[#fe6201] font-extrabold text-xl shadow-xs">
                   {initials || "U"}
                 </div>
               )}
@@ -153,7 +166,7 @@ export const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
                     className={
                       isVendor
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-semibold"
-                        : "bg-[#E0E7FF] text-[#4F46E5] border-[#C7D2FE] text-xs font-semibold"
+                        : "bg-[#ffefe6] text-[#fe6201] border-[#ffceb0] text-xs font-semibold"
                     }
                   >
                     {isVendor ? "Vendor" : "Buyer"}
@@ -167,11 +180,13 @@ export const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
             </div>
 
             {/* Account Information Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-[#F8FAFC] rounded-md border border-[#E5E7EB] text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white/80 rounded-md border border-[#ffceb0]/80 text-xs">
               <div className="flex items-start gap-2.5">
                 <Calendar className="w-4 h-4 text-[#4B5563] mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-[#4B5563] block">Registration Date</span>
+                  <span className="text-[#4B5563] block">
+                    Registration Date
+                  </span>
                   <span className="font-semibold text-[#0F172A]">
                     {formattedDate}
                   </span>
@@ -275,11 +290,11 @@ export const UserDetailsDialog: React.FC<UserDetailsDialogProps> = ({
         )}
 
         {/* Modal Actions */}
-        <div className="flex justify-end pt-3 border-t border-[#E5E7EB]">
+        <div className="flex justify-end pt-3 border-t border-[#ffceb0]/80">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="rounded-md border-[#E5E7EB] text-[#0F172A] hover:bg-[#F8FAFC]"
+            className="rounded-md border-[#ffceb0]/80 text-[#0F172A] hover:bg-white/80"
           >
             Close
           </Button>

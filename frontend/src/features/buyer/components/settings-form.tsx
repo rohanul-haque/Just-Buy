@@ -3,20 +3,21 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import {
   changePasswordSchema,
   type ChangePasswordFormValues,
 } from "@/features/buyer/schemas";
-import { useCurrentUser, useForgotPassword } from "@/features/auth/hooks/use-auth";
-import { PasswordInput } from "@/components/ui/password-input";
-import { Label } from "@/components/ui/label";
+import { useChangePassword } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import notify from "@/lib/toast";
 
 export function SettingsForm() {
-  const { data: user } = useCurrentUser();
-  const forgotPasswordMutation = useForgotPassword();
+  const [showCurrent, setShowCurrent] = React.useState(false);
+  const [showNew, setShowNew] = React.useState(false);
+  const [showConfirm, setShowConfirm] = React.useState(false);
+
+  const changePasswordMutation = useChangePassword();
 
   const {
     register,
@@ -32,124 +33,156 @@ export function SettingsForm() {
     },
   });
 
-  const onSubmit = async () => {
-    if (!user?.email) {
-      notify.error("User email is not available. Please sign in again.");
-      return;
-    }
-
-    forgotPasswordMutation.mutate(
-      { email: user.email },
+  const onSubmit = async (values: ChangePasswordFormValues) => {
+    changePasswordMutation.mutate(
+      {
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      },
       {
         onSuccess: () => {
-          notify.success(
-            "Password verification link sent!",
-            "Please check your inbox to confirm your password update.",
-          );
+          notify.success("Password changed successfully!");
           reset();
         },
         onError: (err) => {
-          notify.apiError(err, "Failed to initiate password change.");
+          notify.apiError(
+            err,
+            "Failed to change password. Please verify your current password.",
+          );
         },
       },
     );
   };
 
-  const isPending = isSubmitting || forgotPasswordMutation.isPending;
+  const isPending = isSubmitting || changePasswordMutation.isPending;
 
   return (
-    <div className="space-y-6 w-full max-w-xl">
-      {/* Title matching Figma Image 3 */}
-      <h1 className="text-xl md:text-2xl font-bold text-primary tracking-tight">
+    <div className="w-full max-w-2xl">
+      {/* Title matching mockup */}
+      <h1 className="text-xl sm:text-2xl font-medium text-[#ff6200] tracking-tight mb-7 sm:mb-8">
         Change password
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
         {/* Current Password Field */}
-        <div className="space-y-2">
-          <Label
+        <div>
+          <label
             htmlFor="currentPassword"
-            className="text-sm font-medium text-foreground"
+            className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
           >
             Current Password
-          </Label>
-          <PasswordInput
-            id="currentPassword"
-            placeholder="••••••••••••"
-            hasError={Boolean(errors.currentPassword)}
-            disabled={isPending}
-            {...register("currentPassword")}
-          />
+          </label>
+          <div className="relative">
+            <input
+              id="currentPassword"
+              type={showCurrent ? "text" : "password"}
+              placeholder="••••••••••••"
+              disabled={isPending}
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 pr-12 text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors"
+              {...register("currentPassword")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrent((prev) => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-700 hover:text-neutral-900 focus:outline-none cursor-pointer"
+              aria-label={showCurrent ? "Hide password" : "Show password"}
+            >
+              {showCurrent ? (
+                <Eye className="size-5 stroke-[1.8]" />
+              ) : (
+                <EyeOff className="size-5 stroke-[1.8]" />
+              )}
+            </button>
+          </div>
           {errors.currentPassword && (
-            <p className="text-xs text-destructive">
+            <p className="text-xs text-red-500 mt-1">
               {errors.currentPassword.message}
             </p>
           )}
         </div>
 
         {/* New Password Field */}
-        <div className="space-y-2">
-          <Label
+        <div>
+          <label
             htmlFor="newPassword"
-            className="text-sm font-medium text-foreground"
+            className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
           >
             New Password
-          </Label>
-          <PasswordInput
-            id="newPassword"
-            placeholder="••••••••••••"
-            hasError={Boolean(errors.newPassword)}
-            disabled={isPending}
-            {...register("newPassword")}
-          />
+          </label>
+          <div className="relative">
+            <input
+              id="newPassword"
+              type={showNew ? "text" : "password"}
+              placeholder="••••••••••••"
+              disabled={isPending}
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 pr-12 text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors"
+              {...register("newPassword")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNew((prev) => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-700 hover:text-neutral-900 focus:outline-none cursor-pointer"
+              aria-label={showNew ? "Hide password" : "Show password"}
+            >
+              {showNew ? (
+                <Eye className="size-5 stroke-[1.8]" />
+              ) : (
+                <EyeOff className="size-5 stroke-[1.8]" />
+              )}
+            </button>
+          </div>
           {errors.newPassword && (
-            <p className="text-xs text-destructive">
+            <p className="text-xs text-red-500 mt-1">
               {errors.newPassword.message}
             </p>
           )}
         </div>
 
         {/* Confirm New Password Field */}
-        <div className="space-y-2">
-          <Label
+        <div>
+          <label
             htmlFor="confirmNewPassword"
-            className="text-sm font-medium text-foreground"
+            className="block text-base sm:text-lg font-normal text-neutral-900 mb-2"
           >
             Confirm New Password
-          </Label>
-          <PasswordInput
-            id="confirmNewPassword"
-            placeholder="••••••••••••"
-            hasError={Boolean(errors.confirmNewPassword)}
-            disabled={isPending}
-            {...register("confirmNewPassword")}
-          />
+          </label>
+          <div className="relative">
+            <input
+              id="confirmNewPassword"
+              type={showConfirm ? "text" : "password"}
+              placeholder="••••••••••••"
+              disabled={isPending}
+              className="w-full h-[52px] rounded-md border border-neutral-700/80 bg-white px-4 pr-12 text-sm sm:text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-[#ff6200] focus:ring-1 focus:ring-[#ff6200] transition-colors"
+              {...register("confirmNewPassword")}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((prev) => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-700 hover:text-neutral-900 focus:outline-none cursor-pointer"
+              aria-label={showConfirm ? "Hide password" : "Show password"}
+            >
+              {showConfirm ? (
+                <Eye className="size-5 stroke-[1.8]" />
+              ) : (
+                <EyeOff className="size-5 stroke-[1.8]" />
+              )}
+            </button>
+          </div>
           {errors.confirmNewPassword && (
-            <p className="text-xs text-destructive">
+            <p className="text-xs text-red-500 mt-1">
               {errors.confirmNewPassword.message}
             </p>
           )}
         </div>
 
-        {/* Centered Save Changes Button matching Figma */}
-        <div className="pt-2 text-center text-xs text-muted-foreground">
-          Password updates are verified via a secure link sent to your registered email address ({user?.email || "loading..."}).
-        </div>
-
-        <div className="pt-2 flex justify-center">
+        {/* Action Button: Save Changes */}
+        <div className="flex items-center justify-center pt-6">
           <Button
             type="submit"
             disabled={isPending}
-            className="px-10 py-2.5 font-medium rounded-xl min-w-37.5"
+            className="px-14 py-3 h-12 font-medium text-sm sm:text-base rounded-md bg-[#ff6200] hover:bg-[#e65800] text-white transition-colors min-w-[170px] shadow-none cursor-pointer"
           >
-            {isPending ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              "Save Changes"
-            )}
+            {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </form>

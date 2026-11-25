@@ -8,6 +8,7 @@ import type {
   IRegisterInput,
   IRegisterResponse,
   IResetPasswordInput,
+  IChangePasswordInput,
 } from "@/modules/v1/auth/auth.interface";
 import {
   generateNumericOtp,
@@ -458,6 +459,36 @@ const resetPassword = async (
   };
 };
 
+const changePassword = async (
+  userId: string,
+  payload: IChangePasswordInput,
+): Promise<{ message: string }> => {
+  const user = await User.findById(userId).select("+password").exec();
+  if (!user || !user.password) {
+    throw new AppError(status.NOT_FOUND, ERROR_CODE.NOT_FOUND, "User not found");
+  }
+
+  const isPasswordValid = await comparePassword(
+    payload.currentPassword,
+    user.password,
+  );
+  if (!isPasswordValid) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      ERROR_CODE.AUTH_INVALID_CREDENTIALS,
+      "Current password is incorrect",
+    );
+  }
+
+  const hashedPassword = await hashPassword(payload.newPassword);
+  user.password = hashedPassword;
+  await user.save();
+
+  return {
+    message: "Password changed successfully!",
+  };
+};
+
 const authService = {
   register,
   login,
@@ -465,6 +496,7 @@ const authService = {
   refreshToken,
   forgotPassword,
   resetPassword,
+  changePassword,
 };
 
 export default authService;

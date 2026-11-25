@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/client";
 import categoryService from "@/api/services/category.service";
 import productService from "@/api/services/product.service";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,6 +18,12 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ICategory } from "@/types/category";
 
 const AVAILABLE_SIZES = ["S", "M", "L", "XL", "XXL"] as const;
+
+interface UploadedFileItem {
+  file: File;
+  name: string;
+  preview: string;
+}
 
 export const AddProductPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,13 +41,11 @@ export const AddProductPage: React.FC = () => {
   const [description, setDescription] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
 
-  // Image Upload State
-  const [featureImage, setFeatureImage] = useState<File | null>(null);
-  const [featureImagePreview, setFeatureImagePreview] = useState<string | null>(
-    null,
-  );
-  const [additionalImages, setAdditionalImages] = useState<File[]>([]);
-  const [additionalPreviews, setAdditionalPreviews] = useState<string[]>([]);
+  // 1. Single Feature Image
+  const [featureImageItem, setFeatureImageItem] = useState<UploadedFileItem | null>(null);
+
+  // 2. Multiple Gallery Images
+  const [galleryFiles, setGalleryFiles] = useState<UploadedFileItem[]>([]);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -76,30 +77,40 @@ export const AddProductPage: React.FC = () => {
     );
   };
 
-  const handleFeatureImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  // Feature Image Handler
+  const handleFeatureImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFeatureImage(file);
-      setFeatureImagePreview(URL.createObjectURL(file));
+      setFeatureImageItem({
+        file,
+        name: file.name,
+        preview: URL.createObjectURL(file),
+      });
     }
+    e.target.value = "";
   };
 
-  const handleAdditionalImagesChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const removeFeatureImage = () => {
+    setFeatureImageItem(null);
+  };
+
+  // Multiple Gallery Images Handler
+  const handleGalleryFilesAdded = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setAdditionalImages((prev) => [...prev, ...files].slice(0, 10));
-      const newPreviews = files.map((f) => URL.createObjectURL(f));
-      setAdditionalPreviews((prev) => [...prev, ...newPreviews].slice(0, 10));
-    }
+    if (files.length === 0) return;
+
+    const newItems: UploadedFileItem[] = files.map((file) => ({
+      file,
+      name: file.name,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setGalleryFiles((prev) => [...prev, ...newItems].slice(0, 10));
+    e.target.value = "";
   };
 
-  const removeAdditionalImage = (index: number) => {
-    setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
-    setAdditionalPreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeGalleryFile = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,20 +124,18 @@ export const AddProductPage: React.FC = () => {
       toast.error("Please select a category.");
       return;
     }
-    if (!price || Number(price) <= 0) {
-      toast.error("Please enter a valid price greater than zero.");
+    const numPrice = parseFloat(price);
+    if (isNaN(numPrice) || numPrice < 0) {
+      toast.error("Please enter a valid regular price.");
       return;
     }
-    if (stock === "" || Number(stock) < 0) {
-      toast.error("Please enter a valid non-negative stock count.");
+    const numStock = parseInt(stock, 10);
+    if (isNaN(numStock) || numStock < 0) {
+      toast.error("Please enter a valid stock quantity.");
       return;
     }
-    if (!description.trim() || description.trim().length < 5) {
-      toast.error("Product description must be at least 5 characters.");
-      return;
-    }
-    if (!featureImage) {
-      toast.error("Please upload a main product image.");
+    if (!featureImageItem) {
+      toast.error("Please upload a feature image.");
       return;
     }
 
@@ -135,20 +144,21 @@ export const AddProductPage: React.FC = () => {
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("category", categoryId);
-      formData.append("price", String(Number(price)));
-      formData.append("stock", String(Math.floor(Number(stock))));
-      formData.append("description", description.trim());
-      if (brand.trim()) {
-        formData.append("brand", brand.trim());
-      }
-      if (selectedSizes.length > 0) {
-        formData.append("sizes", JSON.stringify(selectedSizes));
-      }
+      formData.append("price", String(numPrice));
+      formData.append("stock", String(numStock));
+      if (brand.trim()) formData.append("brand", brand.trim());
+      if (description.trim()) formData.append("description", description.trim());
 
-      // Append images
-      formData.append("featureImage", featureImage);
-      additionalImages.forEach((img) => {
-        formData.append("images", img);
+      selectedSizes.forEach((s) => {
+        formData.append("sizes", s);
+      });
+
+      // Feature image (single)
+      formData.append("featureImage", featureImageItem.file);
+
+      // Additional images (multiple)
+      galleryFiles.forEach((item) => {
+        formData.append("images", item.file);
       });
 
       const response = await productService.createProduct(formData);
@@ -166,293 +176,312 @@ export const AddProductPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Top Header */}
       <div className="flex items-center gap-3">
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="icon"
           onClick={() => navigate("/products")}
-          className="h-9 w-9 p-0 border-[#E5E7EB] text-[#374151] hover:bg-[#F8FAFC]"
+          className="h-9 w-9 rounded-full text-[#1F2937] hover:bg-[#ffceb0]/40"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div>
-          <h2 className="text-2xl font-bold text-[#0F172A]">Add New Product</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Fill in the details below to publish a product to your store.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-[#1F2937] tracking-tight">
+          Add Product Details
+        </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information Card */}
-        <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs">
-          <CardHeader className="pb-3 border-b border-[#F1F5F9]">
-            <CardTitle className="text-base font-bold text-[#0F172A]">
-              Basic Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Product Name */}
-              <div className="space-y-1.5 md:col-span-2">
-                <Label htmlFor="name" className="text-xs font-semibold text-[#374151]">
-                  Product Name <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. Classic Cotton Crewneck T-Shirt"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
-
-              {/* Category */}
-              <div className="space-y-1.5">
-                <Label htmlFor="category" className="text-xs font-semibold text-[#374151]">
-                  Category <span className="text-[#EF4444]">*</span>
-                </Label>
-                {isLoadingCategories ? (
-                  <div className="h-10 flex items-center px-3 border border-[#E5E7EB] rounded-md text-xs text-[#94A3B8]">
-                    Loading categories...
-                  </div>
-                ) : (
-                  <Select
-                    value={categoryId}
-                    onValueChange={(val) => setCategoryId(val)}
-                  >
-                    <SelectTrigger id="category" className="w-full h-10 text-sm text-[#0F172A] border-[#E5E7EB] bg-white">
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {categories.map((cat) => (
-                        <SelectItem key={cat._id} value={cat._id} className="text-sm">
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              {/* Brand */}
-              <div className="space-y-1.5">
-                <Label htmlFor="brand" className="text-xs font-semibold text-[#374151]">
-                  Brand Name (Optional)
-                </Label>
-                <Input
-                  id="brand"
-                  placeholder="e.g. Jus Buy Basics"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
-
-              {/* Price */}
-              <div className="space-y-1.5">
-                <Label htmlFor="price" className="text-xs font-semibold text-[#374151]">
-                  Price (৳) <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
-
-              {/* Stock */}
-              <div className="space-y-1.5">
-                <Label htmlFor="stock" className="text-xs font-semibold text-[#374151]">
-                  Initial Stock Inventory <span className="text-[#EF4444]">*</span>
-                </Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  step="1"
-                  placeholder="0"
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value)}
-                  required
-                  className="h-10 text-sm border-[#E5E7EB]"
-                />
-              </div>
+      {/* Main Container Card */}
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-[#ffceb0]/80 bg-[#FFE7D9] p-6 sm:p-8 shadow-xs space-y-6 text-[#1F2937]">
+        {/* Two-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Form Fields */}
+          <div className="lg:col-span-6 space-y-4">
+            {/* 1. Product Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="p-name" className="text-sm font-bold text-[#1F2937] block">
+                Product Name
+              </label>
+              <Input
+                id="p-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Lorem Ipsum"
+                required
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
             </div>
 
-            {/* Sizes */}
-            <div className="space-y-2 pt-2">
-              <Label className="text-xs font-semibold text-[#374151]">
-                Available Sizes (Optional)
-              </Label>
-              <div className="flex flex-wrap items-center gap-4 pt-1">
+            {/* 2. Description */}
+            <div className="space-y-1.5">
+              <label htmlFor="p-desc" className="text-sm font-bold text-[#1F2937] block">
+                Description
+              </label>
+              <Textarea
+                id="p-desc"
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Lorem Ipsum Is A Dummy Text"
+                className="px-4 py-2.5 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 3. Category */}
+            <div className="space-y-1.5">
+              <label htmlFor="p-cat" className="text-sm font-bold text-[#1F2937] block">
+                Category
+              </label>
+              {isLoadingCategories ? (
+                <div className="h-11 px-4 rounded-xl border border-[#9CA3AF] flex items-center text-sm text-[#6B7280]">
+                  Loading categories...
+                </div>
+              ) : (
+                <Select value={categoryId} onValueChange={setCategoryId}>
+                  <SelectTrigger id="p-cat" className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] shadow-2xs focus:ring-[#fe6201]">
+                    <SelectValue placeholder="Sneaker" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id} className="text-sm cursor-pointer hover:bg-[#ffceb0]/60">
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* 4. Brand Name */}
+            <div className="space-y-1.5">
+              <label htmlFor="p-brand" className="text-sm font-bold text-[#1F2937] block">
+                Brand Name
+              </label>
+              <Input
+                id="p-brand"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="Addidas"
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 5. Stock Quantity */}
+            <div className="space-y-1.5">
+              <label htmlFor="p-stock" className="text-sm font-bold text-[#1F2937] block">
+                Stock Quantity
+              </label>
+              <Input
+                id="p-stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                placeholder="211"
+                required
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 6. Regular Price */}
+            <div className="space-y-1.5">
+              <label htmlFor="p-price" className="text-sm font-bold text-[#1F2937] block">
+                Regular Price
+              </label>
+              <Input
+                id="p-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="$110.40"
+                required
+                className="h-11 px-4 rounded-xl bg-transparent border border-[#9CA3AF] text-sm text-[#1F2937] placeholder:text-[#6B7280] shadow-2xs focus-visible:ring-0 focus-visible:border-[#fe6201]"
+              />
+            </div>
+
+            {/* 7. Size (Optional) */}
+            <div className="space-y-2 pt-1">
+              <label className="text-sm font-bold text-[#1F2937] block">
+                Size(Optional)
+              </label>
+              <div className="flex items-center gap-2">
                 {AVAILABLE_SIZES.map((size) => {
-                  const isChecked = selectedSizes.includes(size);
+                  const isSelected = selectedSizes.includes(size);
                   return (
-                    <div key={size} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`add-size-${size}`}
-                        checked={isChecked}
-                        onCheckedChange={() => handleSizeToggle(size)}
-                      />
-                      <label
-                        htmlFor={`add-size-${size}`}
-                        className="text-xs font-medium text-[#374151] cursor-pointer select-none"
-                      >
-                        {size}
-                      </label>
-                    </div>
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => handleSizeToggle(size)}
+                      className={`min-w-10 h-10 px-3 rounded-lg border text-sm font-medium transition-all cursor-pointer shadow-2xs ${
+                        isSelected
+                          ? "bg-white border-[#fe6201] text-[#fe6201] font-bold ring-1 ring-[#fe6201]"
+                          : "bg-white/80 border-[#9CA3AF] text-[#1F2937] hover:bg-white"
+                      }`}
+                    >
+                      {size}
+                    </button>
                   );
                 })}
               </div>
             </div>
+          </div>
 
-            {/* Description */}
-            <div className="space-y-1.5 pt-2">
-              <Label htmlFor="description" className="text-xs font-semibold text-[#374151]">
-                Product Description <span className="text-[#EF4444]">*</span>
-              </Label>
-              <Textarea
-                id="description"
-                rows={4}
-                placeholder="Provide a detailed description of features, materials, and care instructions..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                className="text-sm border-[#E5E7EB]"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Product Media Card */}
-        <Card className="border border-[#E5E7EB] bg-white rounded-lg shadow-xs">
-          <CardHeader className="pb-3 border-b border-[#F1F5F9]">
-            <CardTitle className="text-base font-bold text-[#0F172A]">
-              Product Images
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            {/* Main Feature Image */}
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold text-[#374151]">
-                Main Feature Image <span className="text-[#EF4444]">*</span>
-              </Label>
-              <div className="flex items-center gap-4">
-                {featureImagePreview ? (
-                  <div className="w-24 h-24 rounded-md border border-[#E5E7EB] overflow-hidden relative group">
-                    <img
-                      src={featureImagePreview}
-                      alt="Feature preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFeatureImage(null);
-                        setFeatureImagePreview(null);
-                      }}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="w-24 h-24 rounded-md border-2 border-dashed border-[#CBD5E1] hover:border-[#6366F1] flex flex-col items-center justify-center cursor-pointer bg-[#F8FAFC] transition-colors">
-                    <Upload className="w-6 h-6 text-[#94A3B8]" />
-                    <span className="text-[10px] text-[#64748B] mt-1 font-medium">Upload</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFeatureImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-                <div className="text-xs text-[#64748B]">
-                  <p className="font-semibold text-[#0F172A]">Primary Showcase Photo</p>
-                  <p>PNG, JPG, or WEBP. Square ratio recommended.</p>
-                </div>
+          {/* Right Column: Two distinct sections: Feature Image & Gallery Images */}
+          <div className="lg:col-span-6 space-y-6">
+            {/* Section 1: Single Feature Image */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#1F2937]">
+                  Feature Image <span className="text-[#fe6201]">*</span>
+                </h3>
+                <span className="text-xs text-[#6B7280]">Primary single photo</span>
               </div>
+
+              {!featureImageItem ? (
+                <label className="border-2 border-dashed border-[#9CA3AF] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#fe6201] bg-transparent transition-colors min-h-[140px] select-none">
+                  <ImageIcon className="w-10 h-10 text-[#1F2937] stroke-[1.2] mb-1.5" />
+                  <p className="text-xs sm:text-sm text-[#4B5563] font-medium">
+                    Upload Feature Image, or <span className="text-[#fe6201] underline">browse</span>
+                  </p>
+                  <span className="text-[11px] text-[#6B7280] mt-0.5">
+                    Single main image (Jpeg, png)
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleFeatureImageChange}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <div className="rounded-xl border border-[#9CA3AF] bg-transparent p-3 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-14 rounded-lg bg-[#9CA3AF]/40 overflow-hidden shrink-0 flex items-center justify-center">
+                      <img
+                        src={featureImageItem.preview}
+                        alt={featureImageItem.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-[#1F2937] truncate">
+                        {featureImageItem.name}
+                      </p>
+                      <span className="text-[10px] font-bold text-[#fe6201] uppercase block mt-0.5">
+                        Feature Image
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={removeFeatureImage}
+                    className="p-1.5 text-[#1F2937] hover:text-[#DC2626] transition-colors cursor-pointer shrink-0"
+                    title="Remove feature image"
+                    aria-label="Remove feature image"
+                  >
+                    <Trash2 className="w-5 h-5 stroke-[1.5]" />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Additional Images */}
-            <div className="space-y-2 pt-2 border-t border-[#F1F5F9]">
-              <Label className="text-xs font-semibold text-[#374151]">
-                Additional Images (Up to 10 photos)
-              </Label>
-              <div className="flex flex-wrap gap-3">
-                {additionalPreviews.map((preview, idx) => (
+            {/* Section 2: Multiple Gallery Images */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#1F2937]">
+                  Product Gallery Images
+                </h3>
+                <span className="text-xs text-[#6B7280]">Multiple images</span>
+              </div>
+
+              {/* Upload Dropzone for multiple images */}
+              <label className="border-2 border-dashed border-[#9CA3AF] rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#fe6201] bg-transparent transition-colors min-h-[140px] select-none">
+                <ImageIcon className="w-10 h-10 text-[#1F2937] stroke-[1.2] mb-1.5" />
+                <p className="text-xs sm:text-sm text-[#4B5563] font-medium">
+                  Drop gallery images here, or <span className="text-[#fe6201] underline">browse</span>
+                </p>
+                <span className="text-[11px] text-[#6B7280] mt-0.5">
+                  Select multiple product photos (Jpeg, png)
+                </span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  multiple
+                  onChange={handleGalleryFilesAdded}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Uploaded Gallery Images List */}
+              <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                {galleryFiles.map((item, idx) => (
                   <div
                     key={idx}
-                    className="w-20 h-20 rounded-md border border-[#E5E7EB] overflow-hidden relative group"
+                    className="rounded-xl border border-[#9CA3AF] bg-transparent p-3 flex items-center justify-between gap-3 shadow-2xs"
                   >
-                    <img
-                      src={preview}
-                      alt={`Preview ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-12 h-12 rounded-lg bg-[#9CA3AF]/40 overflow-hidden shrink-0 flex items-center justify-center">
+                        <img
+                          src={item.preview}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-[#1F2937] truncate">
+                          {item.name}
+                        </p>
+                        <span className="text-[10px] text-[#6B7280] block">
+                          Gallery Image #{idx + 1}
+                        </span>
+                      </div>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => removeAdditionalImage(idx)}
-                      className="absolute top-1 right-1 p-1 bg-[#EF4444] text-white rounded-full opacity-90 hover:opacity-100"
+                      onClick={() => removeGalleryFile(idx)}
+                      className="p-1.5 text-[#1F2937] hover:text-[#DC2626] transition-colors cursor-pointer shrink-0"
+                      title="Remove image"
+                      aria-label="Remove image"
                     >
-                      <X className="w-3 h-3" />
+                      <Trash2 className="w-5 h-5 stroke-[1.5]" />
                     </button>
                   </div>
                 ))}
-
-                {additionalImages.length < 10 && (
-                  <label className="w-20 h-20 rounded-md border-2 border-dashed border-[#CBD5E1] hover:border-[#6366F1] flex flex-col items-center justify-center cursor-pointer bg-[#F8FAFC] transition-colors">
-                    <Upload className="w-5 h-5 text-[#94A3B8]" />
-                    <span className="text-[10px] text-[#64748B] mt-1 font-medium">+ Add</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleAdditionalImagesChange}
-                      className="hidden"
-                    />
-                  </label>
-                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        {/* Bottom Action Buttons */}
+        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-12 rounded-xl bg-[#fe6201] hover:bg-[#e55801] text-white font-bold text-sm uppercase tracking-wider shadow-md cursor-pointer disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Uploading...
+              </span>
+            ) : (
+              "Upload"
+            )}
+          </Button>
+
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate("/products")}
             disabled={isSubmitting}
-            className="border-[#E5E7EB] text-[#374151]"
+            className="w-full h-12 rounded-xl bg-transparent border-2 border-[#fe6201] text-[#fe6201] hover:bg-[#fe6201]/10 font-bold text-sm uppercase tracking-wider cursor-pointer"
           >
             Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold px-6 shadow-xs"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Publishing Product...
-              </>
-            ) : (
-              "Publish Product"
-            )}
           </Button>
         </div>
       </form>

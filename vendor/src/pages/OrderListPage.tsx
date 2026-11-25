@@ -26,15 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import VendorPagination from "@/components/ui/vendor-pagination";
 import {
   Select,
   SelectContent,
@@ -392,17 +384,17 @@ export const OrderListPage: React.FC = () => {
       />
 
       {/* 2. Search & Filter Bar */}
-      <Card className="p-4 border-[#E5E7EB] bg-white rounded-md shadow-xs">
+      <Card className="p-4 border border-[#ffceb0]/60 bg-[#FFE7D9] rounded-xl shadow-xs">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Search Input */}
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               type="text"
               placeholder="Search by Order ID, customer, or product..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10 rounded-md border-[#E5E7EB] text-sm text-[#0F172A] w-full"
+              className="pl-9 h-10 rounded-xl border border-[#ffceb0]/80 bg-[#ffefe6] text-sm text-[#1F2937] placeholder:text-[#9CA3AF] w-full outline-none focus:outline-none focus:border-[#fe6201] focus-visible:outline-none focus-visible:ring-0 focus-visible:border-[#fe6201]"
             />
           </div>
 
@@ -415,29 +407,29 @@ export const OrderListPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="h-10 w-[130px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+              <SelectTrigger className="h-10 w-[130px] text-xs font-medium text-[#1F2937] border border-[#ffceb0]/80 bg-[#ffefe6] rounded-xl focus:ring-[#fe6201]">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="ALL" className="text-xs">
+              <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                <SelectItem value="ALL" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   All Status
                 </SelectItem>
-                <SelectItem value="PENDING" className="text-xs">
+                <SelectItem value="PENDING" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Pending
                 </SelectItem>
-                <SelectItem value="CONFIRMED" className="text-xs">
+                <SelectItem value="CONFIRMED" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Confirmed
                 </SelectItem>
-                <SelectItem value="PROCESSING" className="text-xs">
+                <SelectItem value="PROCESSING" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Processing
                 </SelectItem>
-                <SelectItem value="SHIPPED" className="text-xs">
+                <SelectItem value="SHIPPED" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Shipped
                 </SelectItem>
-                <SelectItem value="DELIVERED" className="text-xs">
+                <SelectItem value="DELIVERED" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Delivered
                 </SelectItem>
-                <SelectItem value="CANCELLED" className="text-xs">
+                <SelectItem value="CANCELLED" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Cancelled
                 </SelectItem>
               </SelectContent>
@@ -451,17 +443,17 @@ export const OrderListPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+              <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#1F2937] border border-[#ffceb0]/80 bg-[#ffefe6] rounded-xl focus:ring-[#fe6201]">
                 <SelectValue placeholder="All Payment Types" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="ALL" className="text-xs">
+              <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                <SelectItem value="ALL" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   All Payment Types
                 </SelectItem>
-                <SelectItem value="COD" className="text-xs">
+                <SelectItem value="COD" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Cash on Delivery
                 </SelectItem>
-                <SelectItem value="ONLINE" className="text-xs">
+                <SelectItem value="ONLINE" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Online Payment
                 </SelectItem>
               </SelectContent>
@@ -475,26 +467,26 @@ export const OrderListPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="h-10 w-[140px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+              <SelectTrigger className="h-10 w-[140px] text-xs font-medium text-[#1F2937] border border-[#ffceb0]/80 bg-[#ffefe6] rounded-xl focus:ring-[#fe6201]">
                 <SelectValue placeholder="Payment Status" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="ALL" className="text-xs">
+              <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                <SelectItem value="ALL" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   All Payment Status
                 </SelectItem>
-                <SelectItem value="UNPAID" className="text-xs">
+                <SelectItem value="UNPAID" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Unpaid
                 </SelectItem>
-                <SelectItem value="PENDING" className="text-xs">
+                <SelectItem value="PENDING" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Pending
                 </SelectItem>
-                <SelectItem value="PAID" className="text-xs">
+                <SelectItem value="PAID" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Paid
                 </SelectItem>
-                <SelectItem value="FAILED" className="text-xs">
+                <SelectItem value="FAILED" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Failed
                 </SelectItem>
-                <SelectItem value="REFUNDED" className="text-xs">
+                <SelectItem value="REFUNDED" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Refunded
                 </SelectItem>
               </SelectContent>
@@ -510,21 +502,21 @@ export const OrderListPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#374151] border-[#E5E7EB] bg-white">
+              <SelectTrigger className="h-10 w-[150px] text-xs font-medium text-[#1F2937] border border-[#ffceb0]/80 bg-[#ffefe6] rounded-xl focus:ring-[#fe6201]">
                 <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-[#64748B]" />
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="createdAt_desc" className="text-xs">
+              <SelectContent className="bg-[#FFE7D9] border border-[#ffceb0]/80">
+                <SelectItem value="createdAt_desc" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Date: Newest First
                 </SelectItem>
-                <SelectItem value="createdAt_asc" className="text-xs">
+                <SelectItem value="createdAt_asc" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Date: Oldest First
                 </SelectItem>
-                <SelectItem value="totalAmount_desc" className="text-xs">
+                <SelectItem value="totalAmount_desc" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Amount: High to Low
                 </SelectItem>
-                <SelectItem value="totalAmount_asc" className="text-xs">
+                <SelectItem value="totalAmount_asc" className="text-xs cursor-pointer hover:bg-[#ffceb0]/60">
                   Amount: Low to High
                 </SelectItem>
               </SelectContent>
@@ -549,7 +541,7 @@ export const OrderListPage: React.FC = () => {
                   setSearchQuery("");
                   setPage(1);
                 }}
-                className="text-xs text-[#EF4444] hover:bg-[#FEF2F2] h-10 px-2 cursor-pointer"
+                className="text-xs text-[#DC2626] hover:bg-[#ffceb0]/60 h-10 px-2.5 cursor-pointer rounded-xl"
               >
                 Clear
               </Button>
@@ -559,7 +551,7 @@ export const OrderListPage: React.FC = () => {
       </Card>
 
       {/* 3. Main Orders Table */}
-      <Card className="border-[#E5E7EB] bg-white rounded-md shadow-xs overflow-hidden">
+      <Card className="border border-[#ffceb0]/60 bg-[#FFE7D9] rounded-xl shadow-xs overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-4">
             <div className="space-y-3">
@@ -570,7 +562,7 @@ export const OrderListPage: React.FC = () => {
               ))}
             </div>
             <div className="flex items-center justify-center pt-2">
-              <Loader2 className="w-5 h-5 animate-spin text-[#6366F1] mr-2" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#fe6201] mr-2" />
               <p className="text-xs text-[#64748B]">
                 Loading orders from server...
               </p>
@@ -578,8 +570,8 @@ export const OrderListPage: React.FC = () => {
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center p-12 space-y-3 text-center">
-            <AlertCircle className="w-10 h-10 text-[#EF4444]" />
-            <p className="text-sm font-semibold text-[#0F172A]">
+            <AlertCircle className="w-10 h-10 text-[#DC2626]" />
+            <p className="text-sm font-semibold text-[#1F2937]">
               Unable to load orders
             </p>
             <p className="text-xs text-[#64748B] max-w-md">{error}</p>
@@ -587,15 +579,17 @@ export const OrderListPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => fetchOrders()}
-              className="mt-2 text-xs"
+              className="mt-2 text-xs border-[#ffceb0]/80 bg-[#ffefe6] text-[#1F2937] hover:bg-[#ffceb0]"
             >
               Retry
             </Button>
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-16 space-y-3 text-center">
-            <Package className="w-12 h-12 text-[#CBD5E1]" />
-            <p className="text-base font-semibold text-[#0F172A]">
+            <div className="w-12 h-12 rounded-xl bg-[#ffceb0]/40 border border-[#ffceb0] text-[#fe6201] flex items-center justify-center mx-auto mb-1">
+              <Package className="w-6 h-6" />
+            </div>
+            <p className="text-base font-semibold text-[#1F2937]">
               No orders found
             </p>
             <p className="text-xs text-[#64748B] max-w-sm">
@@ -610,48 +604,48 @@ export const OrderListPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-[#F8FAFC]">
-                <TableRow className="border-b border-[#E5E7EB]">
+              <TableHeader className="bg-[#CB4E01] text-white">
+                <TableRow className="border-b border-[#CB4E01] hover:bg-[#CB4E01]">
                   {/* 1. Product Name */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 pl-6">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3 pl-6">
                     Product Name
                   </TableHead>
                   {/* 2. Order ID */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3">
                     Order ID
                   </TableHead>
                   {/* 3. Date */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3">
                     Date
                   </TableHead>
                   {/* 4. Customer Name */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3">
                     Customer Name
                   </TableHead>
                   {/* 5. Order Status */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3 text-center">
                     Order Status
                   </TableHead>
                   {/* 6. Amount */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-right">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3 text-right">
                     Amount
                   </TableHead>
                   {/* 7. Payment Method */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3">
                     Payment Method
                   </TableHead>
                   {/* 8. Transaction ID */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3">
                     Transaction ID
                   </TableHead>
                   {/* 9. Actions */}
-                  <TableHead className="font-semibold text-xs text-[#475569] uppercase py-3.5 text-center pr-6">
+                  <TableHead className="font-semibold text-xs text-white uppercase py-3 text-center pr-6">
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
 
-              <TableBody className="divide-y divide-[#E5E7EB]">
+              <TableBody className="divide-y divide-[#ffceb0]/40 bg-[#FFE7D9]">
                 {orders.map((order) => {
                   const items = order.productItems || [];
                   const primaryItem = items[0];
@@ -696,19 +690,19 @@ export const OrderListPage: React.FC = () => {
                   return (
                     <TableRow
                       key={order._id}
-                      className="hover:bg-[#F8FAFC] transition-colors"
+                      className="hover:bg-[#ffceb0]/40 transition-colors border-b border-[#ffceb0]/40"
                     >
                       {/* 1. Product Name */}
-                      <TableCell className="pl-6 py-4">
+                      <TableCell className="pl-6 py-3.5">
                         <div className="min-w-0">
                           <p
-                            className="text-sm font-semibold text-[#0F172A] truncate max-w-[200px]"
+                            className="text-sm font-semibold text-[#1F2937] truncate max-w-[200px]"
                             title={primaryItem?.name || "Ordered Product"}
                           >
                             {primaryItem?.name || "Ordered Product"}
                           </p>
                           {extraItemsCount > 0 && (
-                            <span className="text-xs text-[#6366F1] font-medium block mt-0.5">
+                            <span className="text-xs text-[#fe6201] font-semibold block mt-0.5">
                               +{extraItemsCount} more item
                               {extraItemsCount > 1 ? "s" : ""}
                             </span>
@@ -717,26 +711,26 @@ export const OrderListPage: React.FC = () => {
                       </TableCell>
 
                       {/* 2. Order ID */}
-                      <TableCell className="text-xs font-mono font-semibold text-[#0F172A] py-4 whitespace-nowrap">
+                      <TableCell className="text-xs font-mono font-semibold text-[#1F2937] py-3.5 whitespace-nowrap">
                         #
                         {order.transactionNumber ||
                           order._id.slice(-6).toUpperCase()}
                       </TableCell>
 
                       {/* 3. Date */}
-                      <TableCell className="text-xs text-[#475569] py-4 whitespace-nowrap">
+                      <TableCell className="text-xs text-[#4B5563] py-3.5 whitespace-nowrap">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
 
                       {/* 4. Customer Name */}
-                      <TableCell className="text-xs font-medium text-[#0F172A] py-4">
+                      <TableCell className="text-xs font-medium text-[#1F2937] py-3.5">
                         {order.buyer?.name ||
                           order.shippingAddress?.fullName ||
                           "Customer"}
                       </TableCell>
 
                       {/* 5. Order Status with Three-Dot Menu */}
-                      <TableCell className="py-4">
+                      <TableCell className="py-3.5">
                         <div className="flex items-center justify-center gap-1">
                           {getOrderStatusBadge(order.status)}
                           <DropdownMenu>
@@ -745,7 +739,7 @@ export const OrderListPage: React.FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 disabled={isRowBusy}
-                                className="h-7 w-7 p-0 rounded-md hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
+                                className="h-7 w-7 p-0 rounded-md hover:bg-[#ffceb0]/60 text-[#64748B] cursor-pointer"
                                 title="Update order status"
                               >
                                 {isRowUpdatingStatus ? (
@@ -757,12 +751,12 @@ export const OrderListPage: React.FC = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="w-48 bg-white"
+                              className="w-48 bg-[#FFE7D9] border border-[#ffceb0]/80"
                             >
                               <DropdownMenuLabel className="text-xs text-[#64748B]">
                                 Change Order Status
                               </DropdownMenuLabel>
-                              <DropdownMenuSeparator />
+                              <DropdownMenuSeparator className="bg-[#ffceb0]/60" />
                               {ORDER_STATUS_OPTIONS.map((opt) => {
                                 const isActive = order.status === opt.value;
                                 return (
@@ -771,15 +765,15 @@ export const OrderListPage: React.FC = () => {
                                     onClick={() =>
                                       handleUpdateStatus(order._id, opt.value)
                                     }
-                                    className={`text-xs cursor-pointer font-medium hover:bg-[#F8FAFC] flex items-center justify-between ${
+                                    className={`text-xs cursor-pointer font-medium hover:bg-[#ffceb0]/60 flex items-center justify-between ${
                                       isActive
-                                        ? "text-[#6366F1] font-semibold bg-[#F5F3FF]"
+                                        ? "text-[#fe6201] font-bold"
                                         : ""
                                     }`}
                                   >
                                     <span>Mark as {opt.label}</span>
                                     {isActive && (
-                                      <Check className="w-3.5 h-3.5 text-[#6366F1]" />
+                                      <Check className="w-3.5 h-3.5 text-[#fe6201]" />
                                     )}
                                   </DropdownMenuItem>
                                 );
@@ -790,15 +784,15 @@ export const OrderListPage: React.FC = () => {
                       </TableCell>
 
                       {/* 6. Amount */}
-                      <TableCell className="text-sm font-bold text-[#0F172A] text-right py-4 whitespace-nowrap">
+                      <TableCell className="text-sm font-bold text-[#1F2937] text-right py-3.5 whitespace-nowrap">
                         {formatCurrency(vendorAmount)}
                       </TableCell>
 
                       {/* 7. Payment Method with Three-Dot Menu */}
-                      <TableCell className="text-xs text-[#475569] py-4 whitespace-nowrap">
+                      <TableCell className="text-xs text-[#4B5563] py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <div className="flex flex-col">
-                            <span className="font-medium text-[#0F172A]">
+                            <span className="font-medium text-[#1F2937]">
                               {isCOD ? "Cash on Delivery" : "Online Payment"}
                             </span>
                             <div className="mt-1">
@@ -811,7 +805,7 @@ export const OrderListPage: React.FC = () => {
                                 variant="ghost"
                                 size="icon"
                                 disabled={isRowBusy}
-                                className="h-6 w-6 p-0 rounded-md hover:bg-[#F1F5F9] text-[#64748B] cursor-pointer"
+                                className="h-6 w-6 p-0 rounded-md hover:bg-[#ffceb0]/60 text-[#64748B] cursor-pointer"
                                 title="Change payment status"
                               >
                                 {isRowUpdatingPayment ? (
@@ -823,12 +817,12 @@ export const OrderListPage: React.FC = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="w-52 bg-white"
+                              className="w-52 bg-[#FFE7D9] border border-[#ffceb0]/80"
                             >
                               <DropdownMenuLabel className="text-xs text-[#64748B]">
                                 Change Payment Status
                               </DropdownMenuLabel>
-                              <DropdownMenuSeparator />
+                              <DropdownMenuSeparator className="bg-[#ffceb0]/60" />
                               {PAYMENT_STATUS_OPTIONS.map((opt) => {
                                 const isActive =
                                   currentPaymentStatus === opt.value;
@@ -841,15 +835,15 @@ export const OrderListPage: React.FC = () => {
                                         opt.value,
                                       )
                                     }
-                                    className={`text-xs cursor-pointer font-medium hover:bg-[#F8FAFC] flex items-center justify-between ${
+                                    className={`text-xs cursor-pointer font-medium hover:bg-[#ffceb0]/60 flex items-center justify-between ${
                                       isActive
-                                        ? "text-[#6366F1] font-semibold bg-[#F5F3FF]"
+                                        ? "text-[#fe6201] font-bold"
                                         : ""
                                     }`}
                                   >
                                     <span>Mark as {opt.label}</span>
                                     {isActive && (
-                                      <Check className="w-3.5 h-3.5 text-[#6366F1]" />
+                                      <Check className="w-3.5 h-3.5 text-[#fe6201]" />
                                     )}
                                   </DropdownMenuItem>
                                 );
@@ -860,28 +854,28 @@ export const OrderListPage: React.FC = () => {
                       </TableCell>
 
                       {/* 8. Transaction ID (shortened with tooltip) */}
-                      <TableCell className="text-xs font-mono text-[#0F172A] py-4 whitespace-nowrap">
+                      <TableCell className="text-xs font-mono text-[#1F2937] py-3.5 whitespace-nowrap">
                         {rawTxId ? (
                           <span
                             title={rawTxId}
-                            className="cursor-help hover:text-[#6366F1] font-medium"
+                            className="cursor-help hover:text-[#fe6201] font-medium"
                           >
                             {shortTxId}
                           </span>
                         ) : (
-                          <span className="text-[#94A3B8]">—</span>
+                          <span className="text-[#9CA3AF]">—</span>
                         )}
                       </TableCell>
 
                       {/* 9. Actions */}
-                      <TableCell className="text-center pr-6 py-4">
+                      <TableCell className="text-center pr-6 py-3.5">
                         <div className="flex items-center justify-center">
                           {/* View Details */}
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleViewDetails(order)}
-                            className="w-8 h-8 rounded-md text-[#475569] hover:text-[#6366F1] hover:bg-[#EEF2FF] cursor-pointer"
+                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#CB4E01] hover:bg-[#ffceb0]/60 cursor-pointer"
                             title="View Order Details"
                           >
                             <Eye className="w-4 h-4" />
@@ -898,77 +892,13 @@ export const OrderListPage: React.FC = () => {
 
         {/* 4. Server-Side Pagination using shadcn/ui Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-[#E5E7EB] bg-[#F8FAFC]">
-            <p className="text-xs text-[#64748B] text-center sm:text-left">
-              Showing page <span className="font-semibold text-[#0F172A]">{page}</span> of{" "}
-              <span className="font-semibold text-[#0F172A]">{totalPages}</span>{" "}
-              ({totalOrders} total {totalOrders === 1 ? "order" : "orders"})
-            </p>
-
-            <Pagination className="mx-0 w-auto justify-end">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    className={
-                      page <= 1
-                        ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
-                        : "cursor-pointer text-xs"
-                    }
-                  />
-                </PaginationItem>
-
-                {/* Page numbers logic */}
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => {
-                    return (
-                      p === 1 ||
-                      p === totalPages ||
-                      Math.abs(p - page) <= 1
-                    );
-                  })
-                  .reduce<(number | string)[]>((acc, curr, index, arr) => {
-                    if (index > 0 && (curr as number) - (arr[index - 1] as number) > 1) {
-                      acc.push(`ellipsis-${curr}`);
-                    }
-                    acc.push(curr);
-                    return acc;
-                  }, [])
-                  .map((item) => {
-                    if (typeof item === "string") {
-                      return (
-                        <PaginationItem key={item}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      );
-                    }
-                    return (
-                      <PaginationItem key={item}>
-                        <PaginationLink
-                          isActive={page === item}
-                          onClick={() => setPage(item)}
-                          className="h-8 w-8 text-xs cursor-pointer"
-                        >
-                          {item}
-                        </PaginationLink>
-                      </PaginationItem>
-                    );
-                  })}
-
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className={
-                      page >= totalPages
-                        ? "pointer-events-none opacity-50 cursor-not-allowed text-xs"
-                        : "cursor-pointer text-xs"
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+          <div className="px-6 py-4 border-t border-[#ffceb0]/60 bg-[#FFE7D9]">
+            <VendorPagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              isLoading={isLoading}
+            />
           </div>
         )}
       </Card>

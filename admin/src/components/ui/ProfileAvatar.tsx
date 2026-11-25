@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { User } from "lucide-react";
 import React from "react";
-import { FcGoogle } from "react-icons/fc";
 
 export interface ProfileAvatarProps {
   src?: string | null;
@@ -34,11 +34,11 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       ) : null}
       <AvatarFallback
         className={cn(
-          "bg-white flex items-center justify-center rounded-full size-full select-none",
+          "bg-white flex items-center justify-center rounded-full size-full select-none text-gray-500",
           fallbackClassName,
         )}
       >
-        <FcGoogle className={cn("w-3/5 h-3/5 shrink-0", iconClassName)} />
+        <User className={cn("w-1/2 h-1/2 shrink-0 text-gray-500", iconClassName)} />
       </AvatarFallback>
     </Avatar>
   );

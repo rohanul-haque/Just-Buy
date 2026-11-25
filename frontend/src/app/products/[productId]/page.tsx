@@ -48,16 +48,16 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
     return (
       <div className="py-16 text-center">
         <Container className="max-w-md space-y-4">
-          <h2 className="text-xl font-bold text-foreground">
+          <h2 className="text-xl font-bold text-neutral-900">
             Product Not Found
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-neutral-600">
             {error?.message ||
               "The requested product does not exist or may have been removed."}
           </p>
           <div className="pt-2">
             <Link href="/products">
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 cursor-pointer">
                 <ArrowLeft className="size-4" />
                 <span>Back to Catalog</span>
               </Button>
@@ -68,70 +68,56 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
     );
   }
 
-  const categoryName = product.category?.name || "Products";
+  const categoryName = product.category?.name || "Gaming";
   const allImages = [
     ...(product.featureImage ? [product.featureImage] : []),
     ...(product.images ?? []),
   ];
 
   return (
-    <div className="py-6 sm:py-10">
-      <Container className="space-y-10">
-        {/* Breadcrumb Navigation matching Figma */}
+    <div className="py-6 sm:py-10 bg-white min-h-screen">
+      <Container className="space-y-12 sm:space-y-16">
+        {/* 1. Breadcrumb Navigation */}
         <nav
           aria-label="Breadcrumb"
-          className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground flex-wrap"
+          className="flex items-center gap-2 text-xs sm:text-sm text-neutral-500 flex-wrap"
         >
-          <Link href="/" className="hover:text-primary transition-colors">
-            Account
+          <Link href="/" className="hover:text-black transition-colors">
+            Home
           </Link>
-          <ChevronRight className="size-3.5 opacity-50" />
+          <ChevronRight className="size-3.5 text-neutral-400" />
           <Link
             href={`/products?category=${encodeURIComponent(
               product.category?._id || "",
             )}`}
-            className="hover:text-primary transition-colors capitalize"
+            className="hover:text-black transition-colors capitalize"
           >
             {categoryName}
           </Link>
-          <ChevronRight className="size-3.5 opacity-50" />
-          <span className="font-semibold text-foreground line-clamp-1 max-w-xs sm:max-w-md">
+          <ChevronRight className="size-3.5 text-neutral-400" />
+          <span className="font-semibold text-neutral-900 line-clamp-1 max-w-xs sm:max-w-md">
             {product.name}
           </span>
         </nav>
 
-        {/* Top Product Hero (2 columns) */}
+        {/* 2. Top Product Area: Gallery (Left) + Product Info (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left Column: Image Gallery */}
-          <div className="lg:col-span-7">
+          {/* Left Column: Image Gallery (Compact and balanced) */}
+          <div className="lg:col-span-6 flex justify-center">
             <ProductGallery images={allImages} productName={product.name} />
           </div>
 
-          {/* Right Column: Product Information & Purchase Controls */}
-          <div className="lg:col-span-5">
+          {/* Right Column: Ordered Product Information */}
+          <div className="lg:col-span-6">
             <ProductInfo product={product} />
           </div>
         </div>
 
-        {/* Middle Section: Description matching Figma */}
-        <section className="space-y-4 pt-6 border-t border-border/60">
-          <div className="flex items-center gap-2">
-            <span className="h-7 w-3 rounded-xs bg-primary inline-block" />
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-              Description
-            </h2>
-          </div>
-
-          <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/80 leading-relaxed space-y-4">
-            <p className="whitespace-pre-line">{product.description}</p>
-          </div>
-        </section>
-
-        {/* Ratings & Reviews Section matching Figma */}
-        <ReviewList productId={product._id} />
-
-        {/* Related Products Section (Exactly 4 items) matching Figma */}
+        {/* 3. Related Products Section: Directly below product info */}
         <RelatedProducts productId={product._id} />
+
+        {/* 4. Ratings & Reviews + Add Review Form at bottom */}
+        <ReviewList productId={product._id} />
       </Container>
     </div>
   );

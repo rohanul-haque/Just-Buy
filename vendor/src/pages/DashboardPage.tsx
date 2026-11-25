@@ -97,21 +97,21 @@ export const DashboardPage: React.FC = () => {
       >
         {isLoadingOverview ? (
           <>
-            <Card className="p-4 bg-white border border-[#E5E7EB] rounded-lg shadow-xs">
-              <div className="flex items-center gap-3.5">
-                <Skeleton className="w-11 h-11 rounded-md shrink-0" />
+            <Card className="p-5 bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-xl shadow-xs">
+              <div className="flex items-center gap-4">
+                <Skeleton className="w-12 h-12 rounded-full shrink-0" />
                 <div className="space-y-1.5 flex-1">
+                  <Skeleton className="h-6 w-24" />
                   <Skeleton className="h-3 w-28" />
-                  <Skeleton className="h-6 w-20" />
                 </div>
               </div>
             </Card>
-            <Card className="p-4 bg-white border border-[#E5E7EB] rounded-lg shadow-xs">
-              <div className="flex items-center gap-3.5">
-                <Skeleton className="w-11 h-11 rounded-md shrink-0" />
+            <Card className="p-5 bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-xl shadow-xs">
+              <div className="flex items-center gap-4">
+                <Skeleton className="w-12 h-12 rounded-full shrink-0" />
                 <div className="space-y-1.5 flex-1">
+                  <Skeleton className="h-6 w-24" />
                   <Skeleton className="h-3 w-28" />
-                  <Skeleton className="h-6 w-20" />
                 </div>
               </div>
             </Card>
@@ -122,8 +122,8 @@ export const DashboardPage: React.FC = () => {
             <SummaryCard
               title="Total Products"
               value={(overview?.totalProducts ?? 0).toLocaleString("en-US")}
-              icon={<Package className="w-5 h-5 text-white" />}
-              iconBackgroundColor="bg-[#4F46E5]"
+              icon={<Package className="w-6 h-6 text-[#4F46E5]" />}
+              iconBackgroundColor="#DDE0FF"
             />
 
             {/* Card 2: Total Earnings */}
@@ -133,8 +133,8 @@ export const DashboardPage: React.FC = () => {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}`}
-              icon={<Wallet className="w-5 h-5 text-white" />}
-              iconBackgroundColor="bg-[#10B981]"
+              icon={<Wallet className="w-6 h-6 text-[#0284C7]" />}
+              iconBackgroundColor="#D2F6FF"
             />
           </>
         )}

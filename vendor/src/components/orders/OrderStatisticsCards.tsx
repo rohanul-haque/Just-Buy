@@ -29,13 +29,13 @@ export const OrderStatisticsCards: React.FC<OrderStatisticsCardsProps> = ({
         {Array.from({ length: 6 }).map((_, idx) => (
           <Card
             key={idx}
-            className="p-4 bg-white border border-[#E5E7EB] rounded-lg shadow-xs"
+            className="p-5 bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-xl shadow-xs"
           >
-            <div className="flex items-center gap-3.5">
-              <Skeleton className="w-11 h-11 rounded-md shrink-0" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="w-12 h-12 rounded-full shrink-0" />
               <div className="space-y-1.5 flex-1">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-3 w-28" />
               </div>
             </div>
           </Card>
@@ -50,7 +50,7 @@ export const OrderStatisticsCards: React.FC<OrderStatisticsCardsProps> = ({
   return (
     <div className="space-y-3">
       {error && !statistics && (
-        <div className="p-3 bg-[#FEF2F2] border border-[#FECACA] rounded-lg text-xs text-[#DC2626]">
+        <div className="p-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-xs text-[#DC2626]">
           Unable to load order statistics. Showing default values.
         </div>
       )}
@@ -60,48 +60,48 @@ export const OrderStatisticsCards: React.FC<OrderStatisticsCardsProps> = ({
         <SummaryCard
           title="Total Orders"
           value={formatNumber(statistics?.totalOrders)}
-          icon={<ShoppingBag />}
-          iconBackgroundColor="bg-[#4F46E5]"
+          icon={<ShoppingBag className="w-6 h-6 text-[#4F46E5]" />}
+          iconBackgroundColor="#DDE0FF"
         />
 
         {/* 2. Cancelled Orders */}
         <SummaryCard
           title="Cancelled Orders"
           value={formatNumber(statistics?.cancelledOrders)}
-          icon={<XCircle />}
-          iconBackgroundColor="bg-[#EF4444]"
+          icon={<XCircle className="w-6 h-6 text-[#DC2626]" />}
+          iconBackgroundColor="#FFCEB0"
         />
 
         {/* 3. Delivered Orders */}
         <SummaryCard
           title="Delivered Orders"
           value={formatNumber(statistics?.deliveredOrders)}
-          icon={<CheckCircle2 />}
-          iconBackgroundColor="bg-[#10B981]"
+          icon={<CheckCircle2 className="w-6 h-6 text-[#059669]" />}
+          iconBackgroundColor="#D2F6FF"
         />
 
         {/* 4. Shipping Orders */}
         <SummaryCard
           title="Shipping Orders"
           value={formatNumber(statistics?.shippingOrders)}
-          icon={<Truck />}
-          iconBackgroundColor="bg-[#06B6D4]"
+          icon={<Truck className="w-6 h-6 text-[#0284C7]" />}
+          iconBackgroundColor="#D2F6FF"
         />
 
         {/* 5. Online Payments */}
         <SummaryCard
           title="Online Payments"
           value={formatNumber(statistics?.onlinePayments)}
-          icon={<CreditCard />}
-          iconBackgroundColor="bg-[#8B5CF6]"
+          icon={<CreditCard className="w-6 h-6 text-[#7C3AED]" />}
+          iconBackgroundColor="#DDE0FF"
         />
 
         {/* 6. Offline Payments */}
         <SummaryCard
           title="Offline Payments"
           value={formatNumber(statistics?.offlinePayments)}
-          icon={<Banknote />}
-          iconBackgroundColor="bg-[#F59E0B]"
+          icon={<Banknote className="w-6 h-6 text-[#D97706]" />}
+          iconBackgroundColor="#FFCEB0"
         />
       </div>
     </div>

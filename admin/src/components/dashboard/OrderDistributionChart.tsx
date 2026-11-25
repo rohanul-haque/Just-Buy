@@ -19,11 +19,11 @@ interface OrderDistributionChartProps {
 
 // Purple/blue color palette matching reference image 2
 const PALETTE = [
-  "#4338CA", // Deep Royal Indigo
+  "#cb4e01", // Deep Royal Indigo
   "#7C3AED", // Vibrant Purple
   "#9333EA", // Bright Magenta-Purple
-  "#4F46E5", // Indigo
-  "#6366F1", // Indigo Violet
+  "#CB4E01", // Indigo
+  "#e55801", // Indigo Violet
   "#8B5CF6", // Medium Violet
   "#A855F7", // Fuchsia Purple
 ];

@@ -6,6 +6,8 @@ export interface WishlistProduct {
     url: string;
     publicId?: string;
   };
+  rating?: number;
+  numReviews?: number;
 }
 
 export interface Wishlist {
@@ -13,4 +15,3 @@ export interface Wishlist {
   buyer: string;
   products: WishlistProduct[];
 }
-

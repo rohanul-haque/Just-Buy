@@ -34,7 +34,6 @@ export function RegisterForm() {
       name: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
@@ -138,31 +137,13 @@ export function RegisterForm() {
         )}
       </div>
 
-      {/* Confirm Password Field */}
-      <div className="space-y-1.5">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <PasswordInput
-          id="confirmPassword"
-          placeholder="Re-enter your password"
-          autoComplete="new-password"
-          disabled={isPending}
-          hasError={!!errors.confirmPassword}
-          {...register("confirmPassword")}
-        />
-        {errors.confirmPassword && (
-          <p className="text-xs text-destructive font-medium mt-1">
-            {errors.confirmPassword.message}
-          </p>
-        )}
-      </div>
-
       <Button
         type="submit"
         disabled={isPending}
-        className="w-full h-11 text-base font-semibold mt-2"
+        className="w-full h-11 text-base font-semibold mt-2 bg-[#ff6200] hover:bg-[#e55800] active:bg-[#cc4e00] text-white border-0 transition-colors cursor-pointer"
       >
         {isPending ? (
-          <LoadingSpinner size="sm" label="Creating Account..." />
+          <LoadingSpinner size="sm" label="Creating Account..." className="text-white [&_svg]:text-white" />
         ) : (
           "Create Account"
         )}
@@ -176,9 +157,9 @@ export function RegisterForm() {
         <span className="text-muted-foreground">Already have an account? </span>
         <Link
           href="/login"
-          className="font-semibold text-primary hover:underline"
+          className="font-semibold text-[#ff6200] hover:underline"
         >
-          Sign In
+          Login
         </Link>
       </div>
     </form>

@@ -138,10 +138,10 @@ export const VendorEarningsDetailsDialog: React.FC<
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-lg border border-[#E5E7EB] bg-white p-6 shadow-xl">
-        <DialogHeader className="border-b border-[#E5E7EB] pb-4">
-          <DialogTitle className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-[#4F46E5]" />
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl border border-[#ffceb0]/80 bg-[#FFE7D9] p-6 shadow-xl text-[#1F2937]">
+        <DialogHeader className="border-b border-[#ffceb0]/60 pb-4">
+          <DialogTitle className="text-xl font-bold text-[#1F2937] flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-[#fe6201]" />
             Earning & Order Breakdown
           </DialogTitle>
           <DialogDescription className="text-sm text-[#4B5563]">
@@ -162,15 +162,15 @@ export const VendorEarningsDetailsDialog: React.FC<
         ) : (
           <div className="space-y-6 pt-2">
             {/* Section A: Transaction Information */}
-            <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-4 space-y-3">
-              <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-[#4F46E5]" />
+            <div className="bg-[#ffefe6] border border-[#ffceb0]/60 rounded-xl p-4 space-y-3">
+              <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider flex items-center gap-1.5">
+                <CreditCard className="w-4 h-4 text-[#fe6201]" />
                 Transaction Information
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                 <div>
                   <span className="text-xs text-[#6B7280] block">Order ID</span>
-                  <span className="font-mono text-xs font-semibold text-[#0F172A] break-all">
+                  <span className="font-mono text-xs font-semibold text-[#1F2937] break-all">
                     {details.transaction.orderId}
                   </span>
                 </div>
@@ -178,7 +178,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                   <span className="text-xs text-[#6B7280] block">
                     Transaction ID
                   </span>
-                  <span className="font-mono text-xs font-semibold text-[#4F46E5] break-all">
+                  <span className="font-mono text-xs font-semibold text-[#fe6201] break-all">
                     {details.transaction.transactionId}
                   </span>
                 </div>
@@ -194,7 +194,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                   <span className="text-xs text-[#6B7280] block">
                     Payment Status
                   </span>
-                  <span className="font-medium text-[#0F172A]">
+                  <span className="font-medium text-[#1F2937]">
                     {details.transaction.paymentStatus}
                   </span>
                 </div>
@@ -202,7 +202,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                   <span className="text-xs text-[#6B7280] block">
                     Payment Method
                   </span>
-                  <span className="font-medium text-[#0F172A]">
+                  <span className="font-medium text-[#1F2937]">
                     {details.transaction.paymentMethod}
                   </span>
                 </div>
@@ -210,7 +210,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                   <span className="text-xs text-[#6B7280] block">
                     {isDelivered ? "Delivered Date" : "Order Date"}
                   </span>
-                  <span className="font-medium text-[#0F172A] text-xs">
+                  <span className="font-medium text-[#1F2937] text-xs">
                     {isDelivered
                       ? formatDate(details.transaction.deliveredDate)
                       : formatDate(details.transaction.orderDate)}
@@ -220,21 +220,21 @@ export const VendorEarningsDetailsDialog: React.FC<
             </div>
 
             {/* Section B: Customer Information */}
-            <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-4 space-y-3">
-              <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
-                <User className="w-4 h-4 text-[#4F46E5]" />
+            <div className="bg-[#ffefe6] border border-[#ffceb0]/60 rounded-xl p-4 space-y-3">
+              <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider flex items-center gap-1.5">
+                <User className="w-4 h-4 text-[#fe6201]" />
                 Customer Information
               </h4>
               <div className="flex items-start gap-4">
                 <ProfileAvatar
                   src={details.buyer.profileImage}
                   alt={details.buyer.name}
-                  className="w-12 h-12 rounded-full border border-[#E5E7EB] shrink-0"
+                  className="w-12 h-12 rounded-full border border-[#ffceb0]/80 shrink-0"
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm flex-1">
                   <div>
                     <span className="text-xs text-[#6B7280] block">Customer Name</span>
-                    <span className="font-medium text-[#0F172A]">
+                    <span className="font-medium text-[#1F2937]">
                       {details.buyer.name}
                     </span>
                   </div>
@@ -242,7 +242,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                     <span className="text-xs text-[#6B7280] block">
                       Email Address
                     </span>
-                    <span className="font-medium text-[#0F172A]">
+                    <span className="font-medium text-[#1F2937]">
                       {details.buyer.email || "N/A"}
                     </span>
                   </div>
@@ -250,16 +250,16 @@ export const VendorEarningsDetailsDialog: React.FC<
                     <span className="text-xs text-[#6B7280] block">
                       Phone Number
                     </span>
-                    <span className="font-medium text-[#0F172A]">
+                    <span className="font-medium text-[#1F2937]">
                       {details.buyer.phoneNumber || "N/A"}
                     </span>
                   </div>
                   <div>
                     <span className="text-xs text-[#6B7280] block flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-[#6B7280]" />
+                      <MapPin className="w-3 h-3 text-[#fe6201]" />
                       Delivery Address
                     </span>
-                    <span className="font-medium text-[#0F172A] text-xs">
+                    <span className="font-medium text-[#1F2937] text-xs">
                       {details.buyer.address || "N/A"}
                     </span>
                   </div>
@@ -269,16 +269,16 @@ export const VendorEarningsDetailsDialog: React.FC<
 
             {/* Sections C & D: Product & Store Earnings Breakdown */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-[#4F46E5]" />
+              <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider flex items-center gap-1.5">
+                <Package className="w-4 h-4 text-[#fe6201]" />
                 Store Products & Earning Breakdown
               </h4>
 
-              <div className="border border-[#E5E7EB] rounded-md overflow-hidden divide-y divide-[#E5E7EB]">
+              <div className="border border-[#ffceb0]/60 rounded-xl overflow-hidden divide-y divide-[#ffceb0]/40">
                 {details.items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-4 bg-white hover:bg-[#F8FAFC] transition-colors space-y-3"
+                    className="p-4 bg-[#ffefe6] hover:bg-[#ffceb0]/30 transition-colors space-y-3"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
@@ -286,19 +286,19 @@ export const VendorEarningsDetailsDialog: React.FC<
                           <img
                             src={item.productImage}
                             alt={item.productName}
-                            className="w-12 h-12 rounded-md object-cover border border-[#E5E7EB] shrink-0"
+                            className="w-12 h-12 rounded-md object-cover border border-[#ffceb0]/80 shrink-0"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-md bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+                          <div className="w-12 h-12 rounded-md bg-[#DDE0FF] text-[#4F46E5] flex items-center justify-center shrink-0">
                             <Package className="w-6 h-6" />
                           </div>
                         )}
                         <div>
-                          <p className="font-semibold text-sm text-[#0F172A] leading-tight">
+                          <p className="font-semibold text-sm text-[#1F2937] leading-tight">
                             {item.productName}
                           </p>
                           <p className="text-xs text-[#6B7280] mt-0.5 flex items-center gap-1">
-                            <Store className="w-3 h-3" />
+                            <Store className="w-3 h-3 text-[#fe6201]" />
                             {item.vendorName}
                             {item.brand && item.brand !== "N/A"
                               ? ` • ${item.brand}`
@@ -312,15 +312,15 @@ export const VendorEarningsDetailsDialog: React.FC<
                         <span className="text-xs text-[#6B7280] block">
                           {formatCurrency(item.unitPrice)} × {item.quantity}
                         </span>
-                        <span className="font-bold text-sm text-[#0F172A]">
+                        <span className="font-bold text-sm text-[#1F2937]">
                           {formatCurrency(item.subtotal)}
                         </span>
                       </div>
                     </div>
 
                     {/* Financial details per item */}
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#F1F5F9] text-xs">
-                      <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-2">
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#ffceb0]/40 text-xs">
+                      <div className="bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-md p-2">
                         <span className="text-[#64748B] font-medium block">
                           Platform Commission ({item.commissionRate}%)
                           {!isDelivered && (
@@ -334,8 +334,8 @@ export const VendorEarningsDetailsDialog: React.FC<
                         </span>
                       </div>
 
-                      <div className="bg-[#ECFDF5] border border-[#D1FAE5] rounded-md p-2">
-                        <span className="text-[#059669] font-medium block">
+                      <div className="bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-md p-2">
+                        <span className="text-[#fe6201] font-medium block">
                           Store Earnings ({item.vendorCommissionRate}%)
                           {!isDelivered && (
                             <span className="text-xs font-normal text-[#D97706] ml-1">
@@ -343,7 +343,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                             </span>
                           )}
                         </span>
-                        <span className="font-bold text-sm text-[#047857]">
+                        <span className="font-bold text-sm text-[#fe6201]">
                           {formatCurrency(item.vendorEarnings)}
                         </span>
                       </div>
@@ -354,15 +354,15 @@ export const VendorEarningsDetailsDialog: React.FC<
             </div>
 
             {/* Section E: Store Financial Summary */}
-            <div className="bg-[#F8FAFC] border border-[#E5E7EB] rounded-md p-4 space-y-2">
-              <h4 className="text-xs font-bold text-[#4B5563] uppercase tracking-wider mb-2">
+            <div className="bg-[#ffefe6] border border-[#ffceb0]/60 rounded-xl p-4 space-y-2">
+              <h4 className="text-xs font-bold text-[#fe6201] uppercase tracking-wider mb-2">
                 Store Financial Summary
               </h4>
 
               <div className="space-y-1.5 text-sm text-[#374151]">
                 <div className="flex justify-between">
                   <span>Store Products Subtotal:</span>
-                  <span className="font-medium text-[#0F172A]">
+                  <span className="font-medium text-[#1F2937]">
                     {formatCurrency(details.summary.totalProductAmount)}
                   </span>
                 </div>
@@ -381,7 +381,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                   </span>
                 </div>
 
-                <div className="flex justify-between text-[#059669] bg-[#ECFDF5] px-2 py-1.5 rounded-md font-medium border border-[#D1FAE5] mt-1">
+                <div className="flex justify-between text-[#fe6201] bg-[#FFE7D9] px-3 py-2 rounded-xl font-medium border border-[#ffceb0]/80 mt-1">
                   <span>
                     Net Store Earnings (85%):
                     {!isDelivered && (
@@ -390,7 +390,7 @@ export const VendorEarningsDetailsDialog: React.FC<
                       </span>
                     )}
                   </span>
-                  <span className="font-bold text-base text-[#047857]">
+                  <span className="font-bold text-base text-[#fe6201]">
                     {isDelivered
                       ? formatCurrency(details.summary.totalVendorEarnings)
                       : `$0.00 (${formatCurrency(details.summary.totalVendorEarnings)} on delivery)`}

@@ -21,6 +21,7 @@ export interface IBuyer {
 }
 
 export interface IUpdateBuyerProfileInput {
+  name?: string;
   phoneNumber?: string;
   gender?: TGender;
   address?: string;

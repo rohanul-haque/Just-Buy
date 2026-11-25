@@ -23,13 +23,15 @@ export const EarningsSummaryCards: React.FC<EarningsSummaryCardsProps> = ({
         title="Today's Income"
         value={formatCurrency(summary.todayIncome)}
         icon={<GrMoney />}
-        iconBackgroundColor="bg-[#10B981]"
+        iconBackgroundColor="bg-[#DDE0FF]"
+        iconColor="text-[#4338CA]"
       />
       <SummaryCard
         title="Total Income"
         value={formatCurrency(summary.totalIncome)}
         icon={<GrMoney />}
-        iconBackgroundColor="bg-[#10B981]"
+        iconBackgroundColor="bg-[#D2F6FF]"
+        iconColor="text-[#0284C7]"
       />
     </div>
   );

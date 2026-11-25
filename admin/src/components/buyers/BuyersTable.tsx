@@ -97,199 +97,197 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+      <div className="rounded-xl border border-[#ffceb0]/60 bg-[#FFE7D9] overflow-hidden shadow-xs">
         <Table>
-          <TableHeader className="bg-[#F8FAFC]">
-            <TableRow className="border-b border-[#E5E7EB] hover:bg-transparent">
+          <TableHeader className="bg-[#fe6201] text-white">
+            <TableRow className="border-b border-[#fe6201] hover:bg-[#fe6201]">
               {/* 1. Buyer Name (Profile Image + Name) */}
-              <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 pl-6 align-middle">
+              <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 pl-6 align-middle">
                 Buyer Name
               </TableHead>
               {/* 2. Email */}
-              <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+              <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                 Email
               </TableHead>
               {/* 3. Role (immediately after Email) */}
-              <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+              <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                 Role
               </TableHead>
               {/* 4. Join Date */}
-              <TableHead className="text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 px-4 align-middle">
+              <TableHead className="text-xs font-semibold text-white uppercase h-10 py-2 px-4 align-middle">
                 Join Date
               </TableHead>
               {/* 5. Actions */}
-              <TableHead className="w-28 text-xs font-semibold text-[#4B5563] uppercase h-9 py-2 pr-6 text-right align-middle">
+              <TableHead className="w-28 text-xs font-semibold text-white uppercase h-10 py-2 pr-6 text-right align-middle">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, idx) => (
-                <TableRow
-                  key={idx}
-                  className="border-b border-[#E5E7EB] hover:bg-transparent"
-                >
-                  <TableCell className="py-2.5 pl-6">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="w-9 h-9 rounded-md flex-shrink-0" />
-                      <div className="space-y-1.5 flex-1">
-                        <Skeleton className="h-4 w-32 rounded-md" />
-                        <Skeleton className="h-3 w-20 rounded-md" />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-2.5 px-4">
-                    <Skeleton className="h-4 w-36 rounded-md" />
-                  </TableCell>
-                  <TableCell className="py-2.5 px-4">
-                    <Skeleton className="h-5 w-16 rounded-md" />
-                  </TableCell>
-                  <TableCell className="py-2.5 px-4">
-                    <Skeleton className="h-4 w-24 rounded-md" />
-                  </TableCell>
-                  <TableCell className="py-2.5 pr-6 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Skeleton className="w-8 h-8 rounded-md" />
-                      <Skeleton className="w-8 h-8 rounded-md" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              buyers.map((buyer) => {
-                const user = buyer.buyer;
-                const name = user?.name || "Anonymous Buyer";
-                const email = user?.email || "No email";
-                const role = user?.role || "BUYER";
-                const isBlocked = user?.status === "BLOCKED";
-                const rawDate = user?.createdAt || buyer.createdAt;
-                const formattedDate = rawDate
-                  ? new Date(rawDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })
-                  : "N/A";
-
-                const avatarUrl = buyer.profile?.url;
-                const initials = (name || "B")
-                  .split(" ")
-                  .map((w) => w[0])
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase();
-
-                return (
+          <TableBody className="bg-[#FFE7D9]">
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, idx) => (
                   <TableRow
-                    key={buyer._id}
-                    className="border-b border-[#E5E7EB] hover:bg-[#F8FAFC] transition-colors"
+                    key={idx}
+                    className="border-b border-[#ffceb0]/40 hover:bg-transparent"
                   >
-                    {/* 1. Buyer Name (Profile Image + Name together) */}
-                    <TableCell className="py-2.5 pl-6 align-middle">
+                    <TableCell className="py-2.5 pl-6">
                       <div className="flex items-center gap-3">
-                        {avatarUrl ? (
-                          <img
-                            src={avatarUrl}
-                            alt={name}
-                            className="w-9 h-9 rounded-md object-cover border border-[#E5E7EB] shadow-xs flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-md bg-[#E0E7FF] text-[#4F46E5] font-bold text-xs flex items-center justify-center border border-[#C7D2FE] shadow-xs flex-shrink-0">
-                            {initials}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-sm text-[#0F172A] leading-tight truncate">
-                              {name}
-                            </p>
-                            {isBlocked && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EF4444]/10 text-[#EF4444] flex-shrink-0">
-                                Blocked
-                              </span>
-                            )}
-                          </div>
-                          {buyer.phoneNumber && (
-                            <p className="text-xs text-[#6B7280] truncate mt-0.5">
-                              {buyer.phoneNumber}
-                            </p>
-                          )}
+                        <Skeleton className="w-9 h-9 rounded-md flex-shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <Skeleton className="h-4 w-32 rounded-md" />
+                          <Skeleton className="h-3 w-20 rounded-md" />
                         </div>
                       </div>
                     </TableCell>
-
-                    {/* 2. Email */}
-                    <TableCell className="py-2.5 px-4 text-sm text-[#374151] align-middle">
-                      <span className="truncate block max-w-xs">{email}</span>
+                    <TableCell className="py-2.5 px-4">
+                      <Skeleton className="h-4 w-36 rounded-md" />
                     </TableCell>
-
-                    {/* 3. Role (immediately after Email) */}
-                    <TableCell className="py-2.5 px-4 align-middle">
-                      <Badge
-                        variant="outline"
-                        className="rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-[#F8FAFC] text-[#4338CA] border-[#C7D2FE]"
-                      >
-                        {role}
-                      </Badge>
+                    <TableCell className="py-2.5 px-4">
+                      <Skeleton className="h-5 w-16 rounded-md" />
                     </TableCell>
-
-                    {/* 4. Join Date */}
-                    <TableCell className="py-2.5 px-4 text-sm text-[#4B5563] align-middle">
-                      {formattedDate}
+                    <TableCell className="py-2.5 px-4">
+                      <Skeleton className="h-4 w-24 rounded-md" />
                     </TableCell>
-
-                    {/* 5. Actions (Exactly two icon-only actions: Info first, then Delete/Block) */}
-                    <TableCell className="py-2.5 pr-6 text-right align-middle">
+                    <TableCell className="py-2.5 pr-6 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Action 1: Information Icon (First) */}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onViewDetails(buyer)}
-                          className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors"
-                          title="View buyer details"
-                          aria-label="View buyer details"
-                        >
-                          <Info className="w-4 h-4" />
-                        </Button>
-
-                        {/* Action 2: Soft Delete / Block Icon (After Information Icon) */}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onSoftDelete(buyer)}
-                          className={`w-8 h-8 rounded-md transition-colors ${
-                            isBlocked
-                              ? "text-[#10B981] hover:text-[#059669] hover:bg-[#10B981]/10"
-                              : "text-[#EF4444] hover:text-[#DC2626] hover:bg-[#EF4444]/10"
-                          }`}
-                          title={
-                            isBlocked
-                              ? "Unblock buyer account"
-                              : "Soft delete / Block buyer"
-                          }
-                          aria-label={
-                            isBlocked
-                              ? "Unblock buyer"
-                              : "Soft delete or block buyer"
-                          }
-                        >
-                          {isBlocked ? (
-                            <ShieldCheck className="w-4 h-4" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </Button>
+                        <Skeleton className="w-8 h-8 rounded-md" />
+                        <Skeleton className="w-8 h-8 rounded-md" />
                       </div>
                     </TableCell>
                   </TableRow>
-                );
-              })
-            )}
+                ))
+              : buyers.map((buyer) => {
+                  const user = buyer.buyer;
+                  const name = user?.name || "Anonymous Buyer";
+                  const email = user?.email || "No email";
+                  const role = user?.role || "BUYER";
+                  const isBlocked = user?.status === "BLOCKED";
+                  const rawDate = user?.createdAt || buyer.createdAt;
+                  const formattedDate = rawDate
+                    ? new Date(rawDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "N/A";
+
+                  const avatarUrl = buyer.profile?.url;
+                  const initials = (name || "B")
+                    .split(" ")
+                    .map((w) => w[0])
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
+
+                  return (
+                    <TableRow
+                      key={buyer._id}
+                      className="border-b border-[#ffceb0]/40 hover:bg-[#ffceb0]/40 transition-colors"
+                    >
+                      {/* 1. Buyer Name (Profile Image + Name together) */}
+                      <TableCell className="py-2.5 pl-6 align-middle">
+                        <div className="flex items-center gap-3">
+                          {avatarUrl ? (
+                            <img
+                              src={avatarUrl}
+                              alt={name}
+                              className="w-9 h-9 rounded-md object-cover border border-[#ffceb0]/80 shadow-xs flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-md bg-[#ffefe6] text-[#fe6201] font-bold text-xs flex items-center justify-center border border-[#ffceb0] shadow-xs flex-shrink-0">
+                              {initials}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-sm text-[#0F172A] leading-tight truncate">
+                                {name}
+                              </p>
+                              {isBlocked && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EF4444]/10 text-[#EF4444] flex-shrink-0">
+                                  Blocked
+                                </span>
+                              )}
+                            </div>
+                            {buyer.phoneNumber && (
+                              <p className="text-xs text-[#6B7280] truncate mt-0.5">
+                                {buyer.phoneNumber}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* 2. Email */}
+                      <TableCell className="py-2.5 px-4 text-sm text-[#374151] align-middle">
+                        <span className="truncate block max-w-xs">{email}</span>
+                      </TableCell>
+
+                      {/* 3. Role (immediately after Email) */}
+                      <TableCell className="py-2.5 px-4 align-middle">
+                        <Badge
+                          variant="outline"
+                          className="rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider bg-white/70 text-[#fe6201] border-[#ffceb0]"
+                        >
+                          {role}
+                        </Badge>
+                      </TableCell>
+
+                      {/* 4. Join Date */}
+                      <TableCell className="py-2.5 px-4 text-sm text-[#4B5563] align-middle">
+                        {formattedDate}
+                      </TableCell>
+
+                      {/* 5. Actions (Exactly two icon-only actions: Info first, then Delete/Block) */}
+                      <TableCell className="py-2.5 pr-6 text-right align-middle">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Action 1: Information Icon (First) */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onViewDetails(buyer)}
+                            className="w-8 h-8 rounded-md text-[#4B5563] hover:text-[#fe6201] hover:bg-[#ffceb0]/60 transition-colors"
+                            title="View buyer details"
+                            aria-label="View buyer details"
+                          >
+                            <Info className="w-4 h-4" />
+                          </Button>
+
+                          {/* Action 2: Soft Delete / Block Icon (After Information Icon) */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onSoftDelete(buyer)}
+                            className={`w-8 h-8 rounded-md transition-colors ${
+                              isBlocked
+                                ? "text-[#10B981] hover:text-[#059669] hover:bg-[#10B981]/10"
+                                : "text-[#EF4444] hover:text-[#DC2626] hover:bg-[#EF4444]/10"
+                            }`}
+                            title={
+                              isBlocked
+                                ? "Unblock buyer account"
+                                : "Soft delete / Block buyer"
+                            }
+                            aria-label={
+                              isBlocked
+                                ? "Unblock buyer"
+                                : "Soft delete or block buyer"
+                            }
+                          >
+                            {isBlocked ? (
+                              <ShieldCheck className="w-4 h-4" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
           </TableBody>
         </Table>
       </div>
@@ -298,7 +296,9 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-[#4B5563]">
           <div>
-            Showing <span className="font-semibold text-[#0F172A]">{startRecord}</span>–<span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
+            Showing{" "}
+            <span className="font-semibold text-[#0F172A]">{startRecord}</span>–
+            <span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
             <span className="font-semibold text-[#0F172A]">{total}</span> buyers
           </div>
 
@@ -309,7 +309,7 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={!hasPrev || isLoading}
-              className="h-8 px-2.5 rounded-md border-[#E5E7EB] bg-white text-xs font-medium text-[#0F172A] hover:bg-[#F8FAFC] disabled:opacity-50"
+              className="h-8 px-2.5 rounded-md border-[#ffceb0]/60 bg-[#FFE7D9] text-xs font-medium text-[#0F172A] hover:bg-[#ffceb0]/40 disabled:opacity-50"
             >
               <ChevronLeft className="w-3.5 h-3.5 mr-1" />
               Previous
@@ -335,8 +335,8 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
                     className={cn(
                       "h-8 w-8 p-0 text-xs rounded-md",
                       p === currentPage
-                        ? "bg-[#3B82F6] text-white hover:bg-[#2563EB] border-[#3B82F6] font-bold"
-                        : "border-[#E5E7EB] bg-white text-[#0F172A] hover:bg-[#F8FAFC]",
+                        ? "bg-[#fe6201] text-white hover:bg-[#e55801] border-[#fe6201] font-bold"
+                        : "border-[#ffceb0]/60 bg-[#FFE7D9] text-[#0F172A] hover:bg-[#ffceb0]/40",
                     )}
                   >
                     {p}
@@ -351,7 +351,7 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={!hasNext || isLoading}
-              className="h-8 px-2.5 rounded-md border-[#E5E7EB] bg-white text-xs font-medium text-[#0F172A] hover:bg-[#F8FAFC] disabled:opacity-50"
+              className="h-8 px-2.5 rounded-md border-[#ffceb0]/60 bg-[#FFE7D9] text-xs font-medium text-[#0F172A] hover:bg-[#ffceb0]/40 disabled:opacity-50"
             >
               Next
               <ChevronRight className="w-3.5 h-3.5 ml-1" />

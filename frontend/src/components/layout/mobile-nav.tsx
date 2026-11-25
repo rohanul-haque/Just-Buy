@@ -4,7 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Search,
   User as UserIcon,
   Package,
   Heart,
@@ -13,10 +12,8 @@ import {
   LogOut,
   Loader2,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { UserAvatar } from "@/components/shared/user-avatar";
 import { useLogout } from "@/features/auth/hooks/use-auth";
 import type { User } from "@/features/auth/types";
 import notify from "@/lib/toast";
@@ -26,19 +23,9 @@ interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   user?: User | null;
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
-  onSearchSubmit: (e: React.FormEvent) => void;
 }
 
-export function MobileNav({
-  isOpen,
-  onClose,
-  user,
-  searchQuery,
-  onSearchChange,
-  onSearchSubmit,
-}: MobileNavProps) {
+export function MobileNav({ isOpen, onClose, user }: MobileNavProps) {
   const pathname = usePathname();
   const logoutMutation = useLogout();
 
@@ -69,8 +56,9 @@ export function MobileNav({
 
   const mainLinks = [
     { label: "Home", href: "/" },
-    { label: "Categories", href: "/categories" },
     { label: "All Products", href: "/products" },
+    { label: "Contact", href: "/contact" },
+    { label: "About", href: "/about" },
   ];
 
   const userLinks = [
@@ -81,36 +69,33 @@ export function MobileNav({
     { label: "Change Password", href: "/change-password", icon: KeyRound },
   ];
 
-  return (
-    <div className="md:hidden border-t border-border bg-background px-4 pt-3 pb-6 shadow-xl max-h-[calc(100vh-4.5rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
-      <div className="space-y-4 max-w-md mx-auto w-full">
-        {/* Mobile Search Input */}
-        <form onSubmit={onSearchSubmit} className="w-full">
-          <Input
-            type="search"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            leadingIcon={<Search className="text-muted-foreground" />}
-            className="h-10 w-full bg-muted/40"
-          />
-        </form>
+  const avatarUrl = user?.avatar || (user as any)?.profile?.url || null;
 
+  return (
+    <div className="md:hidden border-t border-gray-200/80 bg-white px-4 pt-3 pb-6 shadow-xl max-h-[calc(100vh-4.5rem)] overflow-y-auto animate-in slide-in-from-top-2 duration-150">
+      <div className="space-y-4 max-w-md mx-auto w-full">
         {/* User Card if Authenticated */}
         {user ? (
-          <div className="rounded-xl border border-border bg-card p-3 shadow-xs">
+          <div className="rounded-2xl border border-gray-100 bg-orange-50/40 p-3 shadow-xs">
             <div className="flex items-center gap-3">
-              <UserAvatar
-                src={user.avatar}
-                name={user.name}
-                size="md"
-                className="border border-border"
-              />
+              <div className="size-10 rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-gray-100">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user.name || "User"}
+                    className="size-full object-cover rounded-full"
+                  />
+                ) : (
+                  <div className="size-full bg-[#fe6201] flex items-center justify-center text-white rounded-full">
+                    <UserIcon className="size-5 text-white" />
+                  </div>
+                )}
+              </div>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="truncate text-sm font-semibold text-foreground">
+                <span className="truncate text-sm font-semibold text-gray-900">
                   {user.name}
                 </span>
-                <span className="truncate text-xs text-muted-foreground">
+                <span className="truncate text-xs text-gray-500">
                   {user.email}
                 </span>
               </div>
@@ -120,7 +105,7 @@ export function MobileNav({
 
         {/* Primary Navigation Links */}
         <nav className="flex flex-col space-y-1">
-          <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
             Menu
           </span>
           {mainLinks.map((link) => {
@@ -135,10 +120,10 @@ export function MobileNav({
                 href={link.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center rounded-lg px-3 py-2 text-base font-medium transition-colors",
+                  "flex items-center rounded-xl px-3 py-2.5 text-base font-medium transition-colors",
                   isActive
-                    ? "bg-primary/10 text-primary font-semibold"
-                    : "text-foreground hover:bg-muted",
+                    ? "bg-orange-50 text-[#fe6201] font-semibold"
+                    : "text-gray-800 hover:bg-gray-50 hover:text-black",
                 )}
               >
                 {link.label}
@@ -152,7 +137,7 @@ export function MobileNav({
           <>
             <Separator />
             <div className="space-y-1">
-              <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Account
               </span>
               {userLinks.map((item) => {
@@ -164,13 +149,13 @@ export function MobileNav({
                     href={item.href}
                     onClick={onClose}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-colors",
+                      "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-foreground hover:bg-muted",
+                        ? "bg-orange-50 text-[#fe6201] font-semibold"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-[#fe6201]",
                     )}
                   >
-                    <Icon className="size-5 text-muted-foreground" />
+                    <Icon className="size-4.5 text-gray-500" />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -180,10 +165,10 @@ export function MobileNav({
             <Separator />
 
             {/* Logout Button */}
-            <div className="pt-1 pb-4">
+            <div className="pt-1 pb-2">
               <Button
                 variant="outline"
-                className="w-full justify-center gap-2 text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
+                className="w-full justify-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 rounded-xl cursor-pointer"
                 onClick={handleLogout}
                 disabled={logoutMutation.isPending}
               >
@@ -203,19 +188,14 @@ export function MobileNav({
           </>
         ) : (
           /* Guest Actions Section */
-          <div className="pt-2 space-y-2 border-t border-border">
-            <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="pt-2 space-y-3 border-t border-gray-100">
+            <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
               Account
             </span>
-            <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="flex flex-col gap-2 pt-1">
               <Link href="/login" onClick={onClose} className="w-full">
-                <Button variant="outline" className="w-full">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/register" onClick={onClose} className="w-full">
-                <Button className="w-full">
-                  Register
+                <Button className="w-full rounded-full bg-[#fe6201] hover:bg-[#e05500] text-white font-semibold h-10 shadow-xs cursor-pointer">
+                  Login
                 </Button>
               </Link>
             </div>
@@ -226,3 +206,4 @@ export function MobileNav({
   );
 }
 
+export default MobileNav;

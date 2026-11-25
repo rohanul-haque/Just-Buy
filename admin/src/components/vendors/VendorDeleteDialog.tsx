@@ -63,7 +63,7 @@ export const VendorDeleteDialog: React.FC<VendorDeleteDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-6 bg-white rounded-md border border-[#E5E7EB] shadow-lg font-sans">
+      <DialogContent className="sm:max-w-md p-6 bg-[#FFE7D9] rounded-xl border border-[#ffceb0]/80 shadow-lg font-sans">
         <DialogHeader className="flex flex-col items-center text-center space-y-3">
           <div className="w-12 h-12 rounded-md bg-[#EF4444]/10 text-[#EF4444] flex items-center justify-center">
             <AlertTriangle className="w-6 h-6" />
@@ -89,7 +89,7 @@ export const VendorDeleteDialog: React.FC<VendorDeleteDialogProps> = ({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto rounded-md border-[#E5E7EB] text-[#1F2937] hover:bg-[#F8FAFC]"
+            className="w-full sm:w-auto rounded-md border-[#ffceb0]/80 text-[#1F2937] hover:bg-white/80"
           >
             Cancel
           </Button>

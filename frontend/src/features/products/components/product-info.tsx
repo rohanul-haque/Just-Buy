@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Star, Heart, ShoppingCart, Minus, Plus, Loader2 } from "lucide-react";
+import { Star, Heart, Minus, Plus, Loader2 } from "lucide-react";
 import type { Product, ProductSize } from "@/features/products/types";
-import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/features/auth/hooks/use-auth";
 import { useProductReviews } from "@/features/reviews/hooks/use-reviews";
 import {
@@ -45,42 +44,27 @@ export function ProductInfo({ product }: ProductInfoProps) {
   };
 
   const handleIncrease = () => {
-    setQuantity((q) => Math.min(product.stock || 99, q + 1));
-  };
-
-  const handleAddToCart = async () => {
-    if (!user) {
-      notify.info("Please sign in to add items to your cart.");
-      router.push("/login");
+    if (quantity >= product.stock) {
+      notify.warning(`Cannot select more than available stock (${product.stock} available)`);
       return;
     }
-
-    if (hasSizes && !selectedSize) {
-      notify.warning("Please select a size first.");
-      return;
-    }
-
-    try {
-      await addToCartMutation.mutateAsync({
-        productId: product._id,
-        quantity,
-        size: selectedSize,
-      });
-      notify.success("Added to cart", `${product.name} (${quantity} item${quantity > 1 ? "s" : ""})`);
-    } catch (err) {
-      notify.apiError(err, "Failed to add to cart");
-    }
+    setQuantity((q) => Math.min(product.stock, q + 1));
   };
 
   const handleBuyNow = async () => {
     if (!user) {
-      notify.info("Please sign in to purchase items.");
+      notify.info("Please sign in to complete your purchase.");
       router.push("/login");
       return;
     }
 
     if (hasSizes && !selectedSize) {
       notify.warning("Please select a size first.");
+      return;
+    }
+
+    if (quantity > product.stock) {
+      notify.error(`Cannot purchase more than available stock (${product.stock} available).`);
       return;
     }
 
@@ -116,7 +100,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
     }
   };
 
-  // Real review data derived from actual reviews API
+  // Real reviews calculation from backend reviews API
   const reviewsCount = reviews?.length ?? 0;
   const ratingValue =
     reviewsCount > 0
@@ -125,86 +109,75 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
   const isInStock = product.stock > 0;
 
+  // Dynamically resolve vendor name strictly from backend data (no static fallback)
+  const vendorName =
+    product.vendor?.shopName ||
+    (product.vendor?.vendor && typeof product.vendor.vendor === "object"
+      ? product.vendor.vendor.name
+      : undefined) ||
+    product.vendor?.name;
+
   return (
-    <div className="flex flex-col space-y-5">
-      {/* Product Title */}
-      <div className="space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-          {product.name}
-        </h1>
+    <div className="flex flex-col space-y-4 sm:space-y-5">
+      {/* 1. Title */}
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 leading-snug">
+        {product.name}
+      </h1>
 
-        {/* Vendor Shop Name */}
-        {product.vendor?.shopName && (
-          <p className="text-sm font-semibold text-primary">
-            {product.vendor.shopName}
-          </p>
-        )}
-      </div>
+      {/* 2. Vendor Name strictly from Backend */}
+      {vendorName && (
+        <p className="text-base sm:text-lg font-semibold text-[#ff6200]">
+          {vendorName}
+        </p>
+      )}
 
-      {/* Ratings and Stock Status */}
+      {/* 3. Reviews & Stock Status */}
       <div className="flex items-center gap-3 text-xs sm:text-sm">
-        {reviewsCount > 0 ? (
-          <>
-            <div className="flex items-center text-[#FFAD33]">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Star
-                  key={index}
-                  className={cn(
-                    "size-4",
-                    index < Math.floor(ratingValue)
-                      ? "fill-[#FFAD33] text-[#FFAD33]"
-                      : "fill-muted text-muted-foreground/30",
-                  )}
-                />
-              ))}
-            </div>
+        <div className="flex items-center text-[#FFAD33]">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Star
+              key={index}
+              className={cn(
+                "size-4",
+                ratingValue > index
+                  ? "fill-[#FFAD33] text-[#FFAD33]"
+                  : "fill-neutral-200 text-neutral-200",
+              )}
+            />
+          ))}
+        </div>
 
-            <span className="text-muted-foreground font-medium">
-              ({reviewsCount} {reviewsCount === 1 ? "Review" : "Reviews"})
-            </span>
-          </>
-        ) : (
-          <span className="text-muted-foreground font-medium">
-            (No reviews yet)
-          </span>
-        )}
+        <span className="text-neutral-500 font-medium">
+          ({reviewsCount} Reviews)
+        </span>
 
-        <span className="text-muted-foreground/40">|</span>
+        <span className="text-neutral-300">|</span>
 
-        {/* Real Stock Status */}
         <span
           className={cn(
-            "font-semibold",
-            isInStock ? "text-emerald-500" : "text-destructive",
+            "font-semibold text-xs sm:text-sm",
+            isInStock ? "text-[#00D672]" : "text-red-500",
           )}
         >
-          {isInStock ? `In Stock (${product.stock} available)` : "Out of Stock"}
+          {isInStock ? "In Stock" : "Out of Stock"}
         </span>
       </div>
 
-      {/* Price */}
-      <div className="text-2xl sm:text-3xl font-bold text-foreground font-mono">
+      {/* 4. Price */}
+      <div className="text-2xl sm:text-3xl font-bold text-neutral-900">
         ${product.price.toFixed(2)}
       </div>
 
-      {/* Description */}
-      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-3">
+      {/* 5. Description */}
+      <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-lg">
         {product.description}
       </p>
 
-      {/* Brand */}
-      {product.brand && (
-        <div className="text-xs sm:text-sm text-foreground">
-          <span className="font-semibold text-muted-foreground">Brand: </span>
-          <span className="font-medium">{product.brand}</span>
-        </div>
-      )}
-
-      {/* Size Selector: Displayed ONLY when sizes exist in actual backend data */}
+      {/* 6. Size: Displayed ONLY if sizes exist in product */}
       {hasSizes && (
-        <div className="space-y-2 pt-2 border-t border-border/60">
+        <div className="pt-2 border-t border-neutral-200/80">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-foreground">Size:</span>
+            <span className="text-sm font-semibold text-neutral-900">Size:</span>
             <div className="flex items-center gap-2">
               {product.sizes!.map((size) => {
                 const isSelected = selectedSize === size;
@@ -216,8 +189,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
                     className={cn(
                       "flex size-8 sm:size-9 items-center justify-center rounded-xs text-xs font-bold transition-all cursor-pointer",
                       isSelected
-                        ? "bg-primary text-primary-foreground shadow-xs"
-                        : "border border-border bg-background text-foreground hover:border-primary hover:text-primary",
+                        ? "bg-[#ff6200] text-white shadow-xs"
+                        : "border border-neutral-300 bg-white text-neutral-800 hover:border-[#ff6200] hover:text-[#ff6200]",
                     )}
                   >
                     {size}
@@ -229,20 +202,20 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
       )}
 
-      {/* Quantity & Action Row */}
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
-        {/* Quantity Counter: [-] [ 1 ] [+] */}
-        <div className="flex items-center rounded-md border border-border bg-background overflow-hidden">
+      {/* 7. Action Row: Perfectly Symmetric Increment/Decrement Button + Buy Now + Wishlist */}
+      <div className="flex items-center gap-3 sm:gap-4 pt-3 flex-wrap">
+        {/* Quantity Selector: Exact 44px (h-11) height, square buttons with equal horizontal/vertical proportions */}
+        <div className="inline-flex items-center h-11 rounded-md border border-neutral-300 bg-white overflow-hidden shadow-2xs">
           <button
             type="button"
             onClick={handleDecrease}
             disabled={quantity <= 1}
             aria-label="Decrease quantity"
-            className="flex size-9 items-center justify-center text-foreground hover:bg-muted disabled:opacity-40 transition-colors cursor-pointer"
+            className="w-11 h-11 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 disabled:opacity-35 transition-colors cursor-pointer shrink-0 border-r border-neutral-300"
           >
-            <Minus className="size-3.5" />
+            <Minus className="size-4" />
           </button>
-          <span className="w-10 text-center text-sm font-semibold text-foreground">
+          <span className="w-12 h-11 flex items-center justify-center text-sm sm:text-base font-semibold text-neutral-900 select-none">
             {quantity}
           </span>
           <button
@@ -250,54 +223,49 @@ export function ProductInfo({ product }: ProductInfoProps) {
             onClick={handleIncrease}
             disabled={!isInStock || quantity >= product.stock}
             aria-label="Increase quantity"
-            className="flex size-9 items-center justify-center bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors cursor-pointer"
+            className={cn(
+              "w-11 h-11 flex items-center justify-center bg-[#ff6200] text-white transition-colors shrink-0",
+              !isInStock || quantity >= product.stock
+                ? "opacity-40 cursor-not-allowed bg-neutral-400"
+                : "hover:bg-[#e65800] cursor-pointer",
+            )}
           >
-            <Plus className="size-3.5" />
+            <Plus className="size-4" />
           </button>
         </div>
 
+        {/* Stock warning hint if max stock reached */}
+        {quantity >= product.stock && isInStock && (
+          <span className="text-xs text-amber-600 font-medium block w-full">
+            Maximum available stock reached ({product.stock} available)
+          </span>
+        )}
+
         {/* Buy Now Button */}
-        <Button
-          size="lg"
+        <button
+          type="button"
           disabled={!isInStock || addToCartMutation.isPending}
           onClick={handleBuyNow}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-8 shadow-sm cursor-pointer"
+          className="h-11 px-8 sm:px-10 rounded-md bg-[#ff6200] hover:bg-[#e65800] text-white font-semibold text-sm transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center"
         >
           {addToCartMutation.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             "Buy Now"
           )}
-        </Button>
+        </button>
 
-        {/* Add To Cart Icon Button */}
-        <Button
-          variant="outline"
-          size="icon"
-          disabled={!isInStock || addToCartMutation.isPending}
-          onClick={handleAddToCart}
-          className="size-10 rounded-md border-border hover:border-primary hover:text-primary cursor-pointer"
-          aria-label="Add to cart"
-        >
-          {addToCartMutation.isPending ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <ShoppingCart className="size-4" />
-          )}
-        </Button>
-
-        {/* Wishlist Icon Button */}
-        <Button
-          variant="outline"
-          size="icon"
+        {/* Wishlist Button: Matching exact h-11 height and w-11 width */}
+        <button
+          type="button"
           onClick={handleToggleWishlist}
           disabled={
             addToWishlistMutation.isPending ||
             removeFromWishlistMutation.isPending
           }
           className={cn(
-            "size-10 rounded-md border-border hover:border-primary transition-colors cursor-pointer",
-            isWishlisted && "border-red-500 text-red-500 bg-red-500/5",
+            "size-11 rounded-md border border-neutral-300 hover:border-[#ff6200] flex items-center justify-center text-neutral-700 hover:text-[#ff6200] transition-colors cursor-pointer shrink-0 bg-white shadow-2xs",
+            isWishlisted && "border-red-500 text-red-500 bg-red-50",
           )}
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
@@ -307,13 +275,15 @@ export function ProductInfo({ product }: ProductInfoProps) {
           ) : (
             <Heart
               className={cn(
-                "size-4",
+                "size-5 transition-colors",
                 isWishlisted && "fill-red-500 text-red-500",
               )}
             />
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );
 }
+
+export default ProductInfo;

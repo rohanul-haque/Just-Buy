@@ -20,7 +20,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   title,
   value,
   icon,
-  iconBackgroundColor = "bg-[#4F46E5]",
+  iconBackgroundColor = "bg-[#CB4E01]",
   iconColor = "text-white",
   link,
   onClick,
@@ -35,18 +35,18 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   const content = (
     <Card
       className={cn(
-        "p-4 bg-white border border-[#E5E7EB] rounded-lg shadow-xs transition-all duration-200 hover:shadow-xs",
+        "p-5 bg-[#FFE7D9] border border-[#ffceb0]/60 rounded-xl shadow-xs transition-all duration-200 hover:shadow-sm",
         onClick && "cursor-pointer",
-        isActive && "border-[#4F46E5] ring-1 ring-[#4F46E5]",
+        isActive && "border-[#CB4E01] ring-1 ring-[#CB4E01]",
         className,
       )}
       onClick={onClick}
     >
-      <div className="flex items-center gap-3.5">
-        {/* Left: Square icon container with rounded-md */}
+      <div className="flex items-center gap-4">
+        {/* Left: Circle icon container */}
         <div
           className={cn(
-            "w-11 h-11 rounded-md flex items-center justify-center shrink-0 shadow-xs [&>svg]:w-5 [&>svg]:h-5",
+            "w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-xs [&>svg]:w-5 [&>svg]:h-5",
             !isCustomBg && iconBackgroundColor,
             iconColor,
           )}
@@ -57,14 +57,14 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           {icon}
         </div>
 
-        {/* Right: Vertically stacked Title & Value */}
+        {/* Right: Vertically stacked Value & Title (Matching Admin Dashboard) */}
         <div className="min-w-0 flex-1">
-          <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block truncate">
-            {title}
-          </span>
-          <h3 className="text-xl font-bold text-[#0F172A] leading-tight mt-0.5 truncate">
+          <h3 className="text-2xl font-bold text-[#0F172A] leading-tight truncate">
             {value}
           </h3>
+          <span className="text-xs font-medium text-[#64748B] block truncate mt-0.5">
+            {title}
+          </span>
           {subtitle && (
             <p className="text-[11px] text-[#94A3B8] mt-0.5 truncate">
               {subtitle}
