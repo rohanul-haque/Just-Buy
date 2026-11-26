@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import AdminPagination from "@/components/ui/admin-pagination";
 import type {
   IEarningsPagination,
   IEarningsTransaction,
@@ -277,68 +277,13 @@ export const EarningsTransactionsTable: React.FC<
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-[#4B5563]">
-          <div>
-            Showing{" "}
-            <span className="font-semibold text-[#0F172A]">{startRecord}</span>–
-            <span className="font-semibold text-[#0F172A]">{endRecord}</span> of{" "}
-            <span className="font-semibold text-[#0F172A]">{total}</span>{" "}
-            transactions
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!hasPrev || isLoading}
-              onClick={() => handlePageChange(currentPage - 1)}
-              className="h-8 px-2.5 rounded-md border-[#ffceb0]/60 bg-[#FFE7D9] text-xs font-medium text-[#0F172A] hover:bg-[#ffceb0]/40 disabled:opacity-50"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
-              Previous
-            </Button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-              {getPageNumbers(currentPage, totalPages).map((p, idx) =>
-                p === "..." ? (
-                  <span
-                    key={`dots-${idx}`}
-                    className="px-1.5 text-xs text-[#9CA3AF]"
-                  >
-                    ...
-                  </span>
-                ) : (
-                  <Button
-                    key={p}
-                    variant={p === currentPage ? "default" : "outline"}
-                    size="sm"
-                    disabled={isLoading}
-                    onClick={() => handlePageChange(Number(p))}
-                    className={cn(
-                      "h-8 w-8 p-0 text-xs rounded-md",
-                      p === currentPage
-                        ? "bg-[#fe6201] text-white hover:bg-[#e55801] border-[#fe6201] font-bold"
-                        : "border-[#ffceb0]/60 bg-[#FFE7D9] text-[#0F172A] hover:bg-[#ffceb0]/40",
-                    )}
-                  >
-                    {p}
-                  </Button>
-                ),
-              )}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!hasNext || isLoading}
-              onClick={() => handlePageChange(currentPage + 1)}
-              className="h-8 px-2.5 rounded-md border-[#ffceb0]/60 bg-[#FFE7D9] text-xs font-medium text-[#0F172A] hover:bg-[#ffceb0]/40 disabled:opacity-50"
-            >
-              Next
-              <ChevronRight className="w-3.5 h-3.5 ml-1" />
-            </Button>
-          </div>
+        <div className="pt-2">
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isLoading}
+          />
         </div>
       )}
     </div>

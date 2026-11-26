@@ -65,6 +65,8 @@ export const categoryIdParamsSchema = z
 
 export const categoryQuerySchema = z
   .object({
+    page: z.coerce.number().int().positive().optional(),
+    limit: z.coerce.number().int().positive().optional(),
     search: z.string().trim().optional(),
     isActive: z.preprocess(
       booleanOrAllPreprocessor,

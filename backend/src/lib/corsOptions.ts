@@ -10,7 +10,9 @@ const corsOptions: CorsOptions = {
       config.NODE_ENV === "development" ||
       config.WHITELISTED_ORIGINS.includes(origin) ||
       origin === config.FRONTEND_URL ||
-      origin === config.CLIENT_URL
+      origin === config.CLIENT_URL ||
+      origin === config.ADMIN_URL ||
+      origin === config.VENDOR_URL
     ) {
       callback(null, true);
     } else {

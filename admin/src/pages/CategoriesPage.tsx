@@ -5,6 +5,7 @@ import CategorySkeletonGrid from "@/components/categories/CategorySkeletonGrid";
 import DeleteCategoryDialog from "@/components/categories/DeleteCategoryDialog";
 import EditCategoryDialog from "@/components/categories/EditCategoryDialog";
 import SummaryCard from "@/components/ui/SummaryCard";
+import AdminPagination from "@/components/ui/admin-pagination";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { CategoryActionResult } from "@/routes/actions/category.action";
@@ -24,9 +25,11 @@ export const CategoriesPage: React.FC = () => {
   const loaderData = useLoaderData() as CategoryLoaderData | undefined;
   const navigation = useNavigation();
   const statusFetcher = useFetcher<CategoryActionResult>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const categories = loaderData?.categories ?? [];
+  const totalPages = loaderData?.pagination?.totalPages ?? 1;
+  const currentPage = loaderData?.page ?? 1;
   const stats = loaderData?.statistics || {
     activeCategories: 0,
     inactiveCategories: 0,
@@ -63,6 +66,12 @@ export const CategoriesPage: React.FC = () => {
       }
     }
   }, [statusFetcher.data]);
+
+  const handlePageChange = (nextPage: number) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("page", String(nextPage));
+    setSearchParams(nextParams);
+  };
 
   const handleToggleStatus = (cat: ICategory) => {
     const nextStatus = !cat.isActive;
@@ -145,19 +154,28 @@ export const CategoriesPage: React.FC = () => {
         </Card>
       )}
 
-      {/* 5. Category Card Grid (Exactly 4 cards in each row on desktop) */}
+      {/* 5. Category Card Grid (Exactly 4 cards in each row on desktop, 8 per page) */}
       {categories.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {categories.map((category) => (
-            <CategoryCard
-              key={category._id}
-              category={category}
-              onEdit={(cat) => setEditingCategory(cat)}
-              onDelete={(cat) => setDeletingCategory(cat)}
-              onToggleStatus={handleToggleStatus}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {categories.map((category) => (
+              <CategoryCard
+                key={category._id}
+                category={category}
+                onEdit={(cat) => setEditingCategory(cat)}
+                onDelete={(cat) => setDeletingCategory(cat)}
+                onToggleStatus={handleToggleStatus}
+              />
+            ))}
+          </div>
+
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isLoading}
+          />
+        </>
       )}
 
       {/* Add Dialog */}
