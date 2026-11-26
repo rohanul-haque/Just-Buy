@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import type {
   IEarningsPagination,
   IVendorEarningsTransaction,
@@ -57,9 +56,6 @@ export const VendorEarningsTransactionsTable: React.FC<
   const total = pagination?.total ?? transactions.length;
   const limit = pagination?.limit ?? 10;
   const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(total / limit));
-
-  const startRecord = total === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const endRecord = Math.min(currentPage * limit, total);
 
   const formatCurrency = (val?: number | null) => {
     return `$${(Number(val) || 0).toLocaleString("en-US", {

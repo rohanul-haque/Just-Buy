@@ -58,7 +58,6 @@ export const ProductsPage: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalProducts, setTotalProducts] = useState(0);
 
   // Request ID reference to prevent race conditions
   const latestRequestIdRef = useRef<number>(0);
@@ -138,14 +137,11 @@ export const ProductsPage: React.FC = () => {
         setProducts(response.data);
         if (response.pagination) {
           setTotalPages(response.pagination.totalPages || 1);
-          setTotalProducts(response.pagination.total || response.data.length);
         } else {
           setTotalPages(1);
-          setTotalProducts(response.data.length);
         }
       } else {
         setProducts([]);
-        setTotalProducts(0);
         setTotalPages(1);
       }
     } catch (err) {
