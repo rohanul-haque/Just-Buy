@@ -10,16 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AdminPagination from "@/components/ui/admin-pagination";
-import { cn } from "@/lib/utils";
 import type { IBuyer, IBuyerPagination } from "@/types/buyer";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  ShieldCheck,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { Info, ShieldCheck, Trash2, Users } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "react-router";
 
@@ -31,21 +23,6 @@ interface BuyersTableProps {
   onViewDetails: (buyer: IBuyer) => void;
   onSoftDelete: (buyer: IBuyer) => void;
 }
-
-const getPageNumbers = (current: number, total: number) => {
-  if (total <= 5) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-  const pages: (number | "...")[] = [];
-  if (current <= 3) {
-    pages.push(1, 2, 3, "...", total);
-  } else if (current >= total - 2) {
-    pages.push(1, "...", total - 2, total - 1, total);
-  } else {
-    pages.push(1, "...", current, "...", total);
-  }
-  return pages;
-};
 
 export const BuyersTable: React.FC<BuyersTableProps> = ({
   buyers,
@@ -67,13 +44,6 @@ export const BuyersTable: React.FC<BuyersTableProps> = ({
   const limit = pagination?.limit || 10;
   const total = pagination?.total ?? buyers.length;
   const totalPages = pagination?.totalPages || Math.ceil(total / limit) || 1;
-  const hasPrev = pagination ? pagination.hasPrevPage : currentPage > 1;
-  const hasNext = pagination
-    ? pagination.hasNextPage
-    : currentPage < totalPages;
-
-  const startRecord = total === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const endRecord = Math.min(currentPage * limit, total);
 
   const activeSearch = searchParams.get("search");
   const activeStatus = searchParams.get("status");

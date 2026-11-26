@@ -51,8 +51,13 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
       <PaginationContent className="gap-2">
         <PaginationItem>
           <PaginationPrevious
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={isPrevDisabled}
+            onClick={() => {
+              if (!isPrevDisabled) {
+                onPageChange(Math.max(1, currentPage - 1));
+              }
+            }}
+            aria-disabled={isPrevDisabled || undefined}
+            tabIndex={isPrevDisabled ? -1 : undefined}
             className={cn(
               "size-10 rounded-lg border border-neutral-200 bg-white shadow-none",
               isPrevDisabled
@@ -71,8 +76,13 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
             <PaginationItem key={item}>
               <PaginationLink
                 isActive={item === currentPage}
-                onClick={() => onPageChange(item)}
-                disabled={isLoading}
+                onClick={() => {
+                  if (!isLoading) {
+                    onPageChange(item);
+                  }
+                }}
+                aria-disabled={isLoading || undefined}
+                tabIndex={isLoading ? -1 : undefined}
                 className={cn(
                   "size-10 rounded-lg text-sm font-medium shadow-none transition-colors cursor-pointer",
                   item === currentPage
@@ -88,8 +98,13 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
 
         <PaginationItem>
           <PaginationNext
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            disabled={isNextDisabled}
+            onClick={() => {
+              if (!isNextDisabled) {
+                onPageChange(Math.min(totalPages, currentPage + 1));
+              }
+            }}
+            aria-disabled={isNextDisabled || undefined}
+            tabIndex={isNextDisabled ? -1 : undefined}
             className={cn(
               "size-10 rounded-lg border border-neutral-200 bg-white shadow-none",
               isNextDisabled

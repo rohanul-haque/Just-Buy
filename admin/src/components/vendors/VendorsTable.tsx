@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AdminPagination from "@/components/ui/admin-pagination";
-import { cn } from "@/lib/utils";
 import type {
   IVendor,
   IVendorPagination,
@@ -20,8 +19,6 @@ import type {
 import {
   Ban,
   Check,
-  ChevronLeft,
-  ChevronRight,
   Info,
   ShieldCheck,
   Store,
@@ -42,21 +39,6 @@ interface VendorsTableProps {
   onDeleteRequest?: (vendor: IVendor) => void;
   onSuspend?: (vendor: IVendor) => void;
 }
-
-const getPageNumbers = (current: number, total: number) => {
-  if (total <= 5) {
-    return Array.from({ length: total }, (_, i) => i + 1);
-  }
-  const pages: (number | "...")[] = [];
-  if (current <= 3) {
-    pages.push(1, 2, 3, "...", total);
-  } else if (current >= total - 2) {
-    pages.push(1, "...", total - 2, total - 1, total);
-  } else {
-    pages.push(1, "...", current, "...", total);
-  }
-  return pages;
-};
 
 export const VendorsTable: React.FC<VendorsTableProps> = ({
   vendors,
@@ -84,13 +66,6 @@ export const VendorsTable: React.FC<VendorsTableProps> = ({
   const limit = pagination?.limit || 10;
   const total = pagination?.total ?? vendors.length;
   const totalPages = pagination?.totalPages || Math.ceil(total / limit) || 1;
-  const hasPrev = pagination ? pagination.hasPrevPage : currentPage > 1;
-  const hasNext = pagination
-    ? pagination.hasNextPage
-    : currentPage < totalPages;
-
-  const startRecord = total === 0 ? 0 : (currentPage - 1) * limit + 1;
-  const endRecord = Math.min(currentPage * limit, total);
 
   const activeSearch = searchParams.get("search");
 
