@@ -36,6 +36,8 @@ export interface IUpdateCategoryStatusInput {
 export interface ICategoryQueryOptions {
   search?: string;
   isActive?: boolean | string;
+  page?: number;
+  limit?: number;
 }
 
 export interface ICategoryStatistics {

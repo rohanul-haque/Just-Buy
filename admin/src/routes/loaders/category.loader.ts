@@ -1,9 +1,12 @@
 import categoryService from "@/api/services/category.service";
+import type { PaginationMeta } from "@/types/api";
 import type { ICategory, ICategoryStatistics } from "@/types/category";
 import type { LoaderFunctionArgs } from "react-router";
 
 export interface CategoryLoaderData {
   categories: ICategory[];
+  pagination?: PaginationMeta | null;
+  page?: number;
   statistics?: ICategoryStatistics;
   status?: string;
   search?: string;
@@ -14,6 +17,7 @@ export const categoriesLoader = async ({
 }: LoaderFunctionArgs = {} as LoaderFunctionArgs): Promise<CategoryLoaderData> => {
   const url = request?.url ? new URL(request.url) : null;
   const search = url?.searchParams.get("search") || "";
+  const page = Math.max(1, Number(url?.searchParams.get("page")) || 1);
   const rawStatus = (
     url?.searchParams.get("status") ||
     url?.searchParams.get("filter") ||
@@ -30,6 +34,8 @@ export const categoriesLoader = async ({
   try {
     const [response, statsRes] = await Promise.all([
       categoryService.getAllCategories({
+        page,
+        limit: 8,
         isActive: isActiveParam,
         search: search.trim() ? search.trim() : undefined,
       }),
@@ -40,6 +46,8 @@ export const categoriesLoader = async ({
 
     return {
       categories: response.data || [],
+      pagination: response.pagination || null,
+      page,
       statistics: statsRes.data || {
         activeCategories: 0,
         inactiveCategories: 0,
@@ -50,6 +58,8 @@ export const categoriesLoader = async ({
   } catch {
     return {
       categories: [],
+      pagination: null,
+      page,
       statistics: { activeCategories: 0, inactiveCategories: 0 },
       status: rawStatus,
       search,

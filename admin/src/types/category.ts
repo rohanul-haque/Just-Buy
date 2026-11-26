@@ -22,6 +22,8 @@ export interface ICategory {
 }
 
 export interface ICategoryQuery {
+  page?: number;
+  limit?: number;
   search?: string;
   isActive?: boolean | "all";
   sort?: string;

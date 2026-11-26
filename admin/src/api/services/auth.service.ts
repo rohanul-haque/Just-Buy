@@ -64,6 +64,17 @@ export const authService = {
     );
     return response.data;
   },
+
+  changePassword: async (payload: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<ApiResponse<{ message: string }>> => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      "/auth/change-password",
+      payload,
+    );
+    return response.data;
+  },
 };
 
 export default authService;

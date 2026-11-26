@@ -30,7 +30,8 @@ const getAllCategories = asyncHandler(
       statusCode: status.OK,
       success: true,
       message: CATEGORY_MESSAGES.CATEGORIES_RETRIEVED,
-      data: result,
+      data: result.data,
+      ...(result.pagination && { pagination: result.pagination }),
     });
   },
 );
