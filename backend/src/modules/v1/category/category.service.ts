@@ -86,7 +86,18 @@ const createCategory = async (
 
 const getAllCategories = async (
   options: ICategoryQueryOptions,
-): Promise<ICategory[]> => {
+): Promise<{
+  data: ICategory[];
+  pagination?: {
+    page: number;
+    skip: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasPrevPage: boolean;
+    hasNextPage: boolean;
+  };
+}> => {
   const filter: Record<string, any> = {};
 
   // Default to isActive: true unless explicitly specified (supports 'all' for admin oversight)
@@ -103,12 +114,43 @@ const getAllCategories = async (
     filter.name = { $regex: new RegExp(escapeRegex(options.search), "i") };
   }
 
+  if (options.page !== undefined || options.limit !== undefined) {
+    const page = Math.max(1, Number(options.page) || 1);
+    const limit = Math.max(1, Number(options.limit) || 8);
+    const skip = (page - 1) * limit;
+
+    const [total, categories] = await Promise.all([
+      Category.countDocuments(filter).exec(),
+      Category.find(filter)
+        .populate("admin", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+    ]);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return {
+      data: categories,
+      pagination: {
+        page,
+        skip,
+        limit,
+        total,
+        totalPages,
+        hasPrevPage: page > 1,
+        hasNextPage: page < totalPages,
+      },
+    };
+  }
+
   const categories = await Category.find(filter)
     .populate("admin", "name email")
     .sort({ createdAt: -1 })
     .exec();
 
-  return categories;
+  return { data: categories };
 };
 
 const getCategoryById = async (categoryId: string): Promise<ICategory> => {

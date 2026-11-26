@@ -10,6 +10,7 @@ import User from "@/modules/v1/user/user.model";
 import AppError from "@/utils/AppError";
 import ERROR_CODE from "@/utils/ERROR_CODES";
 import MESSAGES from "@/utils/MESSAGE";
+import { hashPassword } from "@/utils/password";
 import { status } from "http-status";
 import type { ClientSession, Types } from "mongoose";
 
@@ -110,6 +111,9 @@ const updateOwnProfile = async (
   }
   if (payload.email !== undefined && payload.email.trim().length > 0) {
     userUpdateFields.email = payload.email.trim().toLowerCase();
+  }
+  if (payload.password !== undefined && payload.password.trim().length > 0) {
+    userUpdateFields.password = await hashPassword(payload.password.trim());
   }
 
   // 4. Prepare partial update fields for Admin document

@@ -24,13 +24,25 @@ const config = {
   NODE_ENV: process.env.NODE_ENV || "development",
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
 
-  WHITELISTED_ORIGINS: ["http://localhost:3000", ""],
+  WHITELISTED_ORIGINS: [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    process.env.FRONTEND_URL || "",
+    process.env.ADMIN_URL || "",
+    process.env.VENDOR_URL || "",
+    ...(process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
+      : []),
+  ].filter(Boolean),
   WHITELISTED_ADMIN_MAILS: [
     "dev.rohan2024@gmail.com",
     "mdrohanulhaquerohan368@gmail.com",
     "codeithfardin@gmail.com",
   ],
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
+  ADMIN_URL: process.env.ADMIN_URL || "http://localhost:5174",
+  VENDOR_URL: process.env.VENDOR_URL || "http://localhost:5173",
   CLIENT_URL:
     process.env.CLIENT_URL ||
     process.env.FRONTEND_URL ||

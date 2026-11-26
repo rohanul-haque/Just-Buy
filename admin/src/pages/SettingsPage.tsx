@@ -27,6 +27,7 @@ export const SettingsPage: React.FC = () => {
   const [phone, setPhone] = useState(initialPhone);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialAvatarUrl);
+  const [password, setPassword] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -53,6 +54,7 @@ export const SettingsPage: React.FC = () => {
         );
         refreshProfile();
         setSelectedFile(null);
+        setPassword("");
       } else if (fetcher.data.error) {
         toast.error(fetcher.data.error);
       }
@@ -91,6 +93,16 @@ export const SettingsPage: React.FC = () => {
 
     if (selectedFile) {
       formData.append("profile", selectedFile);
+      hasChanges = true;
+    }
+
+    const trimmedPassword = password.trim();
+    if (trimmedPassword) {
+      if (trimmedPassword.length < 6) {
+        toast.error("Password must be at least 6 characters.");
+        return;
+      }
+      formData.append("password", trimmedPassword);
       hasChanges = true;
     }
 
@@ -233,6 +245,25 @@ export const SettingsPage: React.FC = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Phone Number"
+                disabled={isSaving}
+                className="w-full h-12 px-4 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-[#1F2937] text-sm focus-visible:ring-1 focus-visible:ring-[#fe6201] focus-visible:border-[#fe6201] shadow-xs"
+              />
+            </div>
+
+            {/* 4. Password (Optional) */}
+            <div className="space-y-2">
+              <label
+                htmlFor="admin-password"
+                className="text-sm font-semibold text-[#1F2937] block"
+              >
+                Password
+              </label>
+              <Input
+                id="admin-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter new password (optional)"
                 disabled={isSaving}
                 className="w-full h-12 px-4 rounded-xl bg-[#FFE7D9] border border-[#ffceb0]/80 text-[#1F2937] text-sm focus-visible:ring-1 focus-visible:ring-[#fe6201] focus-visible:border-[#fe6201] shadow-xs"
               />

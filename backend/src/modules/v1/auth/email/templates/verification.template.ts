@@ -11,39 +11,49 @@ export const renderVerificationTemplate = (
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Verification - Jus Buy</title>
+  <title>Email Verification - JustBuy</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
-    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .header { background: #2563eb; padding: 28px 24px; text-align: center; }
-    .header h1 { margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; }
-    .content { padding: 32px 28px; line-height: 1.6; }
-    .greeting { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
-    .otp-card { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 24px; text-align: center; margin: 24px 0; }
-    .otp-code { font-size: 38px; font-weight: 800; letter-spacing: 8px; color: #2563eb; margin: 0; font-family: monospace; }
-    .otp-info { font-size: 13px; color: #64748b; margin-top: 8px; }
-    .footer { background: #f8fafc; padding: 20px 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 24px 16px; color: #171717; }
+    .container { max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; border-top: 4px solid #ff6200; overflow: hidden; }
+    .header { padding: 28px 28px 12px; text-align: center; }
+    .brand { display: inline-block; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #171717; }
+    .brand span { color: #ff6200; }
+    .content { padding: 12px 32px 32px; line-height: 1.6; }
+    .title { font-size: 20px; font-weight: 700; color: #171717; text-align: center; margin: 0 0 8px; }
+    .subtitle { font-size: 14px; color: #6b7280; text-align: center; margin: 0 0 24px; }
+    .greeting { font-size: 15px; font-weight: 600; color: #171717; margin-bottom: 10px; }
+    .text { font-size: 14px; color: #4b5563; margin: 0 0 20px; }
+    .otp-card { background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 22px; text-align: center; margin: 24px 0; }
+    .otp-code { font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #ff6200; margin: 0; font-family: monospace; }
+    .otp-info { font-size: 13px; color: #9a3412; margin-top: 8px; }
+    .footer { background-color: #f9fafb; padding: 18px 24px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>Jus Buy</h1>
+      <div class="brand">Just<span>Buy</span></div>
     </div>
     <div class="content">
-      <div class="greeting">Hello, ${name}!</div>
-      <p>Thank you for registering with <strong>Jus Buy</strong>. Please use the following One-Time Password (OTP) to complete your email verification:</p>
-      
+      <h1 class="title">Verify Your Email</h1>
+      <p class="subtitle">Use the 5-digit code below to activate your account.</p>
+
+      <div class="greeting">Hello ${name},</div>
+      <p class="text">
+        Thank you for registering with <strong>JustBuy</strong>. Please enter the following One-Time Password (OTP) to complete your verification:
+      </p>
+
       <div class="otp-card">
         <div class="otp-code">${otp}</div>
         <div class="otp-info">This code is valid for <strong>${expiresInMinutes} minutes</strong>. Single use only.</div>
       </div>
 
-      <p>If you did not request this verification, please safely ignore this email. Do not share this OTP with anyone.</p>
-      <p style="margin-top: 24px;">Warm regards,<br><strong>The Jus Buy Team</strong></p>
+      <p class="text" style="font-size: 13px; color: #6b7280; margin-bottom: 0;">
+        If you did not request this verification, you can safely ignore this email. Never share this OTP with anyone.
+      </p>
     </div>
     <div class="footer">
-      &copy; ${new Date().getFullYear()} Jus Buy. All rights reserved.
+      &copy; ${new Date().getFullYear()} JustBuy. All rights reserved.
     </div>
   </div>
 </body>
