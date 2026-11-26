@@ -82,7 +82,6 @@ export const OrderListPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalOrders, setTotalOrders] = useState(0);
 
   // Debounce search input (400ms)
   useEffect(() => {
@@ -160,10 +159,8 @@ export const OrderListPage: React.FC = () => {
         setOrders(response.data);
         if (response.pagination) {
           setTotalPages(response.pagination.totalPages || 1);
-          setTotalOrders(response.pagination.total || response.data.length);
         } else {
           setTotalPages(1);
-          setTotalOrders(response.data.length);
         }
       } else {
         setOrders([]);
